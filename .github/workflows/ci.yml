@@ -1,0 +1,37 @@
+name: Build, test and package
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - run: npm run verify
+      - run: npm run pack:all
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ski-jump-web-node-${{ matrix.node }}
+          if-no-files-found: error
+          path: |
+            dist/
+            SkiJumpWeb.html
+            artifacts/*.tgz

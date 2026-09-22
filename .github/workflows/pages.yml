@@ -1,0 +1,94 @@
+name: Deploy game to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verify sources and build standalone game
+        run: |
+          mkdir -p artifacts
+          npm run verify | tee artifacts/verify.txt
+          npm run pack:all | tee artifacts/pack.txt
+      - name: Install browser test tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ski-playwright"
+          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0
+          "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
+      - name: Validate desktop and touch layouts
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          export CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          "$PY" tests/browser_full.py | tee artifacts/browser-tests.txt
+      - name: Commit initial generated distributions and captures
+        run: |
+          if git ls-files --error-unmatch artifacts/screenshots/desktop-menu.png >/dev/null 2>&1; then
+            echo "Generated distributions already initialized; new captures are included in downloads."
+            exit 0
+          fi
+          git add dist SkiJumpWeb.html artifacts
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build: include standalone game, npm packages and validated browser captures'
+            git push origin HEAD:main
+          fi
+      - name: Build downloadable release archives
+        run: python3 tools/package-release.py
+      - name: Stage Pages site
+        run: |
+          mkdir -p _site/downloads
+          cp -a dist/. _site/
+          touch _site/.nojekyll
+          cp SkiJumpWeb.html _site/SkiJumpWeb.html
+          cp release/* _site/downloads/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ski-jump-web-release
+          if-no-files-found: error
+          path: |
+            release/
+            artifacts/browser-tests.*
+            artifacts/screenshots/
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy game
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Check published game and downloads
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for path in '' 'app.js' 'style.css' 'SkiJumpWeb.html' 'downloads/SkiJumpWeb-source.zip' 'downloads/SkiJumpWeb-npm-packages.zip'; do
+            curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 5 --output /dev/null "${PAGE_URL}${path}"
+          done
+          echo "Published game: ${PAGE_URL}" >> "$GITHUB_STEP_SUMMARY"
