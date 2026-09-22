@@ -1,0 +1,1 @@
+Strict TypeScript declaration compilation passed for all ten packages.

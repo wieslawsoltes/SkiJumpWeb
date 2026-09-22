@@ -1,0 +1,599 @@
+import { clamp, lerp, Random, colorRGB } from '@wieslawsoltes/ski-core';
+import { HillProfile } from '@wieslawsoltes/ski-hills';
+const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const vmul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
+function multiply(a, b) { const r = new Float32Array(16); for (let c = 0; c < 4; c++)
+    for (let row = 0; row < 4; row++)
+        for (let k = 0; k < 4; k++)
+            r[c * 4 + row] += a[k * 4 + row] * b[c * 4 + k]; return r; }
+function lookAt(eye, center) { const z = norm(vsub(eye, center)), x = norm(cross([0, 1, 0], z)), y = cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]); }
+function ortho(l, r, b, t, n, f, gpu) { return new Float32Array([2 / (r - l), 0, 0, 0, 0, 2 / (t - b), 0, 0, 0, 0, (gpu ? 1 : 2) / (n - f), 0, (l + r) / (l - r), (t + b) / (b - t), gpu ? n / (n - f) : (f + n) / (n - f), 1]); }
+function projected(m, p, w, h) { const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]; return [(x * .5 + .5) * w, (-y * .5 + .5) * h, z]; }
+const shade = (c, f) => c.map(x => clamp(x * f, 0, 1));
+const SNOW = [.88, .9, .97], WOOD = [.50, .33, .075], DARKWOOD = [.29, .21, .06], STEEL = [.42, .44, .50];
+export class MeshBuilder {
+    constructor() { this.data = []; }
+    tri(a, b, c, color, lighting = true) { let f = 1; if (lighting) {
+        const n = norm(cross(vsub(b, a), vsub(c, a)));
+        f = .69 + .31 * Math.abs(dot(n, norm([-.35, .9, .3])));
+    } const col = shade(color, f); for (const p of [a, b, c])
+        this.data.push(...p, ...col); return this; }
+    quad(a, b, c, d, color, lighting = true) { this.tri(a, b, c, color, lighting); this.tri(a, c, d, color, lighting); return this; }
+    box(x, y, z, w, h, d, color) { const p = [[x, y, z], [x + w, y, z], [x + w, y + h, z], [x, y + h, z], [x, y, z + d], [x + w, y, z + d], [x + w, y + h, z + d], [x, y + h, z + d]]; for (const f of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]])
+        this.quad(...f.map(i => p[i]), color); return this; }
+    beam(a, b, r, color, sides = 5) { const n = norm(vsub(b, a)), u = norm(cross(n, Math.abs(n[1]) < .9 ? [0, 1, 0] : [1, 0, 0])), v = cross(n, u); for (let i = 0; i < sides; i++) {
+        const aa = i / sides * Math.PI * 2, bb = (i + 1) / sides * Math.PI * 2;
+        const off = t => vadd(vmul(u, Math.cos(t) * r), vmul(v, Math.sin(t) * r));
+        const x = off(aa), y = off(bb);
+        this.quad(vadd(a, x), vadd(a, y), vadd(b, y), vadd(b, x), color);
+        this.tri(b, vadd(b, x), vadd(b, y), color);
+    } return this; }
+    cone(x, y, z, r, h, color, sides = 6) { for (let i = 0; i < sides; i++) {
+        const a = i / sides * 6.2831853, b = (i + 1) / sides * 6.2831853;
+        this.tri([x + Math.cos(a) * r, y, z + Math.sin(a) * r], [x, y + h, z], [x + Math.cos(b) * r, y, z + Math.sin(b) * r], color);
+    } return this; }
+    sphere(x, y, z, r, color) { const a = [x - r, y, z], b = [x + r, y, z], c = [x, y - r, z], d = [x, y + r, z], e = [x, y, z - r], f = [x, y, z + r]; for (const v of [[a, d, e], [e, d, b], [b, d, f], [f, d, a], [a, e, c], [e, b, c], [b, f, c], [f, a, c]])
+        this.tri(...v, color); return this; }
+    finish() { return new Float32Array(this.data); }
+}
+function tree(m, x, y, z, h, r) { m.box(x - .15, y, z - .15, .3, h * .55, .3, [.25, .19, .13]); const greens = [[.12, .28, .21], [.16, .31, .25], [.11, .24, .19]]; for (let j = 0; j < 3; j++) {
+    const base = y + h * (.16 + j * .21), radius = h * (.26 - j * .055);
+    m.cone(x, base, z, radius, h * .48, greens[(j + r) % 3], 6);
+    m.cone(x, base + h * .15, z, radius * .65, h * .33, [.79, .85, .88], 6);
+} }
+function stripe(m, p, d, width, color, thickness = .23) { const a = p.atDistance(d - thickness), b = p.atDistance(d + thickness); m.quad([a.x, a.y + .07, -width], [b.x, b.y + .07, -width], [b.x, b.y + .07, width], [a.x, a.y + .07, width], color, false); }
+const DIGITS = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001001001001', '111101111101111', '111101111001111'];
+function groundNumber(m, p, d, width, n) { const a = p.atDistance(d), text = String(n), scale = .31; for (let c = 0; c < text.length; c++) {
+    const glyph = DIGITS[+text[c]];
+    for (let j = 0; j < 15; j++)
+        if (glyph[j] === '1') {
+            const xx = a.x + (j % 3) * scale, zz = width + 1 + (Math.floor(j / 3) + c * 6) * scale, yy = p.atX(xx).y + .09;
+            m.quad([xx, yy, zz], [xx + scale * .8, yy, zz], [xx + scale * .8, yy, zz + scale * .8], [xx, yy, zz + scale * .8], [.29, .38, .57], false);
+        }
+} }
+/** Static, batched terrain / structures. No mesh creation or full-scene uploads per frame. */
+export function createHillMesh(profile, quality = 1, record = 0) {
+    const p = profile instanceof HillProfile ? profile : new HillProfile(profile), m = new MeshBuilder(), r = new Random(p.hill.seed);
+    const x0 = p.startX - 95, x1 = p.end.x + 90, step = quality < 1 ? 20 : 12, zMin = -210, zMax = 110;
+    for (let x = x0; x < x1; x += step)
+        for (let z = zMin; z < zMax; z += step) {
+            const q = [[x, p.groundY(x, z), z], [x + step, p.groundY(x + step, z), z], [x + step, p.groundY(x + step, z + step), z + step], [x, p.groundY(x, z + step), z + step]];
+            m.quad(...q, shade(SNOW, r.range(.94, 1.035)));
+        }
+    // Distant folded mountain silhouettes, authored geometry.
+    if (p.hill.biome === 'alpine' || p.hill.biome === 'arctic')
+        for (let i = 0; i < 14; i++) {
+            const x = lerp(x0 - 80, x1 + 100, i / 13), z = -170 - r.range(0, 100), y = p.groundY(x, z) - 5, h = r.range(28, p.hill.biome === 'alpine' ? 72 : 40), w = r.range(35, 65);
+            m.tri([x - w, y, z], [x, y + h, z - 10], [x + w, y, z], [.69, .74, .85]);
+            m.tri([x, y + h, z - 10], [x + w, y, z], [x + w * .7, y, z - 25], [.55, .62, .76]);
+            m.tri([x - w * .3, y + h * .7, z - 7], [x, y + h, z - 10], [x + w * .3, y + h * .7, z - 7], [.93, .94, .99]);
+        }
+    const stride = quality < 1 ? 5 : 2.5;
+    for (let s = 0; s < p.k * 2.1; s += stride) {
+        const a = p.atDistance(s), b = p.atDistance(s + stride), wa = 4 + s * .027, wb = 4 + (s + stride) * .027;
+        m.quad([a.x, a.y + .035, -wa], [b.x, b.y + .035, -wb], [b.x, b.y + .035, wb], [a.x, a.y + .035, wa], [.96, .96, 1]);
+        for (const side of [-1, 1])
+            m.quad([a.x, a.y + .05, side * wa], [b.x, b.y + .05, side * wb], [b.x, b.y + .05, side * (wb + .16)], [a.x, a.y + .05, side * (wa + .16)], [.61, .65, .76]);
+    }
+    for (let s = 10; s < p.k * 1.55; s += 10) {
+        const a = p.atDistance(s), width = 4 + s * .027;
+        stripe(m, p, s, width, [.70, .75, .85], .05);
+        groundNumber(m, p, s, width, Math.round(s));
+        for (const z of [-width - 1, width + 1]) {
+            m.box(a.x - .08, a.y, z - .07, .16, 1.2, .14, [.87, .16, .17]);
+            m.box(a.x - .08, a.y + .65, z - .07, .16, .3, .14, [1, .95, .9]);
+        }
+    }
+    stripe(m, p, p.k, 4 + p.k * .027, [.79, .16, .15], .28);
+    stripe(m, p, p.k * 1.1, 4 + p.k * 1.1 * .027, [.22, .34, .67], .2);
+    if (record > 0)
+        stripe(m, p, record, 4 + record * .027, [.88, .72, .09], .11);
+    // Inrun snow, ochre timber fascia, twin rails, and slender concrete supports.
+    for (let x = p.startX; x < 0; x += 1.3) {
+        const b = Math.min(0, x + 1.3), y = p.inrunY(x), yb = p.inrunY(b);
+        m.quad([x, y, -1.75], [b, yb, -1.75], [b, yb, 1.75], [x, y, 1.75], [.94, .95, 1]);
+        m.quad([x, y - .1, 1.9], [b, yb - .1, 1.9], [b, yb - 1.6, 1.9], [x, y - 1.6, 1.9], WOOD);
+        m.quad([x, y - .1, -1.9], [b, yb - .1, -1.9], [b, yb - 1.6, -1.9], [x, y - 1.6, -1.9], DARKWOOD);
+        m.quad([x, y - 1.6, -1.9], [b, yb - 1.6, -1.9], [b, yb - 1.6, 1.9], [x, y - 1.6, 1.9], DARKWOOD);
+        for (const z of [-.32, .32])
+            m.quad([x, y + .01, z - .06], [b, yb + .01, z - .06], [b, yb + .01, z + .06], [x, y + .01, z + .06], [.54, .58, .67]);
+        for (const z of [-1.95, 1.75]) {
+            m.quad([x, y + .55, z], [b, yb + .55, z], [b, yb + .55, z + .2], [x, y + .55, z + .2], [.72, .54, .19]);
+            m.quad([x, y + .55, z + .2], [b, yb + .55, z + .2], [b, yb - .02, z + .2], [x, y - .02, z + .2], WOOD);
+        }
+    }
+    for (let x = p.startX + 3; x < -5; x += Math.max(9, p.k * .055)) {
+        const top = p.inrunY(x) - 1.65, bottom = p.groundY(x, 0);
+        for (const z of [-1.1, .9])
+            m.box(x - .4, bottom, z - .28, .8, Math.max(.3, top - bottom), .56, STEEL);
+        m.beam([x, bottom + .8, -1], [x + 6, p.inrunY(x + 6) - 1.6, -1], .17, [.37, .39, .43]);
+    }
+    const sy = p.startY, g = p.groundY(p.startX - 4, 0);
+    m.box(p.startX - 9, sy - 2, -3, 9, 1.9, 6, WOOD);
+    m.box(p.startX - 9, sy - .1, -3, 9, .12, 6, [.96, .96, 1]);
+    for (const x of [p.startX - 8, p.startX - 2])
+        for (const z of [-2.2, 2.2])
+            m.box(x - .45, g, z - .45, .9, sy - 2 - g, .9, STEEL);
+    for (const z of [-3, 2.8]) {
+        m.box(p.startX - 9, sy, z, 9, .55, .22, DARKWOOD);
+        m.box(p.startX - 9, sy + .52, z, 9, .08, .22, [.83, .81, .69]);
+    }
+    m.box(p.startX - 9, sy, -3, .2, .6, 6, DARKWOOD);
+    m.box(p.startX - 1, sy - .4, -2.6, .2, 3.5, .2, [.31, .32, .37]);
+    m.box(p.startX - 1.27, sy + 2.15, -2.64, .72, 1.1, .25, [.12, .14, .19]);
+    m.sphere(p.startX - .9, sy + 2.4, -2.36, .19, [.18, .9, .16]);
+    // Exit fence, flags and a small judges' stand.
+    for (let s = p.k * .55; s < p.k * 1.8; s += 8) {
+        const a = p.atDistance(s), width = 6 + s * .027;
+        m.box(a.x, a.y, width, .13, 1.5, .13, [.38, .30, .21]);
+        const b = p.atDistance(s + 8);
+        m.beam([a.x, a.y + 1.1, width], [b.x, b.y + 1.1, 6 + (s + 8) * .027], .07, [.46, .33, .16]);
+    }
+    const tower = p.atDistance(p.k * .8);
+    m.box(tower.x - 3, tower.y + 1, 19, 7, 8, 6, [.43, .44, .46]);
+    m.box(tower.x - 3.3, tower.y + 8.7, 18.7, 7.6, .65, 6.6, [.87, .89, .94]);
+    m.box(tower.x - 2.7, tower.y + 6, 18.95, 6.4, 1.7, .1, [.18, .26, .36]);
+    for (let j = 0; j < 6; j++) {
+        const a = p.atDistance(p.k * (.65 + j * .10)), z = -10 - a.s * .027;
+        m.beam([a.x, a.y, z], [a.x, a.y + 6, z], .08, [.47, .49, .53]);
+        m.quad([a.x, a.y + 6, z], [a.x + 2, a.y + 5.6, z], [a.x + 2, a.y + 4.7, z], [a.x, a.y + 5.1, z], j % 2 ? [.86, .16, .16] : [.85, .87, .96]);
+    }
+    const count = Math.round((p.hill.biome === 'arctic' ? 75 : 220) * quality);
+    for (let i = 0; i < count; i++) {
+        const x = r.range(x0, x1), side = r.next() < .88 ? -1 : 1, z = side * r.range(x < 0 ? 9 : 18, side < 0 ? 160 : 65);
+        if (x > 0 && Math.abs(z) < 11 + p.atX(x).s * .027)
+            continue;
+        tree(m, x, p.groundY(x, z), z, r.range(3.5, 9.8), i);
+    }
+    // A low-poly spectator line. Kept outside the jump corridor.
+    for (let i = 0; i < 75 * quality; i++) {
+        const s = r.range(p.k * .65, p.k * 1.6), a = p.atDistance(s), z = -8 - s * .027 - r.range(0, 4);
+        m.box(a.x, a.y, z, .45, .9, .3, [r.range(.1, .7), r.range(.1, .5), r.range(.2, .75)]);
+        m.sphere(a.x + .22, a.y + 1.1, z + .15, .19, [.79, .65, .51]);
+    }
+    return m.finish();
+}
+function shadowMesh(state, profile) {
+    const m = new MeshBuilder();
+    if (state.phase === 'gate' || state.phase === 'inrun')
+        return m.finish();
+    const x = state.x + .25 * Math.max(0, state.height || 0), z = .7, g = profile.atX(x), radius = 1.5 + Math.min(2, (state.height || 0) * .022), col = [.51, .56, .67];
+    for (let i = 0; i < 10; i++) {
+        const a = i * Math.PI / 5, b = (i + 1) * Math.PI / 5;
+        const p = t => { const xx = x + Math.cos(t) * radius; return [xx, profile.atX(xx).y + .065, z + Math.sin(t) * .44]; };
+        m.tri([x, g.y + .065, z], p(a), p(b), col, false);
+    }
+    return m.finish();
+}
+function skierMesh(state, player = {}, ghost = false) {
+    const m = new MeshBuilder(), s = state, suit = ghost ? [.66, .89, .95] : colorRGB(player.suit || '#225be7'), helmet = ghost ? [.86, .94, .97] : colorRGB(player.helmet || '#e63235'), skis = ghost ? [.74, .94, .97] : colorRGB(player.skis || '#f0db1c');
+    let rotation = s.pitch || 0, offsetY = .05;
+    if (s.crashed && ['runout', 'finished'].includes(s.phase)) {
+        rotation += Math.min(5, s.runoutTime || s.time % 4) * 3.8;
+        offsetY = .55;
+    }
+    const C = Math.cos(rotation), S = Math.sin(rotation), tr = p => [s.x + p[0] * C - p[1] * S, s.y + p[0] * S + p[1] * C + offsetY, (s.z || 0) + p[2] + (ghost ? -1.4 : 0)];
+    const limb = (a, b, r, c) => m.beam(tr(a), tr(b), r, c, 5), ball = (a, r, c) => { const v = tr(a); m.sphere(...v, r, c); };
+    let hip, shoulder, head, knee, foot;
+    const flight = s.phase === 'flight', standing = (s.phase === 'runout' || s.phase === 'finished') && !s.crashed;
+    if (flight) {
+        hip = [-.22, .58, 0];
+        shoulder = [.63, .76, 0];
+        head = [1, .85, 0];
+        knee = [-.67, .34, 0];
+        foot = [-.58, .10, 0];
+    }
+    else if (standing) {
+        hip = [-.13, 1.05, 0];
+        shoulder = [.14, 1.66, 0];
+        head = [.31, 1.96, 0];
+        knee = [.40, .62, 0];
+        foot = [0, .1, 0];
+    }
+    else {
+        hip = [-.35, .74, 0];
+        shoulder = [.32, 1.01, 0];
+        head = [.67, 1.18, 0];
+        knee = [.39, .44, 0];
+        foot = [-.05, .1, 0];
+    }
+    for (const side of [-1, 1]) {
+        const vstyle = flight && s.landing === 'none', tele = standing && s.landing === 'telemark', shift = tele ? side * .45 : 0;
+        const z = side * .19;
+        const back = [-1.55 + shift, .02, vstyle ? side * .055 : z], tip = [1.55 + shift, .02, vstyle ? side * .65 : z];
+        limb(back, tip, .067, skis);
+        limb(tip, [1.78 + shift, .10, tip[2] + (vstyle ? side * .03 : 0)], .05, skis);
+        const f = [foot[0] + shift, foot[1], z], k = [knee[0] + shift * .65, knee[1], z], h = [hip[0], hip[1], z * .7];
+        limb([f[0] - .11, f[1], z], [f[0] + .2, f[1], z], .12, [.15, .17, .21]);
+        limb(f, k, .105, suit);
+        limb(k, h, .14, suit);
+        const sh = [shoulder[0], shoulder[1], side * .22], el = flight ? [.14, .46, side * .32] : standing ? [.12, 1.16, side * .42] : [.42, .59, side * .31], hand = flight ? [-.39, .40, side * .25] : standing ? [-.19, .85, side * .43] : [.57, .51, side * .2];
+        limb(sh, el, .08, suit);
+        limb(el, hand, .07, suit);
+        ball(hand, .082, [.13, .15, .2]);
+    }
+    limb(hip, shoulder, .21, suit);
+    limb([shoulder[0] - .08, shoulder[1] + .03, 0], [shoulder[0] + .13, shoulder[1] + .08, 0], .222, ghost ? [.9, .96, 1] : [.95, .94, .90]);
+    limb(shoulder, head, .1, [.91, .69, .51]);
+    ball(head, .23, helmet);
+    ball([head[0] + .18, head[1] - .025, .04], .13, [.12, .17, .24]);
+    return m.finish();
+}
+const GPU_SHADER = `
+struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
+@group(0) @binding(0) var<uniform> scene:Scene;
+struct Out { @builtin(position) pos:vec4<f32>, @location(0) color:vec3<f32>, @location(1) world:vec3<f32> };
+@vertex fn vs(@location(0) p:vec3<f32>, @location(1) c:vec3<f32>)->Out { var o:Out;o.pos=scene.matrix*vec4<f32>(p,1);o.color=c;o.world=p;return o; }
+@fragment fn fs(o:Out)->@location(0) vec4<f32> {
+ let dist=distance(o.world,scene.camera.xyz); let fog=smoothstep(135.0,360.0,dist)*0.72;
+ var color=mix(o.color,scene.fog.rgb,fog);
+ if(scene.params.x>2.5){color=color*vec3<f32>(0.35,0.43,0.65);}
+ else if(scene.params.x>1.5){color=color*vec3<f32>(1.0,0.84,0.80);}
+ let grain=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453)-0.5;
+ color=floor(clamp(color+vec3<f32>(grain/115.0),vec3<f32>(0.0),vec3<f32>(1.0))*31.0)/31.0;
+ return vec4<f32>(color,1.0);
+}`;
+const GPU_SKY = `
+struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
+@group(0) @binding(0) var<uniform> scene:Scene;
+struct Out { @builtin(position) pos:vec4<f32>, @location(0) uv:vec2<f32> };
+@vertex fn vs(@builtin(vertex_index) i:u32)->Out {let p=array<vec2<f32>,3>(vec2<f32>(-1,-1),vec2<f32>(3,-1),vec2<f32>(-1,3));var o:Out;o.pos=vec4<f32>(p[i],0.999,1);o.uv=(p[i]+vec2<f32>(1.0))*0.5;return o;}
+@fragment fn fs(o:Out)->@location(0) vec4<f32> {
+ var top=vec3<f32>(0.40,0.39,0.78);var bottom=vec3<f32>(0.92,0.93,0.99);
+ if(scene.params.x>2.5){top=vec3<f32>(.035,.045,.13);bottom=vec3<f32>(.22,.27,.41);}
+ else if(scene.params.x>1.5){top=vec3<f32>(.30,.29,.51);bottom=vec3<f32>(.89,.68,.57);}
+ var c=mix(bottom,top,smoothstep(.12,1.0,o.uv.y));
+ let wave=.35+.03*sin(o.uv.x*18.0)+.018*sin(o.uv.x*49.0);
+ c=mix(c,bottom,(1.0-smoothstep(wave,wave+.1,o.uv.y))*.6);
+ let noise=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453);
+ if(scene.params.x>2.5 && noise>.998 && o.uv.y>.5){c=vec3<f32>(.86,.87,.94);}
+ c=floor(clamp(c+vec3<f32>((noise-.5)/90.0),vec3<f32>(0),vec3<f32>(1))*63.0)/63.0;
+ return vec4<f32>(c,1);
+}`;
+const GPU_SNOW = `
+struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
+@group(0) @binding(0) var<storage,read_write> particles:array<vec4<f32>>;
+@group(0) @binding(1) var<uniform> weather:Weather;
+@compute @workgroup_size(64) fn update(@builtin(global_invocation_id) id:vec3<u32>){let i=id.x;if(i>=384u){return;}var p=particles[i];p.y-=weather.dt*(.12+p.z*.25);p.x+=weather.dt*(weather.wind*.024+.025);if(p.y< -1.03){p.y=1.03;}if(p.x>1.03){p.x=-1.03;}if(p.x< -1.03){p.x=1.03;}particles[i]=p;}
+`;
+const GPU_SNOW_DRAW = `
+struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
+@group(0) @binding(0) var<storage,read> particles:array<vec4<f32>>;
+@group(0) @binding(1) var<uniform> weather:Weather;
+@vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->@builtin(position) vec4<f32>{
+ let q=array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(1,-1),vec2<f32>(1,1),vec2<f32>(-1,-1),vec2<f32>(1,1),vec2<f32>(-1,1));let p=particles[ii];return vec4<f32>(p.xy+q[vi]*vec2<f32>(1.0/weather.width,1.0/weather.height)*p.w,0,1);
+}
+@fragment fn fs()->@location(0) vec4<f32>{return vec4<f32>(.94,.96,1,.75);}
+`;
+export class SkiRenderer {
+    constructor(host, options = {}) {
+        if (!host?.appendChild)
+            throw new TypeError('A renderer host element is required');
+        this.host = host;
+        this.options = { resolution: 'classic', renderer: 'auto', weather: 'clear', camera: 'classic', ...options };
+        this.canvas = document.createElement('canvas');
+        this.canvas.className = 'ski-scene';
+        this.canvas.setAttribute('aria-hidden', 'true');
+        host.appendChild(this.canvas);
+        this.kind = 'initializing';
+        this.staticData = null;
+        this.dynamicCapacity = 65536;
+        this.width = 320;
+        this.height = 200;
+        this.camera = { x: 0, y: 0 };
+        this.cameraReady = false;
+        this.fps = 0;
+        this.frames = 0;
+        this.lastFrameTime = 0;
+        this.losses = 0;
+        this.disposed = false;
+        this.ready = this.initialize();
+    }
+    async initialize() {
+        const requested = this.options.renderer;
+        if (requested === 'auto' && globalThis.isSecureContext && navigator.gpu) {
+            try {
+                const adapter = await Promise.race([navigator.gpu.requestAdapter({ powerPreference: 'low-power' }), new Promise((_, reject) => setTimeout(() => reject(new Error('GPU adapter timeout')), 2200))]);
+                if (adapter) {
+                    const device = await adapter.requestDevice();
+                    if (this.disposed) {
+                        device.destroy();
+                        return;
+                    }
+                    await this.initGPU(device);
+                    return;
+                }
+            }
+            catch (e) {
+                this.fallbackReason = String(e.message || e);
+                this.device?.destroy();
+                this.device = null;
+            }
+        }
+        if (this.kind === 'webgpu')
+            return;
+        this.newCanvas();
+        if (requested !== 'software') {
+            try {
+                this.initGL();
+                if (this.kind === 'webgl2')
+                    return;
+            }
+            catch (e) {
+                this.fallbackReason = String(e.message || e);
+            }
+        }
+        this.newCanvas();
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
+        this.kind = 'software';
+        this.resize();
+        if (this.profile)
+            this.setHill(this.profile, this.record);
+    }
+    newCanvas() { const c = document.createElement('canvas'); c.className = 'ski-scene'; c.setAttribute('aria-hidden', 'true'); this.canvas.replaceWith(c); this.canvas = c; }
+    async initGPU(device) {
+        this.device = device;
+        const ctx = this.canvas.getContext('webgpu');
+        if (!ctx)
+            throw new Error('WebGPU canvas unavailable');
+        this.gpuContext = ctx;
+        this.format = navigator.gpu.getPreferredCanvasFormat();
+        device.pushErrorScope('validation');
+        const mod = device.createShaderModule({ label: 'Flat-shaded ski scene', code: GPU_SHADER }), sky = device.createShaderModule({ label: 'Palette sky', code: GPU_SKY });
+        for (const module of [mod, sky]) {
+            const info = await module.getCompilationInfo();
+            const errors = info.messages.filter(m => m.type === 'error');
+            if (errors.length)
+                throw new Error(errors.map(m => m.message).join('; '));
+        }
+        this.uniform = device.createBuffer({ size: 112, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        this.pipeline = device.createRenderPipeline({ label: 'Ski mesh pipeline', layout: 'auto', vertex: { module: mod, entryPoint: 'vs', buffers: [{ arrayStride: 24, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'float32x3' }] }] }, fragment: { module: mod, entryPoint: 'fs', targets: [{ format: this.format }] }, primitive: { topology: 'triangle-list', cullMode: 'none' }, depthStencil: { format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less-equal' } });
+        this.skyPipeline = device.createRenderPipeline({ label: 'Sky pipeline', layout: 'auto', vertex: { module: sky, entryPoint: 'vs' }, fragment: { module: sky, entryPoint: 'fs', targets: [{ format: this.format }] }, primitive: { topology: 'triangle-list' }, depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'always' } });
+        this.bind = device.createBindGroup({ layout: this.pipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.uniform } }] });
+        this.skyBind = device.createBindGroup({ layout: this.skyPipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: this.uniform } }] });
+        this.dynamicBuffer = device.createBuffer({ size: this.dynamicCapacity * 4, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+        this.snowBuffer = device.createBuffer({ size: 384 * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+        const data = new Float32Array(384 * 4), rng = new Random(713);
+        for (let i = 0; i < 384; i++)
+            data.set([rng.range(-1, 1), rng.range(-1, 1), rng.next(), rng.range(.65, 1.6)], i * 4);
+        device.queue.writeBuffer(this.snowBuffer, 0, data);
+        this.weatherUniform = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        const compute = device.createShaderModule({ code: GPU_SNOW }), snow = device.createShaderModule({ code: GPU_SNOW_DRAW });
+        for (const module of [compute, snow]) {
+            const info = await module.getCompilationInfo();
+            const errors = info.messages.filter(m => m.type === 'error');
+            if (errors.length)
+                throw new Error(errors.map(m => m.message).join('; '));
+        }
+        this.snowCompute = device.createComputePipeline({ layout: 'auto', compute: { module: compute, entryPoint: 'update' } });
+        this.snowPipeline = device.createRenderPipeline({ layout: 'auto', vertex: { module: snow, entryPoint: 'vs' }, fragment: { module: snow, entryPoint: 'fs', targets: [{ format: this.format, blend: { color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } } }] }, primitive: { topology: 'triangle-list' }, depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'always' } });
+        const resources = [{ binding: 0, resource: { buffer: this.snowBuffer } }, { binding: 1, resource: { buffer: this.weatherUniform } }];
+        this.computeBind = device.createBindGroup({ layout: this.snowCompute.getBindGroupLayout(0), entries: resources });
+        this.snowBind = device.createBindGroup({ layout: this.snowPipeline.getBindGroupLayout(0), entries: resources });
+        const error = await device.popErrorScope();
+        if (error)
+            throw new Error(error.message);
+        this.kind = 'webgpu';
+        this.resize();
+        if (this.profile)
+            this.setHill(this.profile, this.record);
+        device.lost.then(info => { if (this.disposed)
+            return; this.losses++; this.fallbackReason = `GPU device lost: ${info.reason}`; this.kind = 'lost'; this.options.renderer = 'webgl'; this.initialize(); });
+        device.addEventListener('uncapturederror', e => { this.lastError = e.error.message; console.error('WebGPU:', e.error.message); });
+    }
+    initGL() {
+        const gl = this.canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: true });
+        if (!gl)
+            throw new Error('WebGL2 unavailable');
+        this.gl = gl;
+        const compile = (type, code) => { const sh = gl.createShader(type); gl.shaderSource(sh, code); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+            throw new Error(gl.getShaderInfoLog(sh)); return sh; };
+        const vs = `#version 300 es\nprecision highp float;layout(location=0)in vec3 p;layout(location=1)in vec3 c;uniform mat4 matrix;out vec3 color;out vec3 world;void main(){gl_Position=matrix*vec4(p,1);color=c;world=p;}`;
+        const fs = `#version 300 es\nprecision highp float;in vec3 color;in vec3 world;uniform vec3 eye;uniform float weather;out vec4 outColor;void main(){float f=smoothstep(135.,360.,distance(world,eye))*.72;vec3 c=mix(color,vec3(.86,.88,.96),f);if(weather>2.5)c*=vec3(.35,.43,.65);else if(weather>1.5)c*=vec3(1.,.84,.80);float n=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;outColor=vec4(floor(clamp(c+n/115.,0.,1.)*31.)/31.,1);}`;
+        const program = (v, f) => { const pr = gl.createProgram(); gl.attachShader(pr, compile(gl.VERTEX_SHADER, v)); gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, f)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS))
+            throw new Error(gl.getProgramInfoLog(pr)); return pr; };
+        this.glProgram = program(vs, fs);
+        this.glMatrix = gl.getUniformLocation(this.glProgram, 'matrix');
+        this.glEye = gl.getUniformLocation(this.glProgram, 'eye');
+        this.glWeather = gl.getUniformLocation(this.glProgram, 'weather');
+        this.glSky = program(`#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 q=vec2((gl_VertexID==1)?3.:-1.,(gl_VertexID==2)?3.:-1.);uv=(q+1.)*.5;gl_Position=vec4(q,.999,1);}`, `#version 300 es\nprecision highp float;in vec2 uv;uniform float weather;out vec4 outColor;void main(){vec3 a=vec3(.40,.39,.78),b=vec3(.92,.93,.99);if(weather>2.5){a=vec3(.035,.045,.13);b=vec3(.22,.27,.41);}else if(weather>1.5){a=vec3(.3,.29,.51);b=vec3(.89,.68,.57);}vec3 c=mix(b,a,smoothstep(.12,1.,uv.y));float wave=.35+.03*sin(uv.x*18.)+.018*sin(uv.x*49.);c=mix(c,b,(1.-smoothstep(wave,wave+.1,uv.y))*.6);outColor=vec4(floor(c*63.)/63.,1);}`);
+        this.glSkyWeather = gl.getUniformLocation(this.glSky, 'weather');
+        this.glStatic = gl.createBuffer();
+        this.glDynamic = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
+        gl.bufferData(gl.ARRAY_BUFFER, this.dynamicCapacity * 4, gl.DYNAMIC_DRAW);
+        this.canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.kind = 'lost'; });
+        this.canvas.addEventListener('webglcontextrestored', () => { this.initGL(); if (this.profile)
+            this.setHill(this.profile, this.record); });
+        this.kind = 'webgl2';
+        this.resize();
+        if (this.profile)
+            this.setHill(this.profile, this.record);
+    }
+    setOptions(options) { Object.assign(this.options, options); this.resize(); }
+    resize() {
+        const rect = this.host.getBoundingClientRect(), aspect = Math.max(.45, rect.width / Math.max(1, rect.height));
+        let h = this.options.resolution === 'classic' ? 200 : this.options.resolution === 'sharp' ? 400 : Math.min(900, Math.round(rect.height * (globalThis.devicePixelRatio || 1)));
+        let w = Math.round(h * aspect);
+        if (aspect < 1) {
+            w = this.options.resolution === 'classic' ? 320 : this.options.resolution === 'sharp' ? 480 : Math.min(720, Math.round(rect.width * (globalThis.devicePixelRatio || 1)));
+            h = Math.round(w / aspect);
+        }
+        w = clamp(w, 160, 1800);
+        h = clamp(h, 120, 1800);
+        if (this.width === w && this.height === h && this.canvas.width === w && this.canvas.height === h && (!this.device || this.depth))
+            return;
+        this.width = w;
+        this.height = h;
+        this.canvas.width = w;
+        this.canvas.height = h;
+        if (this.kind === 'webgpu') {
+            this.gpuContext.configure({ device: this.device, format: this.format, alphaMode: 'opaque' });
+            this.depth?.destroy();
+            this.depth = this.device.createTexture({ size: [w, h], format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT });
+        }
+        if (this.gl)
+            this.gl.viewport(0, 0, w, h);
+    }
+    setHill(hill, record = 0) {
+        this.profile = hill instanceof HillProfile ? hill : new HillProfile(hill);
+        this.record = record;
+        this.cameraReady = false;
+        const data = createHillMesh(this.profile, this.kind === 'software' ? .32 : 1, record);
+        this.staticData = data;
+        this.vertexCount = data.length / 6;
+        if (this.kind === 'webgpu') {
+            this.staticBuffer?.destroy();
+            this.staticBuffer = this.device.createBuffer({ size: Math.max(4, data.byteLength), usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+            this.device.queue.writeBuffer(this.staticBuffer, 0, data);
+        }
+        if (this.kind === 'webgl2') {
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.glStatic);
+            this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+        }
+    }
+    cameraMatrix(state, dt, overview = false) {
+        const p = this.profile, aspect = this.width / this.height, type = this.options.camera;
+        let h = type === 'close' ? 37 : type === 'wide' ? 87 : 52 + p.k * .024;
+        if (aspect < 1)
+            h *= 1.4;
+        let x = state.x + h * aspect * .16, y = state.y - h * .17, eyeOffset = [-11, 24, 90];
+        if (type === 'chase') {
+            eyeOffset = [-52, 22, 54];
+            x = state.x + 15;
+            y = state.y - 9;
+        }
+        if (overview) {
+            h = Math.max(72, p.k * .65);
+            x = -p.inrunLength * .35;
+            y = p.startY * .38;
+            eyeOffset = [-12, 34, 110];
+        }
+        if (!this.cameraReady) {
+            this.camera.x = x;
+            this.camera.y = y;
+            this.cameraReady = true;
+        }
+        const t = 1 - Math.exp(-Math.min(dt, .05) * (overview ? 3 : 9));
+        this.camera.x = lerp(this.camera.x, x, t);
+        this.camera.y = lerp(this.camera.y, y, t);
+        const center = [this.camera.x, this.camera.y, 0], eye = vadd(center, eyeOffset);
+        this.eye = eye;
+        const matrix = multiply(ortho(-h * aspect / 2, h * aspect / 2, -h / 2, h / 2, .1, 700, this.kind === 'webgpu'), lookAt(eye, center));
+        this.matrix = matrix;
+        return matrix;
+    }
+    project(x, y, z = 0) { return this.matrix ? projected(this.matrix, [x, y, z], this.width, this.height) : [0, 0, 0]; }
+    render(state, player = {}, dt = 1 / 60, overview = false, ghost = null) {
+        if (!this.profile || !['webgpu', 'webgl2', 'software'].includes(this.kind))
+            return;
+        this.resize();
+        const matrix = this.cameraMatrix(state, dt, overview), skier = skierMesh(state, player), ghostData = ghost ? skierMesh(ghost, player, true) : null;
+        const shadow = overview ? null : shadowMesh(state, this.profile), dyn = new Float32Array((shadow?.length || 0) + (ghostData?.length || 0) + skier.length);
+        let off = 0;
+        for (const data of [shadow, ghostData, skier])
+            if (data) {
+                dyn.set(data, off);
+                off += data.length;
+            }
+        const weather = ['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather);
+        if (this.kind === 'webgpu') {
+            const u = new Float32Array(28);
+            u.set(matrix);
+            u.set([.86, .88, .96, 0], 16);
+            u.set([weather, state.time || 0, this.width, this.height], 20);
+            u.set([...this.eye, dt], 24);
+            this.device.queue.writeBuffer(this.uniform, 0, u);
+            if (dyn.length > this.dynamicCapacity)
+                throw new Error('Dynamic mesh capacity exceeded');
+            this.device.queue.writeBuffer(this.dynamicBuffer, 0, dyn);
+            const encoder = this.device.createCommandEncoder();
+            if (weather === 1) {
+                this.device.queue.writeBuffer(this.weatherUniform, 0, new Float32Array([state.wind || 0, Math.min(dt, .05), this.width, this.height]));
+                const c = encoder.beginComputePass();
+                c.setPipeline(this.snowCompute);
+                c.setBindGroup(0, this.computeBind);
+                c.dispatchWorkgroups(6);
+                c.end();
+            }
+            const pass = encoder.beginRenderPass({ colorAttachments: [{ view: this.gpuContext.getCurrentTexture().createView(), clearValue: { r: .65, g: .65, b: .85, a: 1 }, loadOp: 'clear', storeOp: 'store' }], depthStencilAttachment: { view: this.depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
+            pass.setPipeline(this.skyPipeline);
+            pass.setBindGroup(0, this.skyBind);
+            pass.draw(3);
+            pass.setPipeline(this.pipeline);
+            pass.setBindGroup(0, this.bind);
+            pass.setVertexBuffer(0, this.staticBuffer);
+            pass.draw(this.vertexCount);
+            pass.setVertexBuffer(0, this.dynamicBuffer);
+            pass.draw(dyn.length / 6);
+            if (weather === 1) {
+                pass.setPipeline(this.snowPipeline);
+                pass.setBindGroup(0, this.snowBind);
+                pass.draw(6, 384);
+            }
+            pass.end();
+            this.device.queue.submit([encoder.finish()]);
+        }
+        else if (this.kind === 'webgl2') {
+            const gl = this.gl;
+            gl.clearColor(.65, .65, .85, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.disable(gl.DEPTH_TEST);
+            gl.useProgram(this.glSky);
+            gl.uniform1f(this.glSkyWeather, weather);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.useProgram(this.glProgram);
+            gl.uniformMatrix4fv(this.glMatrix, false, matrix);
+            gl.uniform3fv(this.glEye, this.eye);
+            gl.uniform1f(this.glWeather, weather);
+            const draw = (buf, count) => { gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12); gl.drawArrays(gl.TRIANGLES, 0, count); };
+            draw(this.glStatic, this.vertexCount);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, dyn);
+            draw(this.glDynamic, dyn.length / 6);
+        }
+        else
+            this.renderSoftware(matrix, dyn, weather);
+        this.frames++;
+        this.fps = lerp(this.fps, 1 / Math.max(.001, dt), .04);
+    }
+    renderSoftware(matrix, dynamic, weather) {
+        const ctx = this.ctx, w = this.width, h = this.height, g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, weather === 3 ? '#15182e' : '#7775bc');
+        g.addColorStop(1, weather === 3 ? '#3a425a' : '#eff0ff');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        const triangles = [];
+        for (const data of [this.staticData, dynamic])
+            for (let i = 0; i < data.length; i += 18) {
+                const a = projected(matrix, data.subarray(i, i + 3), w, h), b = projected(matrix, data.subarray(i + 6, i + 9), w, h), c = projected(matrix, data.subarray(i + 12, i + 15), w, h);
+                if (Math.max(a[0], b[0], c[0]) < 0 || Math.min(a[0], b[0], c[0]) > w || Math.max(a[1], b[1], c[1]) < 0 || Math.min(a[1], b[1], c[1]) > h)
+                    continue;
+                const dim = weather === 3 ? .44 : 1;
+                triangles.push({ a, b, c, z: (a[2] + b[2] + c[2]) / 3, color: `rgb(${Math.round(data[i + 3] * 255 * dim)},${Math.round(data[i + 4] * 255 * dim)},${Math.round(data[i + 5] * 255 * dim)})` });
+            }
+        triangles.sort((a, b) => b.z - a.z);
+        for (const t of triangles) {
+            ctx.fillStyle = t.color;
+            ctx.beginPath();
+            ctx.moveTo(t.a[0], t.a[1]);
+            ctx.lineTo(t.b[0], t.b[1]);
+            ctx.lineTo(t.c[0], t.c[1]);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+    diagnostics() { return { backend: this.kind, resolution: [this.width, this.height], triangles: Math.round((this.vertexCount || 0) / 3), fps: Math.round(this.fps), staticBytes: this.staticData?.byteLength || 0, deviceLosses: this.losses, fallbackReason: this.fallbackReason || null, lastError: this.lastError || null }; }
+    dispose() { this.disposed = true; this.depth?.destroy(); this.staticBuffer?.destroy(); this.dynamicBuffer?.destroy(); this.uniform?.destroy(); this.snowBuffer?.destroy(); this.weatherUniform?.destroy(); this.device?.destroy(); if (this.gl) {
+        for (const p of [this.glProgram, this.glSky])
+            this.gl.deleteProgram(p);
+        for (const b of [this.glStatic, this.glDynamic])
+            this.gl.deleteBuffer(b);
+    } this.canvas.remove(); }
+}

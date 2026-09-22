@@ -1,0 +1,29 @@
+{
+  "name": "SkiJumpWeb",
+  "version": "0.1.0",
+  "date": "2026-09-22",
+  "runtime": "Self-contained HTML; no external runtime assets or dependencies",
+  "packages": 10,
+  "hill_roster_entries": 32,
+  "tests": {
+    "node_passed": 64,
+    "browser_checks_passed": 33,
+    "browser_errors": 0,
+    "browser_warnings": 0,
+    "strict_types": "passed",
+    "packed_sdk_offline_install_and_import": "passed"
+  },
+  "browser_renderers_exercised": [
+    "webgl2",
+    "software"
+  ],
+  "not_validated": [
+    "WebGPU execution on secure origin with GPU adapter",
+    "Physical iOS/Android devices",
+    "Original DSJ2 pixel/physics fidelity",
+    "Original replay/save format compatibility"
+  ],
+  "published_to_npm": false,
+  "deployed_to_live_host": false,
+  "standalone_sha256": "3ffee7ea0c05f3f2edece0e3a9913ac98ebcd88fd9b79b3266f8e7aa6f163eb7"
+}

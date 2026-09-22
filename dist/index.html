@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#333637"><meta name="description" content="An independent classic ski jumping web recreation. 32 hills, World Cup, Team Cup, touch controls, replays and a real WebGPU renderer."><title>Deluxe Ski Jump 2 · Independent Web Recreation</title><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./style.css"></head>
+<body>
+<div id="shell">
+  <main id="arena" aria-label="Ski jumping game">
+    <div id="scene-host"></div><canvas id="hud" aria-hidden="true"></canvas><div id="scanlines" aria-hidden="true"></div>
+    <div id="game-toolbar" hidden><button data-game="pause" aria-label="Pause game" title="Pause (P / Esc)">II</button><button data-game="camera" aria-label="Change camera" title="Camera (C)">C</button><button data-game="fullscreen" aria-label="Fullscreen" title="Fullscreen (F)">[ ]</button></div>
+    <div id="touch-controls" hidden><div id="drag-tip">DRAG UP / DOWN<br>TO BALANCE</div><div class="touch-actions"><button id="touch-main" data-game="primary">START</button><button data-game="parallel" id="touch-safe">TWO<br>FEET</button></div></div>
+    <div id="replay-controls" hidden data-no-input><button data-replay="back" aria-label="Back from replay">BACK</button><button data-replay="play" id="replay-play">II</button><select id="replay-speed" aria-label="Replay speed"><option value=".25">0.25x</option><option value=".5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select><input type="range" id="replay-seek" min="0" max="1000" value="0" aria-label="Replay timeline"><button data-replay="camera">CAM</button><button data-replay="export">SAVE</button></div>
+    <section id="menu-layer" aria-label="Game menu"><header id="menu-header"><canvas id="logo" aria-label="Deluxe Ski Jump 2"></canvas><div id="header-note">INDEPENDENT<br>WEB RECREATION<br><span id="renderer-name">INITIALIZING</span></div></header><div id="menu-heading"></div><div id="menu-content"></div><footer><span id="footer-left">32 HILLS / LOCAL HOT-SEAT</span><span>SKIJUMPWEB 0.1.0</span></footer></section>
+    <div id="toast" role="status" aria-live="polite" hidden></div><div id="live-status" class="sr-only" aria-live="polite"></div>
+  </main>
+</div>
+<input id="file-import" type="file" accept=".json,.sjr.json,application/json" hidden>
+<noscript>This game requires JavaScript. Enable it and reload this page.</noscript>
+<script src="./app.js" defer></script>
+</body></html>

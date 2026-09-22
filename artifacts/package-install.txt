@@ -1,0 +1,13 @@
+
+added 10 packages in 355ms
+Imported @wieslawsoltes/ski-core
+Imported @wieslawsoltes/ski-hills
+Imported @wieslawsoltes/ski-physics
+Imported @wieslawsoltes/ski-competition
+Imported @wieslawsoltes/ski-replay
+Imported @wieslawsoltes/ski-renderer
+Imported @wieslawsoltes/ski-audio
+Imported @wieslawsoltes/ski-input
+Imported @wieslawsoltes/ski-storage
+Imported @wieslawsoltes/ski-ui
+Independent packed SDK produced a successful jump: {"hillId":"fin","k":105,"distance":107.07,"judges":[19.5,19.5,19,19.5,19.5],"landing":"telemark","crashed":false,"takeoffQuality":1,"takeoffX":-0.7666724384386718,"flightTime":3.917,"speed":139.2,"wind":1.56,"impact":11.58,"seed":42,"assisted":false,"gate":0,"physics":"sjw-1","distancePoints":65,"stylePoints":58.5,"total":123.5,"counted":[0,1,3]}

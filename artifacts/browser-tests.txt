@@ -1,0 +1,100 @@
+PASS standalone initializes without network
+PASS all 32 hills present in selector
+PASS last hill visible without landscape scrolling
+PASS Space starts jump
+PASS Space takeoff at lip has high quality
+PASS mouse down leans forward
+PASS keyboard pause stops gameplay
+PASS paused simulation is frozen
+PASS resume restores game input
+PASS interactive jump finishes with a successful landing
+PASS save replay to library
+PASS result replay opens
+PASS replay slow motion
+PASS replay scrub timeline
+PASS replay Back restores results
+PASS resolution switch reallocates render surface
+PASS player edits preserved while adding another player
+PASS hot-seat player creation
+PASS custom cup supports all 32 hills
+PASS team cup setup opens
+PASS WebGL2 renders without GL errors
+PASS procedural audio unlocks after interaction
+PASS audio voice budget and mute
+PASS portrait hill selection
+PASS touch START starts inrun
+PASS touch JUMP takeoff
+PASS touch drag steers flight
+PASS orientation change preserves active simulation
+PASS landscape layout activates
+PASS touch TWO FEET prepares parallel landing
+PASS mobile jump reaches results
+PASS software fallback initializes
+PASS no JavaScript or renderer console errors
+{
+  "checks": 33,
+  "passed": [
+    "standalone initializes without network",
+    "all 32 hills present in selector",
+    "last hill visible without landscape scrolling",
+    "Space starts jump",
+    "Space takeoff at lip has high quality",
+    "mouse down leans forward",
+    "keyboard pause stops gameplay",
+    "paused simulation is frozen",
+    "resume restores game input",
+    "interactive jump finishes with a successful landing",
+    "save replay to library",
+    "result replay opens",
+    "replay slow motion",
+    "replay scrub timeline",
+    "replay Back restores results",
+    "resolution switch reallocates render surface",
+    "player edits preserved while adding another player",
+    "hot-seat player creation",
+    "custom cup supports all 32 hills",
+    "team cup setup opens",
+    "WebGL2 renders without GL errors",
+    "procedural audio unlocks after interaction",
+    "audio voice budget and mute",
+    "portrait hill selection",
+    "touch START starts inrun",
+    "touch JUMP takeoff",
+    "touch drag steers flight",
+    "orientation change preserves active simulation",
+    "landscape layout activates",
+    "touch TWO FEET prepares parallel landing",
+    "mobile jump reaches results",
+    "software fallback initializes",
+    "no JavaScript or renderer console errors"
+  ],
+  "errors": [],
+  "warnings": [],
+  "desktop": {
+    "backend": "webgl2",
+    "resolution": [
+      320,
+      200
+    ],
+    "triangles": 18072,
+    "fps": 19,
+    "staticBytes": 1301184,
+    "deviceLosses": 0,
+    "fallbackReason": null,
+    "lastError": null
+  },
+  "mobile": {
+    "backend": "webgl2",
+    "resolution": [
+      320,
+      200
+    ],
+    "triangles": 18072,
+    "fps": 17,
+    "staticBytes": 1301184,
+    "deviceLosses": 0,
+    "fallbackReason": null,
+    "lastError": null
+  },
+  "scope": "Chromium desktop + touch emulation using offline standalone HTML. WebGPU secure-context path requires separate GPU adapter verification."
+}

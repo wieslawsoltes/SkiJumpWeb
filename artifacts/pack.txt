@@ -1,0 +1,194 @@
+
+> ski-jump-web@0.1.0 pack:all
+> node tools/pack.mjs
+
+npm notice
+npm notice package: @wieslawsoltes/ski-audio@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.9kB README.md
+npm notice 852B index.d.ts
+npm notice 6.2kB index.js
+npm notice 630B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-audio
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-audio-0.1.0.tgz
+npm notice package size: 4.3 kB
+npm notice unpacked size: 10.8 kB
+npm notice shasum: f69113abcfc18277063a79f2d68152c1c9c2b007
+npm notice integrity: sha512-qv6r4MudSgn2I[...]CVk0vUvJ2B2LQ==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-audio-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-competition@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 2.0kB README.md
+npm notice 2.4kB index.d.ts
+npm notice 10.8kB index.js
+npm notice 726B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-competition
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-competition-0.1.0.tgz
+npm notice package size: 6.4 kB
+npm notice unpacked size: 17.2 kB
+npm notice shasum: ef8b7ce0af0b536cc978ceb7bf35e2b523dc0afe
+npm notice integrity: sha512-HBACUI0eZ88EB[...]JYrXE2CSjEs1Q==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-competition-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-core@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.7kB README.md
+npm notice 1.4kB index.d.ts
+npm notice 3.2kB index.js
+npm notice 564B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-core
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-core-0.1.0.tgz
+npm notice package size: 3.7 kB
+npm notice unpacked size: 8.2 kB
+npm notice shasum: f239bfed695dcbb6434eb9b1e88b7c1c334c8fb9
+npm notice integrity: sha512-IJO1RaRgyQ0o4[...]0FQF1cfYcT/yA==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-core-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-hills@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.7kB README.md
+npm notice 1.3kB index.d.ts
+npm notice 6.4kB index.js
+npm notice 630B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-hills
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-hills-0.1.0.tgz
+npm notice package size: 4.9 kB
+npm notice unpacked size: 11.4 kB
+npm notice shasum: 58a58ae1e927c6f67922841d0f02bbb239c46876
+npm notice integrity: sha512-XNro/vqgtp7Ct[...]pmpYu4n1XinTg==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-hills-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-input@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.9kB README.md
+npm notice 755B index.d.ts
+npm notice 8.2kB index.js
+npm notice 630B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-input
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-input-0.1.0.tgz
+npm notice package size: 4.7 kB
+npm notice unpacked size: 12.8 kB
+npm notice shasum: 882bdc502683a2345b84295aaa66ec456c5d61db
+npm notice integrity: sha512-zPtUPrgAHThhq[...]JQNerDRfF0X7A==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-input-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-physics@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.9kB README.md
+npm notice 2.8kB index.d.ts
+npm notice 12.8kB index.js
+npm notice 675B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-physics
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-physics-0.1.0.tgz
+npm notice package size: 6.8 kB
+npm notice unpacked size: 19.5 kB
+npm notice shasum: 5d224a333549551fa154a237a562422f9eb6d149
+npm notice integrity: sha512-ugsJJkzHtOnz1[...]FzqinNX6kxuRg==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-physics-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-renderer@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 2.0kB README.md
+npm notice 2.4kB index.d.ts
+npm notice 39.3kB index.js
+npm notice 677B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-renderer
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-renderer-0.1.0.tgz
+npm notice package size: 14.7 kB
+npm notice unpacked size: 45.6 kB
+npm notice shasum: dc7fd991989a5c0176caa3ed799259e13d70489b
+npm notice integrity: sha512-pRJ+LDR1s+TFs[...]oc3226vHqfxeQ==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-renderer-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-replay@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 2.0kB README.md
+npm notice 1.8kB index.d.ts
+npm notice 5.5kB index.js
+npm notice 716B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-replay
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-replay-0.1.0.tgz
+npm notice package size: 4.6 kB
+npm notice unpacked size: 11.3 kB
+npm notice shasum: bdef68cd90257d14c52f246cffdbb6bedbbf7baa
+npm notice integrity: sha512-OSg241iRObtC5[...]qd/ZQ8pfgklaA==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-replay-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-storage@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.9kB README.md
+npm notice 2.5kB index.d.ts
+npm notice 7.0kB index.js
+npm notice 760B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-storage
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-storage-0.1.0.tgz
+npm notice package size: 5.1 kB
+npm notice unpacked size: 13.3 kB
+npm notice shasum: 1fa5cb7fe615627ac28c15d1f2409fcb46a433b7
+npm notice integrity: sha512-HZSWfjZiAcwC0[...]6b/svx9p1YWAQ==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-storage-0.1.0.tgz
+npm notice
+npm notice package: @wieslawsoltes/ski-ui@0.1.0
+npm notice Tarball Contents
+npm notice 1.3kB LICENSE
+npm notice 1.8kB README.md
+npm notice 1.5kB index.d.ts
+npm notice 11.1kB index.js
+npm notice 624B package.json
+npm notice Tarball Details
+npm notice name: @wieslawsoltes/ski-ui
+npm notice version: 0.1.0
+npm notice filename: wieslawsoltes-ski-ui-0.1.0.tgz
+npm notice package size: 5.8 kB
+npm notice unpacked size: 16.3 kB
+npm notice shasum: 9dd80001928083f2662f8107c6697d549eeb9254
+npm notice integrity: sha512-WDdLgDwqVZWtq[...]EBjFGFrbq4Tsg==
+npm notice total files: 5
+npm notice
+wieslawsoltes-ski-ui-0.1.0.tgz

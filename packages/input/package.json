@@ -1,0 +1,42 @@
+{
+  "name": "@wieslawsoltes/ski-input",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reusable classic ski jumping input package",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@wieslawsoltes/ski-core": "0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wieslawsoltes/SkiJumpWeb.git",
+    "directory": "packages/input"
+  },
+  "homepage": "https://wieslawsoltes.github.io/SkiJumpWeb/",
+  "bugs": {
+    "url": "https://github.com/wieslawsoltes/SkiJumpWeb/issues"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "SkiJumpWeb",
+  "short_name": "SkiJumpWeb",
+  "description": "Classic ski jumping. 32 hills, local cups and replays.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#17181b",
+  "theme_color": "#202124",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
