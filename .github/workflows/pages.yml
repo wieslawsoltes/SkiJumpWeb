@@ -5,20 +5,24 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 concurrency:
   group: github-pages
   cancel-in-progress: false
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
       pages: read
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -26,8 +30,9 @@ jobs:
       - name: Verify sources and build standalone game
         run: |
           mkdir -p artifacts
-          npm run verify | tee artifacts/verify.txt
-          npm run pack:all | tee artifacts/pack.txt
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          npm run verify 2>&1 | tee artifacts/verify.txt
+          npm run pack:all 2>&1 | tee artifacts/pack.txt
       - name: Install browser test tools
         run: |
           python3 -m venv "$RUNNER_TEMP/ski-playwright"
@@ -36,19 +41,9 @@ jobs:
       - name: Validate desktop and touch layouts
         run: |
           PY="$RUNNER_TEMP/ski-playwright/bin/python"
-          export CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
-          "$PY" tests/browser_full.py | tee artifacts/browser-tests.txt
-      - name: Commit initial generated distributions and captures
-        run: |
-          if git ls-files --error-unmatch artifacts/screenshots/desktop-menu.png >/dev/null 2>&1; then
-            echo "Generated distributions already initialized; new captures are included in downloads."
-            exit 0
-          fi
-          git add dist SkiJumpWeb.html artifacts
-          if ! git diff --cached --quiet; then
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build: include standalone game, npm packages and validated browser captures'
-            git push origin HEAD:main
-          fi
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
       - name: Build downloadable release archives
         run: python3 tools/package-release.py
       - name: Stage Pages site
@@ -75,20 +70,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Deploy game
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Check published game and downloads
+      - name: Verify published game, source, SDK archives and checksums
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_COMMIT: ${{ github.sha }}
         run: |
-          for path in '' 'app.js' 'style.css' 'SkiJumpWeb.html' 'downloads/SkiJumpWeb-source.zip' 'downloads/SkiJumpWeb-npm-packages.zip'; do
-            curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 5 --output /dev/null "${PAGE_URL}${path}"
-          done
-          echo "Published game: ${PAGE_URL}" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/verify-pages.py "$PAGE_URL" "$EXPECTED_COMMIT"
+          echo "Published and checksum-verified game: ${PAGE_URL}" >> "$GITHUB_STEP_SUMMARY"
