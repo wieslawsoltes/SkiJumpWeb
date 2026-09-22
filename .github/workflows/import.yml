@@ -1,0 +1,33 @@
+name: Import source release
+on:
+  push:
+    branches: [main]
+    paths: ['.publication/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: initial-source-import
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Restore and verify complete source payload
+        run: python3 .publication/import.py
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Validate source and build both game distributions
+        run: npm run verify
+      - name: Commit imported source and standalone distributions
+        run: |
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: import complete SkiJumpWeb game, ten reusable SDK packages and validated standalone builds'
+          git push origin HEAD:main
+          echo 'Complete sources imported, all Node tests passed, and game distributions built.' >> "$GITHUB_STEP_SUMMARY"
