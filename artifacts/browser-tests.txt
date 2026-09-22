@@ -77,7 +77,7 @@ PASS no JavaScript or renderer console errors
       200
     ],
     "triangles": 18072,
-    "fps": 19,
+    "fps": 16,
     "staticBytes": 1301184,
     "deviceLosses": 0,
     "fallbackReason": null,
@@ -90,7 +90,7 @@ PASS no JavaScript or renderer console errors
       200
     ],
     "triangles": 18072,
-    "fps": 17,
+    "fps": 14,
     "staticBytes": 1301184,
     "deviceLosses": 0,
     "fallbackReason": null,
