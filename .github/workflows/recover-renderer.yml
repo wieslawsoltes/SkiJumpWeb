@@ -1,0 +1,25 @@
+name: Recover hill-renderer sources
+on:
+  push:
+    branches: [feature/hill-rendering-parity-v040]
+    paths: [.github/workflows/recover-renderer.yml]
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: d4803293ae5f83bfc936801c33c4152b0d9a6c3a
+          persist-credentials: false
+      - name: Archive committed sources, SDK and rendering evidence
+        run: |
+          python3 tools/package-release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: renderer-source-snapshot
+          path: release/
+          retention-days: 2
+          if-no-files-found: error
