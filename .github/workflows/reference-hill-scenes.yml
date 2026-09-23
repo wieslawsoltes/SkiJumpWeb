@@ -8,51 +8,58 @@ permissions:
 jobs:
   observe:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq dosbox xvfb xdotool python3-pil
-      - name: Observe unmodified demo and publisher-supplied replays
+      - name: Capture original scenes without changing the executable or game data
         shell: bash
         env:
           DISPLAY: ':99'
           SDL_AUDIODRIVER: dummy
         run: |
-          mkdir -p "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/reference-scenes"
-          curl -fsS https://www.mediamond.fi/dsj2/downloads/dsj210.zip -o "$RUNNER_TEMP/dsj.zip"
-          echo "c58c4484c911e1a91b1bc62710a6a1ddc911defbe77a06c72ebec51f3c78c431  $RUNNER_TEMP/dsj.zip" | sha256sum -c -
-          unzip -q "$RUNNER_TEMP/dsj.zip" -d "$RUNNER_TEMP/dsj"
-          python3 - <<'PY'
-          from pathlib import Path
-          import os, urllib.request
-          p=Path(os.environ['RUNNER_TEMP'])/'dsj'
-          for f in p.iterdir(): print(f.name, f.stat().st_size)
-          for name in ['sui-193m','cze-149m','slo-283m']:
-              try: (p/(name+'.rpl')).write_bytes(urllib.request.urlopen('https://www.mediamond.fi/dsj2/replays/'+name+'.rpl', timeout=30).read())
-              except Exception as e: print(name, str(e))
-          PY
           Xvfb :99 -screen 0 800x600x24 &
           sleep 2
-          printf '[sdl]\nfullscreen=false\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n' > "$RUNNER_TEMP/reference.conf"
-          dosbox -conf "$RUNNER_TEMP/reference.conf" -c "mount c $RUNNER_TEMP/dsj" -c 'c:' -c 'dsj.exe' > "$RUNNER_TEMP/dosbox.log" 2>&1 &
-          sleep 8
-          click() { xdotool mousemove "$1" "$2"; sleep .2; xdotool mousedown 1; sleep .3; xdotool mouseup 1; sleep 2; }
-          shot() { /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-scenes/$1.png')"; }
-          click 215 315
-          click 205 426
-          sleep 8
-          shot 00-main
-          click 205 362; shot 01-replay-library
-          click 205 250; shot 02-replay-selection
-          xdotool key Return; sleep 3; shot 03-replay-enter
-          xdotool key Escape; sleep 2
-          click 205 314; shot 04-practice-menu
-          click 205 267; shot 05-practice-selection
-          click 205 453; shot 06-practice-start
-          xdotool key Escape; sleep 1; shot 07-end
-          pkill dosbox || true
-          rm -rf "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/dsj.zip"
+          /usr/bin/python3 - <<'PY'
+          from pathlib import Path
+          from PIL import ImageGrab
+          import os, time, subprocess as sp, urllib.request as http, hashlib, zipfile, io, json
+          root=Path(os.environ['RUNNER_TEMP']); game=root/'dsj';game.mkdir()
+          out=root/'reference-scenes';out.mkdir()
+          data=http.urlopen('https://www.mediamond.fi/dsj2/downloads/dsj210.zip',timeout=30).read()
+          assert hashlib.sha256(data).hexdigest()=='c58c4484c911e1a91b1bc62710a6a1ddc911defbe77a06c72ebec51f3c78c431'
+          z=zipfile.ZipFile(io.BytesIO(data));z.extractall(game)
+          example=(game/'EXAMPLE.RPL').read_bytes()
+          conf=root/'reference.conf'
+          conf.write_text('[sdl]\nfullscreen=false\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n')
+          def click(x,y,wait=.4):
+              sp.run(['xdotool','mousemove',str(x),str(y)],check=True);time.sleep(.15)
+              sp.run(['xdotool','mousedown','1'],check=True);time.sleep(.25)
+              sp.run(['xdotool','mouseup','1'],check=True);time.sleep(wait)
+          def launch():
+              return sp.Popen(['dosbox','-conf',str(conf),'-c','mount c '+str(game),'-c','c:','-c','dsj.exe'],stdout=sp.DEVNULL,stderr=sp.DEVNULL)
+          # Complete the demo's real first-run language and sound setup once.
+          app=launch();time.sleep(8);click(215,315,2);click(205,426,10)
+          app.terminate();app.wait(timeout=10)
+          sources=[('fin','EXAMPLE.RPL'),('cze','cze-149m.rpl'),('sui','sui-193m.rpl'),('slo','slo-283m.rpl'),('bel','bel-121m.rpl'),('jpn','jpn-233m.rpl'),('svk','svk-129m.rpl'),('can','can-204m.rpl'),('ita','ita-256m.rpl'),('ger','ger-135m.rpl'),('blr','blr-260m.rpl'),('pol','pol-91m.rpl'),('hun','hun-226m.rpl'),('rus','rus-228m.rpl')]
+          evidence=[]
+          for hill,name in sources:
+              replay=example if name=='EXAMPLE.RPL' else http.urlopen('https://www.mediamond.fi/dsj2/replays/'+name,timeout=30).read()
+              for f in game.iterdir():
+                  if f.suffix.lower()=='.rpl':f.unlink()
+              (game/'REF.RPL').write_bytes(replay)
+              app=launch();time.sleep(10)
+              click(205,362,1);click(205,227,1)
+              ImageGrab.grab().save(out/(hill+'-info.png'))
+              click(205,365,.1)
+              for i,delay in enumerate([.1,1.4,2,2,3,3]):
+                  time.sleep(delay);ImageGrab.grab().save(out/(hill+'-'+str(i)+'.png'))
+              app.terminate();app.wait(timeout=10)
+              evidence.append({'hill':hill,'source':name,'sha256':hashlib.sha256(replay).hexdigest(),'unmodified_demo':True})
+          (out/'sources.json').write_text(json.dumps(evidence,indent=2))
+          PY
+          rm -rf "$RUNNER_TEMP/dsj"
       - uses: actions/upload-artifact@v4
         with:
           name: original-hill-observations
-          path: ${{ runner.temp }}/reference-scenes/*.png
+          path: ${{ runner.temp }}/reference-scenes/
           retention-days: 1
