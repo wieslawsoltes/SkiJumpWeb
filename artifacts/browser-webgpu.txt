@@ -103,7 +103,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 4,
+    "frameMilliseconds": 4.199999999982538,
     "sections": [
       {
         "name": "snow",

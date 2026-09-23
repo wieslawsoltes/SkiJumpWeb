@@ -2904,7 +2904,7 @@ class ClassicMenuSkin {
         root.addEventListener('focusout',e=>{this.repaint(e.target.closest('button,label')||e.target);this.syncField(e.target);},{signal});
         for(const event of ['input','change','keyup','click','compositionupdate','compositionend']) root.addEventListener(event,e=>this.syncField(e.target),{signal});
         this.document.addEventListener('selectionchange',()=>this.syncField(this.document.activeElement),{signal});
-        this.document.addEventListener('pointerdown',e=>{if(this.popup&&!this.popup.contains(e.target)&&e.target!==this.popupSelect)this.closeSelect();},{signal,capture:true});
+        this.document.addEventListener('pointerdown',e=>{if(this.popup&&!this.popup.contains(e.target)&&e.target!==this.popupSelect&&!e.target.closest('[data-host-command],[data-ui-host]'))this.closeSelect();},{signal,capture:true});
         root.addEventListener('change',()=>this.schedule(),{signal});
         root.addEventListener('pointerdown',e=>{if(this.active&&e.target.tagName==='SELECT'){e.preventDefault();this.openSelect(e.target);}},{signal});
         root.addEventListener('click',e=>{const action=e.target.closest('[data-ui-host]')?.dataset.uiHost;if(action)this.hostAction(action);},{signal});
@@ -3023,7 +3023,15 @@ class ClassicMenuSkin {
             if(target){e.preventDefault();e.stopPropagation();target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
         }
     }
-    hostAction(action){if(action==='back')this.options.back?.();else if(action==='activate')(this.controls().find(el=>el===this.document.activeElement)||this.controls()[0])?.click();else this.move(action);}
+    hostAction(action) {
+        if(!this.active||this.disposed||this.root.hidden)return;
+        if(action==='back'){
+            const select=this.closeSelect();if(select)select.focus();else this.options.back?.();
+        }else if(action==='activate'){
+            const controls=this.controls(),target=controls.find(el=>el===this.document.activeElement)||controls[0];
+            if(target?.tagName==='SELECT')this.openSelect(target);else target?.click();
+        }else this.move(action);
+    }
     restoreInk(){for(const el of this.root.querySelectorAll('[data-classic-label]'))delete el.dataset.classicLabel;
         for(const copy of this.root.querySelectorAll('.classic-copy'))copy.replaceWith(this.document.createTextNode(copy.querySelector('.classic-semantic')?.textContent||''));
         for(const span of this.root.querySelectorAll('.classic-ink'))span.replaceWith(this.document.createTextNode(span.querySelector('.classic-semantic')?.textContent||span.dataset.text||''));

@@ -184,7 +184,7 @@ npm notice 1.3kB LICENSE
 npm notice 2.6kB README.md
 npm notice 5.1kB bitmap.js
 npm notice 18.2kB classic-style.js
-npm notice 22.5kB classic.js
+npm notice 22.9kB classic.js
 npm notice 4.1kB index.d.ts
 npm notice 10.2kB index.js
 npm notice 897B package.json
@@ -193,9 +193,9 @@ npm notice name: @wieslawsoltes/ski-ui
 npm notice version: 0.5.0
 npm notice filename: wieslawsoltes-ski-ui-0.5.0.tgz
 npm notice package size: 19.0 kB
-npm notice unpacked size: 64.8 kB
-npm notice shasum: dc91af5cbed1486b01bcc91e6bc892668c4fbcd2
-npm notice integrity: sha512-VPUSe2QrS2p9P[...]akpNZ8dgGiQEw==
+npm notice unpacked size: 65.1 kB
+npm notice shasum: 5f34c3631d43aea93977bbc8b93f83da2b57ff99
+npm notice integrity: sha512-uZTbyo245h3Ie[...]bz4w/xei2oT9g==
 npm notice total files: 8
 npm notice
 wieslawsoltes-ski-ui-0.5.0.tgz

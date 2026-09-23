@@ -1,7 +1,7 @@
 {
   "version": "0.5.0",
   "status": "passed",
-  "checks": 69,
+  "checks": 72,
   "passed": [
     "classic menu is 320x200 independent of browser dimensions",
     "800x600 window uses integer 2x scaling",
@@ -67,6 +67,9 @@
     "rotation preserves active screen and selection",
     "optional FIT expands touch display without changing the logical layout",
     "fitted landscape frame never overlaps touch controls",
+    "touch OK opens the focused native select through the pixel popup",
+    "touch Back closes a select before navigating away",
+    "second touch Back returns to main after closing the popup",
     "touch hill selection starts the real game",
     "hidden menu focus cannot swallow gameplay input",
     "sub-native touch window reserves the measured wrapped control height",
@@ -105,7 +108,7 @@
     "portrait",
     "landscape"
   ],
-  "bundleSha256": "9898221b3ac521ac7be88ba77de385b4a22f984e5a02377d4a6319cd999845c3",
+  "bundleSha256": "37c2eb4c76f19f7ebf33fcf68039c4580f6ec7c02df42e5f1127e4f38d7f3ae0",
   "originalPixelParity": "unverified",
   "scope": "Semantic input, fixed-grid layout, owned bitmap artwork, keyboard/touch and lifecycle tests. Not original-game pixel equality."
 }

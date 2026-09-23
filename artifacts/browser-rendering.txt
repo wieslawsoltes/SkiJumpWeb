@@ -32,7 +32,7 @@ kor 12 frames per backend 0 errors
 slo 12 frames per backend 0 errors
 {
   "schema": 2,
-  "bundleSha256": "9898221b3ac521ac7be88ba77de385b4a22f984e5a02377d4a6319cd999845c3",
+  "bundleSha256": "37c2eb4c76f19f7ebf33fcf68039c4580f6ec7c02df42e5f1127e4f38d7f3ae0",
   "status": "passed",
   "scope": "cross-backend",
   "originalParity": "unverified",
