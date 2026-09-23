@@ -1,0 +1,36 @@
+name: Observe publisher DSJ2 documentation
+on:
+  push:
+    branches: [research/dsj210-fidelity]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read public publisher documentation without importing original code or assets
+        shell: python
+        run: |
+          import urllib.request, urllib.parse, re, zipfile, io, hashlib
+          base = 'https://www.mediamond.fi/dsj2/downloads/'
+          html = urllib.request.urlopen(base, timeout=30).read().decode()
+          urls = [urllib.parse.urljoin(base, u) for u in re.findall(r'href=[\"\x27]([^\"\x27]+)', html) if '.zip' in u.lower()]
+          assert urls, 'No publisher demo link found'
+          print('Publisher download:', urls[0])
+          data = urllib.request.urlopen(urls[0], timeout=30).read()
+          print('Archive SHA256:', hashlib.sha256(data).hexdigest())
+          z = zipfile.ZipFile(io.BytesIO(data))
+          print('File inventory:', z.namelist())
+          for name in z.namelist():
+              if name.lower().endswith(('.txt', '.doc', '.htm')) and z.getinfo(name).file_size < 100000:
+                  text = z.read(name).decode('cp437', errors='replace')
+                  if any(w in text.lower() for w in ('take-off', 'takeoff', 'telemark', 'controls', 'instructions')):
+                      lines = text.splitlines()
+                      relevant = set()
+                      for i, line in enumerate(lines):
+                          if any(w in line.lower() for w in ('take-off','takeoff','telemark','mouse','replay','scoring','points','seconds','camera','ctrl','f1','f2','esc','space')):
+                              relevant.update(range(max(0,i-1), min(len(lines),i+3)))
+                      print('\nREFERENCE DOCUMENT:', name)
+                      for i in sorted(relevant): print(f'{i+1}: {lines[i]}')
