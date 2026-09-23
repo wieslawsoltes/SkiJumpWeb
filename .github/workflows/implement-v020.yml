@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
 defaults:
   run:
     shell: bash
@@ -38,6 +40,10 @@ jobs:
               assert not path.is_absolute() and '..' not in path.parts and path.parts[0] not in {'.git', '.github'}, 'Unsafe source path'
               assert str(path) not in seen, 'Duplicate source path'
               seen.add(str(path))
+              if str(path) == 'README.md':
+                  # The published README has additional deployment links. Merge it separately.
+                  assert subprocess.check_output(['git','hash-object',str(path)], text=True).strip() == '719b600a9c70482ed0544b7d33c8ebc50ddcc772'
+                  continue
               raw = path.read_bytes() if path.exists() else b''
               if entry['before'] is None:
                   assert not path.exists(), f'Unexpected existing file: {path}'
