@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/ski-physics",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "Reusable classic ski jumping physics package",
   "main": "./index.js",
@@ -28,8 +28,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@wieslawsoltes/ski-core": "0.3.0",
-    "@wieslawsoltes/ski-hills": "0.3.0"
+    "@wieslawsoltes/ski-core": "0.4.0",
+    "@wieslawsoltes/ski-hills": "0.4.0"
   },
   "repository": {
     "type": "git",

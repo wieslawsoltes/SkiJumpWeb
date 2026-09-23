@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "release": "0.4.0",
+  "scope": "Explicit original-game coverage, separate from backend regression",
+  "hills": [
+    {
+      "id": "fin",
+      "inrunPalette": "observed",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "sui",
+      "inrunPalette": "observed",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "cze",
+      "inrunPalette": "observed",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "blr",
+      "inrunPalette": "observed",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "aut",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "usa",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "lat",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "pol",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "jpn",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "bel",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "isl",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "eng",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "ger",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "est",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "nor",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "aus",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "irl",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "ukr",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "hun",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "swe",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "ita",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "den",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "svk",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "can",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "ltu",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "kaz",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "chn",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "fra",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "ned",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "rus",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "kor",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    },
+    {
+      "id": "slo",
+      "inrunPalette": "unverified",
+      "geometry": "reconstructed",
+      "camera": "reconstructed",
+      "matchedOriginalFrames": 0,
+      "originalPixelParity": false
+    }
+  ]
+}

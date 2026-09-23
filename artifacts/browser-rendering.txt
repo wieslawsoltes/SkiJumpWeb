@@ -1,0 +1,51 @@
+fin 9 frames per backend 0 errors
+sui 9 frames per backend 0 errors
+cze 9 frames per backend 0 errors
+blr 9 frames per backend 0 errors
+aut 9 frames per backend 0 errors
+usa 9 frames per backend 0 errors
+lat 9 frames per backend 0 errors
+pol 9 frames per backend 0 errors
+jpn 9 frames per backend 0 errors
+bel 9 frames per backend 0 errors
+isl 9 frames per backend 0 errors
+eng 9 frames per backend 0 errors
+ger 9 frames per backend 0 errors
+est 9 frames per backend 0 errors
+nor 9 frames per backend 0 errors
+aus 9 frames per backend 0 errors
+irl 9 frames per backend 0 errors
+ukr 9 frames per backend 0 errors
+hun 9 frames per backend 0 errors
+swe 9 frames per backend 0 errors
+ita 9 frames per backend 0 errors
+den 9 frames per backend 0 errors
+svk 9 frames per backend 0 errors
+can 9 frames per backend 0 errors
+ltu 9 frames per backend 0 errors
+kaz 9 frames per backend 0 errors
+chn 9 frames per backend 0 errors
+fra 9 frames per backend 0 errors
+ned 9 frames per backend 0 errors
+rus 9 frames per backend 0 errors
+kor 9 frames per backend 0 errors
+slo 9 frames per backend 0 errors
+{
+  "status": "passed",
+  "scope": "cross-backend",
+  "originalParity": "unverified",
+  "originalMatchedFrames": 0,
+  "errors": [],
+  "budgets": {
+    "gpuGlMean": 0.15,
+    "gpuGlFractionOver8": 0.001,
+    "gpuSoftwareMean": 1.5,
+    "gpuSoftwareFractionOver8": 0.01
+  },
+  "framesPerBackend": 288,
+  "backends": [
+    "webgpu",
+    "webgl2",
+    "software"
+  ]
+}

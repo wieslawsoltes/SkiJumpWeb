@@ -4,7 +4,7 @@
 
 [![Build, test and package](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml)
 
-A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.3.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
+A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.4.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
 
 **This is not a verified full-fidelity clone.** The 32 country/K-point roster entries match the publisher's public list. Hill geometry, physics, scenery, glyphs and sounds are newly authored approximations. Menus follow the original yellow-on-gray/pixel presentation, not a pixel-perfect reconstruction of every original screen. Original `.rpl` files, original saves and Mediamond online records are not supported. See [the fidelity matrix](docs/FIDELITY.md).
 
@@ -37,6 +37,21 @@ Practice has a last-50-attempt session table, landing rate/mean distance and det
 Replay controls add reverse playback, exact recorded-frame stepping, phase markers and adjustable flight-only/full-range loops. Left/Right steps samples; Home/End seeks bounds; T seeks the first flight sample; L seeks the landing transition. The FLIGHT marker is not a reconstructed original takeoff-button timestamp. Classic mouse commands react only to new primary/secondary presses, never releases or the middle button.
 
 These are working features of this independent implementation. Their presence is not evidence of exact original-menu, physics, hill-geometry or binary-format equivalence. See [CHANGELOG](CHANGELOG.md) and [fidelity boundaries](docs/FIDELITY.md).
+
+## 0.4.0 rendering update
+
+Classic mode has a shared perspective scene on WebGPU, WebGL2 and software:
+layered inrun sidewalls and concrete supports, continuous landing walls, green
+marks/red K line, branch-fan trees, articulated projected shadows, deterministic
+snow and common palette/dither/fog equations. The software fallback now has true
+frustum clipping, perspective interpolation and depth testing, without reducing
+scene detail. All 32 hills have explicit visual descriptors and provenance.
+
+Finland, Switzerland, Czech Republic and Belarus inrun color families were
+observed directly; the other 28 assignments and every original geometry/camera
+remain unverified. See [rendering fidelity and acceptance](docs/RENDERING-FIDELITY.md).
+Cross-backend image regression covers 288 fixtures per backend; this is separate
+from original-game matching. Exact all-level visual parity is **not** established.
 
 ## Play immediately
 
@@ -94,10 +109,10 @@ Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, loope
 | `@wieslawsoltes/ski-storage` | Local persistence, records, tours, ghosts and backups |
 | `@wieslawsoltes/ski-ui` | Authored bitmap lettering and HUD |
 
-Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.3.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
+Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.4.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
 
 ```sh
-npm test                          # 159 deterministic Node tests; links workspace packages locally
+npm test                          # 201 deterministic Node tests; links workspace packages locally
 npm run verify                    # publication-file checks, syntax checks, tests and build
 npm run pack:all                   # regenerate ten npm tarballs, removing stale versions
 node tools/verify-packages.mjs     # install/import tarballs in an isolated offline consumer
@@ -128,7 +143,7 @@ Publication is deliberately opt-in: review namespace ownership, versions, licens
 
 ## Rendering and performance architecture
 
-The preferred backend is actual WebGPU: batched static terrain/structures, a small dynamic skier/shadow buffer, flat-shaded low-resolution 3D, depth testing and a GPU compute snow system. Static geometry is uploaded when changing hills, not every frame. Dynamic, uniform and weather upload arrays are reused. This is not a claim of an allocation-free render loop. WebGL2 uses the same geometry; a lower-detail Canvas software rasterizer is the last fallback. Device-loss recovery releases stale GPU resources and selects a usable fallback.
+The preferred backend is actual WebGPU: batched static terrain/structures, a small dynamic skier/shadow buffer, flat-shaded low-resolution 3D, depth testing and a GPU compute snow system. Static geometry is uploaded when changing hills, not every frame. Dynamic, uniform and weather upload arrays are reused. This is not a claim of an allocation-free render loop. WebGL2 uses the same geometry; a full-detail depth-tested software rasterizer is the last fallback. Device-loss recovery releases stale GPU resources and selects a usable fallback.
 
 Simulation is a bounded-catch-up **120 Hz CPU fixed step**, independent of display frame rate. It is intentionally not a GPU physics implementation. Menus render at a reduced cadence. Resolution choices are classic 320×200 in 8:5 landscape, sharp 640×400, or capped adaptive; portrait adapts the render surface and enlarges HUD lettering. Audio is synthesized after interaction and has a bounded voice budget.
 
@@ -136,7 +151,7 @@ These architectural choices reduce work; they are **not a guarantee of a particu
 
 ## Validation and limitations
 
-**159 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline, 36 feature-workflow and 35 fidelity-focused Chromium checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
+**201 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline, 36 feature-workflow and 35 fidelity-focused Chromium checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
 
 **Hosted WebGPU validation passed on Chromium using Google's SwiftShader adapter.** The suite executed actual WebGPU rendering and compute across all 32 hills in four weather modes, rendered a complete jump through landing, resized portrait/landscape surfaces, checked validation error scopes, deliberately destroyed the device, and recovered to WebGL2. The Pages workflow now requires this suite to pass rather than accepting an unavailable adapter as a successful GPU test. See [the recorded GPU report](artifacts/browser-webgpu.json), [release evidence](artifacts/release.json) and [testing notes](docs/TESTING.md). Subsequent Pages runs place fresh reports in downloadable source and workflow artifacts without committing generated captures on every build.
 

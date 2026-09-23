@@ -29,7 +29,7 @@ try {
  else {
   const info=adapter.info;
   report.adapter=info?{vendor:info.vendor,architecture:info.architecture,device:info.device,description:info.description,isFallbackAdapter:info.isFallbackAdapter}:null;
-  const renderer=new SkiRenderer(document.getElementById('host'),{renderer:'auto'});window.renderer=renderer;await renderer.ready;
+  const renderer=new SkiRenderer(document.getElementById('host'),{renderer:'auto',presentation:'classic'});window.renderer=renderer;await renderer.ready;
   check(renderer.kind==='webgpu','renderer uses WebGPU, not a hidden fallback: '+renderer.fallbackReason);
   const device=renderer.device;device.pushErrorScope('validation');
   const staging=renderer.dynamicData, uniforms=renderer.uniformData;

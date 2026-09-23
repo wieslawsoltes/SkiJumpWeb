@@ -28,3 +28,17 @@ Browser packages require their respective platform APIs only when instantiated. 
 This is an independent implementation, not original DSJ2 code, an official port, or a verified 1:1 replica. Geometry, physics, glyphs and audio are newly authored. Original `.rpl`/save files and Mediamond online services are not supported. No original copyrighted assets are included. See the workspace README and `docs/FIDELITY.md` for the exact implementation boundary.
 
 API signatures are in `index.d.ts`; implementation and lifecycle behavior are in `index.js`.
+
+
+### Classic scene and readback (0.4.0)
+
+Select `{presentation:'classic'}` for the shared perspective scene. The default
+remains enhanced for existing SDK callers. Internal `mesh`, `scene`, `shading`
+and `raster` modules are included in the npm archive; no original game assets or
+external runtime fetch is needed. `createClassicHillScene(hill)` returns the full
+vertex stream and named sections. `await renderer.captureFrame()` returns owned
+RGBA8 pixels in top-left order; call immediately after `render` in the same task.
+It is an optional diagnostic readback, not part of normal rendering.
+
+Original pixel parity is not verified. Software consumes the same topology but
+is a correctness fallback, not a physical-device performance guarantee.

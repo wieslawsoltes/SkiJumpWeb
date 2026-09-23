@@ -12,9 +12,10 @@ for (const name of fs.readdirSync(path.join(root, 'packages'))) {
             throw Error(`${p.name}: missing ${file}`);
     if (p.version !== version || p.type !== 'module')
         throw Error(`Invalid package ${p.name}`);
-    const r = spawnSync(process.execPath, ['--check', path.join(dir, 'index.js')], { stdio: 'inherit' });
-    if (r.status)
-        process.exit(r.status);
+    for(const file of fs.readdirSync(dir).filter(f=>f.endsWith('.js'))) {
+        const r=spawnSync(process.execPath,['--check',path.join(dir,file)],{stdio:'inherit'});
+        if(r.status)process.exit(r.status);
+    }
     checked++;
 }
 for (const file of ['app/main.js', ...fs.readdirSync(path.join(root, 'tools')).filter(f => f.endsWith('.mjs')).map(f => 'tools/' + f)]) {

@@ -1,17 +1,23 @@
 {
   "name": "SkiJumpWeb",
-  "version": "0.3.0",
-  "date": "2026-09-23T06:42:48.086Z",
+  "version": "0.4.0",
+  "date": "2026-09-23T07:55:21.537Z",
   "packages": 10,
   "hill_roster_entries": 32,
   "tests": {
-    "node_passed": 159,
+    "node_passed": 201,
     "browser_baseline": 33,
     "browser_features": 36,
     "browser_fidelity": 35,
     "webgpu_checks": 43,
     "browser_errors": [],
     "webgpu_status": "passed",
+    "render_fixtures_per_backend": 288,
+    "render_backends": [
+      "webgpu",
+      "webgl2",
+      "software"
+    ],
     "strict_types": "passed in isolated package consumer",
     "packed_sdk_offline_install_and_import": "passed"
   },
@@ -26,6 +32,13 @@
     "description": "",
     "isFallbackAdapter": true
   },
+  "original_visual_parity": "unverified",
+  "observed_inrun_color_hills": [
+    "fin",
+    "sui",
+    "cze",
+    "blr"
+  ],
   "not_validated": [
     "Physical iOS/Android devices",
     "Physical GPU performance and drivers",
@@ -33,5 +46,5 @@
     "Original replay/save format compatibility"
   ],
   "published_to_npm": false,
-  "standalone_sha256": "48561c01db49540a6154ee5baac94f0ef0300e791dee564fb900db97e040e932"
+  "standalone_sha256": "1914f0656bd4f395d1040d7382535b3852cb6cc432eef21ec70bfeee3d9a3dca"
 }
