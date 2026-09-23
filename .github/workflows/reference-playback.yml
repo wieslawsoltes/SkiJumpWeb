@@ -1,0 +1,38 @@
+name: Observe original moving hill scenes
+on:
+  push:
+    branches: [research/dsj210-fidelity]
+    paths: [.github/workflows/reference-playback.yml]
+permissions:
+  contents: read
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq dosbox xvfb xdotool python3-pil python3-yaml
+      - name: Run existing observation harness with playback enabled
+        env:
+          DISPLAY: ':99'
+          SDL_AUDIODRIVER: dummy
+        run: |
+          /usr/bin/python3 - <<'PY'
+          import yaml, subprocess
+          from pathlib import Path
+          doc=yaml.safe_load(Path('.github/workflows/reference-hill-scenes.yml').read_text())
+          script=next(s['run'] for s in doc['jobs']['observe']['steps'] if s.get('name','').startswith('Capture original'))
+          start=script.index('sources=[');end=script.index('\nevidence=[]',start)
+          script=script[:start]+"sources=[('fin','EXAMPLE.RPL'),('cze','cze-149m.rpl'),('sui','sui-193m.rpl'),('blr','blr-260m.rpl')]"+script[end:]
+          old='click(205,365,.1)'
+          assert script.count(old)==1
+          script=script.replace(old,old+';click(98,136,.1)').replace('[.1,1.4,2,2,3,3]','[.1,.6,1,1,1,2,3]')
+          subprocess.run(['bash','-e','-o','pipefail','-c',script],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: original-moving-scenes
+          path: ${{ runner.temp }}/reference-scenes/
+          retention-days: 1
