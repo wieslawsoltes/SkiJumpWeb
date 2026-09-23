@@ -34,3 +34,13 @@ replace('packages/renderer/raster.js', 'for(let y=Math.max(0,Math.ceil(cy-half-.
             for(let y=Math.max(0,Math.ceil(snap(cy-half)-.5));y<Math.min(h,Math.ceil(snap(cy+half)-.5));y++)
                 for(let x=Math.max(0,Math.ceil(snap(cx-half)-.5));x<Math.min(w,Math.ceil(snap(cx+half)-.5));x++){''')
 print('Applied matching native/software vertex subpixel grids')
+replace('packages/renderer/shading.js', 'gl_Position=snapClip(matrix*vec4(p,1.0),viewport);color=c;', 'gl_Position=snapClip(matrix*vec4(p,1.0),viewport);gl_Position.y=-gl_Position.y;color=c;')
+replace('packages/renderer/shading.js', 'gl_Position=snapClip(vec4(p.xy+q/conditions.zw*p.w,0.0,1.0),conditions.zw);', 'gl_Position=snapClip(vec4(p.xy+q/conditions.zw*p.w,0.0,1.0),conditions.zw);gl_Position.y=-gl_Position.y;')
+p=Path('packages/renderer/shading.js');s=p.read_text();assert s.count('floor(viewport.y-gl_FragCoord.y)')==2;p.write_text(s.replace('floor(viewport.y-gl_FragCoord.y)', 'floor(gl_FragCoord.y)'))
+replace('packages/renderer/index.js', 'this.gl = gl;\n', '''this.gl = gl;
+        // Render in a top-left logical framebuffer, matching WebGPU edge inclusion.
+        // The compositor reverses storage orientation without an extra readback/copy.
+        this.canvas.style.transform = 'scaleY(-1)';
+''')
+replace('packages/renderer/index.js', 'for(let y=0;y<height;y++)pixels.set(data.subarray((height-y-1)*width*4,(height-y)*width*4),y*width*4);', 'pixels.set(data); // GL storage was rendered in top-left logical orientation.')
+print('Normalized OpenGL raster edge convention before coverage, not after readback')
