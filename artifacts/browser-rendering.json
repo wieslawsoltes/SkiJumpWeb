@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "bundleSha256": "786568ba0211dffa5ec1052e97e8ef2452f399ccddc680f02728e49d95d93b74",
+  "bundleSha256": "9898221b3ac521ac7be88ba77de385b4a22f984e5a02377d4a6319cd999845c3",
   "status": "passed",
   "scope": "cross-backend",
   "originalParity": "unverified",
@@ -211,7 +211,7 @@
           "renderProfile": "classic",
           "hillId": "fin",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -255,7 +255,7 @@
           "renderProfile": "classic",
           "hillId": "fin",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -299,7 +299,7 @@
           "renderProfile": "classic",
           "hillId": "fin",
           "visualParity": "unverified",
-          "frameMilliseconds": 27,
+          "frameMilliseconds": 32.5,
           "sections": [
             {
               "name": "snow",
@@ -547,7 +547,7 @@
           "renderProfile": "classic",
           "hillId": "sui",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -591,7 +591,7 @@
           "renderProfile": "classic",
           "hillId": "sui",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7000000000116415,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -635,7 +635,7 @@
           "renderProfile": "classic",
           "hillId": "sui",
           "visualParity": "unverified",
-          "frameMilliseconds": 32.59999999997672,
+          "frameMilliseconds": 39.20000000001164,
           "sections": [
             {
               "name": "snow",
@@ -883,7 +883,7 @@
           "renderProfile": "classic",
           "hillId": "cze",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -927,7 +927,7 @@
           "renderProfile": "classic",
           "hillId": "cze",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.2999999999883585,
           "sections": [
             {
               "name": "snow",
@@ -971,7 +971,7 @@
           "renderProfile": "classic",
           "hillId": "cze",
           "visualParity": "unverified",
-          "frameMilliseconds": 30.60000000000582,
+          "frameMilliseconds": 36.399999999965075,
           "sections": [
             {
               "name": "snow",
@@ -1219,7 +1219,7 @@
           "renderProfile": "classic",
           "hillId": "blr",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -1263,7 +1263,7 @@
           "renderProfile": "classic",
           "hillId": "blr",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -1307,7 +1307,7 @@
           "renderProfile": "classic",
           "hillId": "blr",
           "visualParity": "unverified",
-          "frameMilliseconds": 35.30000000001746,
+          "frameMilliseconds": 42,
           "sections": [
             {
               "name": "snow",
@@ -1555,7 +1555,7 @@
           "renderProfile": "classic",
           "hillId": "aut",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -1599,7 +1599,7 @@
           "renderProfile": "classic",
           "hillId": "aut",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -1643,7 +1643,7 @@
           "renderProfile": "classic",
           "hillId": "aut",
           "visualParity": "unverified",
-          "frameMilliseconds": 23.60000000000582,
+          "frameMilliseconds": 29.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -1891,7 +1891,7 @@
           "renderProfile": "classic",
           "hillId": "usa",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -1935,7 +1935,7 @@
           "renderProfile": "classic",
           "hillId": "usa",
           "visualParity": "unverified",
-          "frameMilliseconds": 1,
+          "frameMilliseconds": 1.3000000000465661,
           "sections": [
             {
               "name": "snow",
@@ -1979,7 +1979,7 @@
           "renderProfile": "classic",
           "hillId": "usa",
           "visualParity": "unverified",
-          "frameMilliseconds": 29.89999999999418,
+          "frameMilliseconds": 36,
           "sections": [
             {
               "name": "snow",
@@ -2227,7 +2227,7 @@
           "renderProfile": "classic",
           "hillId": "lat",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -2271,7 +2271,7 @@
           "renderProfile": "classic",
           "hillId": "lat",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -2315,7 +2315,7 @@
           "renderProfile": "classic",
           "hillId": "lat",
           "visualParity": "unverified",
-          "frameMilliseconds": 32.30000000001746,
+          "frameMilliseconds": 38.699999999953434,
           "sections": [
             {
               "name": "snow",
@@ -2563,7 +2563,7 @@
           "renderProfile": "classic",
           "hillId": "pol",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -2607,7 +2607,7 @@
           "renderProfile": "classic",
           "hillId": "pol",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7000000000116415,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -2651,7 +2651,7 @@
           "renderProfile": "classic",
           "hillId": "pol",
           "visualParity": "unverified",
-          "frameMilliseconds": 24.60000000000582,
+          "frameMilliseconds": 30.29999999998836,
           "sections": [
             {
               "name": "snow",
@@ -2899,7 +2899,7 @@
           "renderProfile": "classic",
           "hillId": "jpn",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.9000000000232831,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -2943,7 +2943,7 @@
           "renderProfile": "classic",
           "hillId": "jpn",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -2987,7 +2987,7 @@
           "renderProfile": "classic",
           "hillId": "jpn",
           "visualParity": "unverified",
-          "frameMilliseconds": 35,
+          "frameMilliseconds": 41.70000000001164,
           "sections": [
             {
               "name": "snow",
@@ -3235,7 +3235,7 @@
           "renderProfile": "classic",
           "hillId": "bel",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -3279,7 +3279,7 @@
           "renderProfile": "classic",
           "hillId": "bel",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.6999999999825377,
+          "frameMilliseconds": 0.8999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -3323,7 +3323,7 @@
           "renderProfile": "classic",
           "hillId": "bel",
           "visualParity": "unverified",
-          "frameMilliseconds": 26,
+          "frameMilliseconds": 31.600000000034925,
           "sections": [
             {
               "name": "snow",
@@ -3571,7 +3571,7 @@
           "renderProfile": "classic",
           "hillId": "isl",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -3615,7 +3615,7 @@
           "renderProfile": "classic",
           "hillId": "isl",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -3659,7 +3659,7 @@
           "renderProfile": "classic",
           "hillId": "isl",
           "visualParity": "unverified",
-          "frameMilliseconds": 34.10000000000582,
+          "frameMilliseconds": 40.70000000001164,
           "sections": [
             {
               "name": "snow",
@@ -3907,7 +3907,7 @@
           "renderProfile": "classic",
           "hillId": "eng",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -3951,7 +3951,7 @@
           "renderProfile": "classic",
           "hillId": "eng",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.6999999999825377,
+          "frameMilliseconds": 0.8999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -3995,7 +3995,7 @@
           "renderProfile": "classic",
           "hillId": "eng",
           "visualParity": "unverified",
-          "frameMilliseconds": 22.300000000017462,
+          "frameMilliseconds": 27.70000000001164,
           "sections": [
             {
               "name": "snow",
@@ -4243,7 +4243,7 @@
           "renderProfile": "classic",
           "hillId": "ger",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -4287,7 +4287,7 @@
           "renderProfile": "classic",
           "hillId": "ger",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -4331,7 +4331,7 @@
           "renderProfile": "classic",
           "hillId": "ger",
           "visualParity": "unverified",
-          "frameMilliseconds": 28.89999999999418,
+          "frameMilliseconds": 35.100000000034925,
           "sections": [
             {
               "name": "snow",
@@ -4579,7 +4579,7 @@
           "renderProfile": "classic",
           "hillId": "est",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -4623,7 +4623,7 @@
           "renderProfile": "classic",
           "hillId": "est",
           "visualParity": "unverified",
-          "frameMilliseconds": 1,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -4667,7 +4667,7 @@
           "renderProfile": "classic",
           "hillId": "est",
           "visualParity": "unverified",
-          "frameMilliseconds": 31.599999999976717,
+          "frameMilliseconds": 37.899999999965075,
           "sections": [
             {
               "name": "snow",
@@ -4915,7 +4915,7 @@
           "renderProfile": "classic",
           "hillId": "nor",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -4959,7 +4959,7 @@
           "renderProfile": "classic",
           "hillId": "nor",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.6999999999825377,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -5003,7 +5003,7 @@
           "renderProfile": "classic",
           "hillId": "nor",
           "visualParity": "unverified",
-          "frameMilliseconds": 25.800000000017462,
+          "frameMilliseconds": 31.400000000023283,
           "sections": [
             {
               "name": "snow",
@@ -5251,7 +5251,7 @@
           "renderProfile": "classic",
           "hillId": "aus",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -5295,7 +5295,7 @@
           "renderProfile": "classic",
           "hillId": "aus",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -5339,7 +5339,7 @@
           "renderProfile": "classic",
           "hillId": "aus",
           "visualParity": "unverified",
-          "frameMilliseconds": 36.80000000001746,
+          "frameMilliseconds": 43.59999999997672,
           "sections": [
             {
               "name": "snow",
@@ -5587,7 +5587,7 @@
           "renderProfile": "classic",
           "hillId": "irl",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.6999999999825377,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -5631,7 +5631,7 @@
           "renderProfile": "classic",
           "hillId": "irl",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -5675,7 +5675,7 @@
           "renderProfile": "classic",
           "hillId": "irl",
           "visualParity": "unverified",
-          "frameMilliseconds": 29.79999999998836,
+          "frameMilliseconds": 36.79999999998836,
           "sections": [
             {
               "name": "snow",
@@ -5923,7 +5923,7 @@
           "renderProfile": "classic",
           "hillId": "ukr",
           "visualParity": "unverified",
-          "frameMilliseconds": 1,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -5967,7 +5967,7 @@
           "renderProfile": "classic",
           "hillId": "ukr",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.6999999999825377,
+          "frameMilliseconds": 0.8999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -6011,7 +6011,7 @@
           "renderProfile": "classic",
           "hillId": "ukr",
           "visualParity": "unverified",
-          "frameMilliseconds": 23.10000000000582,
+          "frameMilliseconds": 28.29999999998836,
           "sections": [
             {
               "name": "snow",
@@ -6259,7 +6259,7 @@
           "renderProfile": "classic",
           "hillId": "hun",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.3999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -6303,7 +6303,7 @@
           "renderProfile": "classic",
           "hillId": "hun",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -6347,7 +6347,7 @@
           "renderProfile": "classic",
           "hillId": "hun",
           "visualParity": "unverified",
-          "frameMilliseconds": 33.5,
+          "frameMilliseconds": 39.70000000001164,
           "sections": [
             {
               "name": "snow",
@@ -6595,7 +6595,7 @@
           "renderProfile": "classic",
           "hillId": "swe",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -6639,7 +6639,7 @@
           "renderProfile": "classic",
           "hillId": "swe",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -6683,7 +6683,7 @@
           "renderProfile": "classic",
           "hillId": "swe",
           "visualParity": "unverified",
-          "frameMilliseconds": 30.79999999998836,
+          "frameMilliseconds": 37,
           "sections": [
             {
               "name": "snow",
@@ -6931,7 +6931,7 @@
           "renderProfile": "classic",
           "hillId": "ita",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -6975,7 +6975,7 @@
           "renderProfile": "classic",
           "hillId": "ita",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -7019,7 +7019,7 @@
           "renderProfile": "classic",
           "hillId": "ita",
           "visualParity": "unverified",
-          "frameMilliseconds": 36.19999999998254,
+          "frameMilliseconds": 42.79999999998836,
           "sections": [
             {
               "name": "snow",
@@ -7267,7 +7267,7 @@
           "renderProfile": "classic",
           "hillId": "den",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -7311,7 +7311,7 @@
           "renderProfile": "classic",
           "hillId": "den",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -7355,7 +7355,7 @@
           "renderProfile": "classic",
           "hillId": "den",
           "visualParity": "unverified",
-          "frameMilliseconds": 24.400000000023283,
+          "frameMilliseconds": 29.79999999998836,
           "sections": [
             {
               "name": "snow",
@@ -7603,7 +7603,7 @@
           "renderProfile": "classic",
           "hillId": "svk",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 0.8999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -7647,7 +7647,7 @@
           "renderProfile": "classic",
           "hillId": "svk",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -7691,7 +7691,7 @@
           "renderProfile": "classic",
           "hillId": "svk",
           "visualParity": "unverified",
-          "frameMilliseconds": 27.39999999999418,
+          "frameMilliseconds": 33.300000000046566,
           "sections": [
             {
               "name": "snow",
@@ -7939,7 +7939,7 @@
           "renderProfile": "classic",
           "hillId": "can",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -7983,7 +7983,7 @@
           "renderProfile": "classic",
           "hillId": "can",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7000000000116415,
+          "frameMilliseconds": 0.8999999999650754,
           "sections": [
             {
               "name": "snow",
@@ -8027,7 +8027,7 @@
           "renderProfile": "classic",
           "hillId": "can",
           "visualParity": "unverified",
-          "frameMilliseconds": 33.70000000001164,
+          "frameMilliseconds": 40.09999999997672,
           "sections": [
             {
               "name": "snow",
@@ -8275,7 +8275,7 @@
           "renderProfile": "classic",
           "hillId": "ltu",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.9000000000232831,
+          "frameMilliseconds": 1.2999999999883585,
           "sections": [
             {
               "name": "snow",
@@ -8319,7 +8319,7 @@
           "renderProfile": "classic",
           "hillId": "ltu",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -8363,7 +8363,7 @@
           "renderProfile": "classic",
           "hillId": "ltu",
           "visualParity": "unverified",
-          "frameMilliseconds": 31.29999999998836,
+          "frameMilliseconds": 37.79999999998836,
           "sections": [
             {
               "name": "snow",
@@ -8611,7 +8611,7 @@
           "renderProfile": "classic",
           "hillId": "kaz",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -8655,7 +8655,7 @@
           "renderProfile": "classic",
           "hillId": "kaz",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 0.9000000000232831,
           "sections": [
             {
               "name": "snow",
@@ -8699,7 +8699,7 @@
           "renderProfile": "classic",
           "hillId": "kaz",
           "visualParity": "unverified",
-          "frameMilliseconds": 25.699999999982538,
+          "frameMilliseconds": 30.899999999965075,
           "sections": [
             {
               "name": "snow",
@@ -8947,7 +8947,7 @@
           "renderProfile": "classic",
           "hillId": "chn",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.1000000000349246,
           "sections": [
             {
               "name": "snow",
@@ -8991,7 +8991,7 @@
           "renderProfile": "classic",
           "hillId": "chn",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.599999999976717,
           "sections": [
             {
               "name": "snow",
@@ -9035,7 +9035,7 @@
           "renderProfile": "classic",
           "hillId": "chn",
           "visualParity": "unverified",
-          "frameMilliseconds": 34.69999999998254,
+          "frameMilliseconds": 41.20000000001164,
           "sections": [
             {
               "name": "snow",
@@ -9283,7 +9283,7 @@
           "renderProfile": "classic",
           "hillId": "fra",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.1000000000349246,
           "sections": [
             {
               "name": "snow",
@@ -9327,7 +9327,7 @@
           "renderProfile": "classic",
           "hillId": "fra",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -9371,7 +9371,7 @@
           "renderProfile": "classic",
           "hillId": "fra",
           "visualParity": "unverified",
-          "frameMilliseconds": 31.900000000023283,
+          "frameMilliseconds": 38.5,
           "sections": [
             {
               "name": "snow",
@@ -9619,7 +9619,7 @@
           "renderProfile": "classic",
           "hillId": "ned",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -9663,7 +9663,7 @@
           "renderProfile": "classic",
           "hillId": "ned",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1,
           "sections": [
             {
               "name": "snow",
@@ -9707,7 +9707,7 @@
           "renderProfile": "classic",
           "hillId": "ned",
           "visualParity": "unverified",
-          "frameMilliseconds": 27,
+          "frameMilliseconds": 32.699999999953434,
           "sections": [
             {
               "name": "snow",
@@ -9955,7 +9955,7 @@
           "renderProfile": "classic",
           "hillId": "rus",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.2000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -9999,7 +9999,7 @@
           "renderProfile": "classic",
           "hillId": "rus",
           "visualParity": "unverified",
-          "frameMilliseconds": 1.1000000000058208,
+          "frameMilliseconds": 1.7000000000116415,
           "sections": [
             {
               "name": "snow",
@@ -10043,7 +10043,7 @@
           "renderProfile": "classic",
           "hillId": "rus",
           "visualParity": "unverified",
-          "frameMilliseconds": 35,
+          "frameMilliseconds": 41.5,
           "sections": [
             {
               "name": "snow",
@@ -10291,7 +10291,7 @@
           "renderProfile": "classic",
           "hillId": "kor",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -10335,7 +10335,7 @@
           "renderProfile": "classic",
           "hillId": "kor",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8000000000174623,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -10379,7 +10379,7 @@
           "renderProfile": "classic",
           "hillId": "kor",
           "visualParity": "unverified",
-          "frameMilliseconds": 31.5,
+          "frameMilliseconds": 37.70000000001164,
           "sections": [
             {
               "name": "snow",
@@ -10627,7 +10627,7 @@
           "renderProfile": "classic",
           "hillId": "slo",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.8999999999941792,
+          "frameMilliseconds": 1.099999999976717,
           "sections": [
             {
               "name": "snow",
@@ -10671,7 +10671,7 @@
           "renderProfile": "classic",
           "hillId": "slo",
           "visualParity": "unverified",
-          "frameMilliseconds": 0.7999999999883585,
+          "frameMilliseconds": 1.1000000000349246,
           "sections": [
             {
               "name": "snow",
@@ -10715,7 +10715,7 @@
           "renderProfile": "classic",
           "hillId": "slo",
           "visualParity": "unverified",
-          "frameMilliseconds": 38.29999999998836,
+          "frameMilliseconds": 44.20000000001164,
           "sections": [
             {
               "name": "snow",

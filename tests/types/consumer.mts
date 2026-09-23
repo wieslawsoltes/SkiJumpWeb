@@ -46,3 +46,14 @@ const bands: readonly (readonly number[])[] = visual.inrunBands;
 const rendered = new SkiRenderer(document.body,{presentation:'classic'});
 const readback: Promise<{width:number;height:number;pixels:Uint8Array}> = rendered.captureFrame();
 void [HILL_VISUALS, vertices, bands, readback];
+
+// UI skin is independently installable, not coupled to the application singleton.
+import { ClassicMenuSkin, CLASSIC_MENU_LAYOUT, classicViewport, navigationIndex, drawMenuBackdrop } from '@wieslawsoltes/ski-ui';
+const letterbox = classicViewport(1280, 800);
+const nativeWidth: 320 = letterbox.width;
+const firstControl: number = navigationIndex([{ x: 0, y: 0, height: 12 }], -1, 'ArrowDown');
+function mountClassicMenu(root: HTMLElement, backdrop: HTMLCanvasElement): () => void {
+    const skin = new ClassicMenuSkin(root, { back: () => {}, feedback: kind => { const move: 'move' = kind; } });
+    skin.setActive(true); skin.layout(640, 400); skin.enter('main'); skin.move('ArrowDown');
+    drawMenuBackdrop(backdrop); return () => skin.dispose();
+}

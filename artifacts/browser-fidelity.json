@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "checks": 35,
   "passed": [
     "fresh game selects documented rules and compact presentation",
@@ -44,7 +44,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1.599999999976717,
+    "frameMilliseconds": 1.3999999999941792,
     "sections": [
       {
         "name": "snow",
@@ -77,7 +77,7 @@
       200
     ],
     "triangles": 45822,
-    "fps": 9,
+    "fps": 7,
     "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,

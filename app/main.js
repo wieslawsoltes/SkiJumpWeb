@@ -7,7 +7,7 @@ import { SkiRenderer } from '@wieslawsoltes/ski-renderer';
 import { SkiAudio } from '@wieslawsoltes/ski-audio';
 import { SkiInput } from '@wieslawsoltes/ski-input';
 import { GameStore, DEFAULT_SETTINGS } from '@wieslawsoltes/ski-storage';
-import { JumpHUD, paintLabels, drawLogo, escapeHTML, downloadText, pixelCanvas } from '@wieslawsoltes/ski-ui';
+import { JumpHUD, paintLabels, drawLogo, escapeHTML, downloadText, pixelCanvas, ClassicMenuSkin, drawClassicLogo } from '@wieslawsoltes/ski-ui';
 const $ = s => document.querySelector(s), esc = escapeHTML;
 const btn = (action, label, cls = 'small-button', extra = '') => `<button class="${cls}" data-action="${action}" ${extra}>${esc(label)}</button>`;
 const pixelBtn = (action, label, extra = '') => `<button class="menu-item" data-action="${action}" ${extra}><span data-pixel="${esc(label)}"></span></button>`;
@@ -39,6 +39,18 @@ export class SkiJumpApp {
         this.arena = $('#arena'); this.arena.dataset.presentation = this.settings.presentation;
         this.menu = $('#menu-layer');
         this.content = $('#menu-content');
+        this.menuSkin = new ClassicMenuSkin(this.menu, { back: () => this.menuBack(), feedback: () => this.audio.play('menu') });
+        this.menuHost = document.createElement('nav'); this.menuHost.id = 'classic-menu-host'; this.menuHost.className='ski-classic-host';
+        this.menuHost.setAttribute('aria-label', 'Browser and touch controls'); this.menuHost.hidden = true;
+        document.body.append(this.menuHost);
+        this.menuHost.addEventListener('pointerdown', e => { if (e.target.closest('[data-host-command]')) e.preventDefault(); });
+        this.menuHost.addEventListener('click', e => {
+            const command=e.target.closest('[data-host-command]')?.dataset.hostCommand;
+            if(command==='fit'){this.menuSkin.fit=!this.menuSkin.fit;this.resize();return;}
+            if(command){this.menuSkin.hostAction(command);return;}
+            const button=e.target.closest('[data-action]');if(button&&!button.disabled){this.audio.unlock();this.act(button.dataset.action,button).catch(e=>this.showError(e));}
+        });
+        this.menuHost.addEventListener('change', e => { try {this.change(e);} catch(error){this.showError(error);} });
         this.audio = new SkiAudio(this.settings);
         this.renderer = new SkiRenderer($('#scene-host'), this.settings);
         this.hud = new JumpHUD($('#hud'));
@@ -52,7 +64,7 @@ export class SkiJumpApp {
         this.frameId = requestAnimationFrame(t => this.frame(t));
         if (new URLSearchParams(location.search).has('debug'))
             globalThis.__SKI_DEBUG__ = this;
-        globalThis.SkiJumpWeb = { version: '0.3.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
+        globalThis.SkiJumpWeb = { version: '0.5.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
         if (location.protocol !== 'file:' && 'serviceWorker' in navigator)
             navigator.serviceWorker.register('./sw.js').catch(() => { });
     }
@@ -164,11 +176,85 @@ export class SkiJumpApp {
         });
         window.addEventListener('pagehide', () => { this.saveCup(); this.savePlayers(); });
     }
-    resize() { const portrait = innerHeight > innerWidth * 1.08; this.arena.classList.toggle('portrait', portrait); const r = this.arena.getBoundingClientRect(), mw = portrait ? 360 : 640, scale = Math.min(r.width / mw, portrait ? 10 : r.height / 400), mh = portrait ? r.height / scale : 400; this.menu.style.setProperty('--menu-width', `${mw}px`); this.menu.style.setProperty('--menu-height', `${mh}px`); this.menu.style.setProperty('--ui-scale', String(scale)); this.renderer.resize(); this.clock.reset(); }
+    resize() {
+        const portrait=innerHeight>innerWidth*1.08;this.arena.classList.toggle('portrait',portrait);
+        const r=this.arena.getBoundingClientRect();
+        if(this.settings.presentation==='classic'){
+            // The external host can wrap into two rows on a narrow phone. Measure it
+            // rather than assuming a fixed reserve; pixel-align the complete frame.
+            const bottom=this.menuHost.hidden?innerHeight:Math.max(1,this.menuHost.getBoundingClientRect().top-4);
+            const v=this.menuSkin.layout(r.width,Math.max(1,Math.min(r.height,bottom)));
+            const top=Math.floor((bottom-200*v.scale)/2);
+            this.menu.style.marginTop=(top+100*v.scale-r.top-r.height/2)+'px';
+        }
+        else {this.menu.style.marginTop='0px';const mw=portrait?360:640,scale=Math.min(r.width/mw,portrait?10:r.height/400),mh=portrait?r.height/scale:400;
+            this.menu.style.setProperty('--menu-width',mw+'px');this.menu.style.setProperty('--menu-height',mh+'px');this.menu.style.setProperty('--ui-scale',String(scale));}
+        this.renderer.resize();this.clock.reset();this.menuSkin.refresh();
+    }
+    buildOptionsTabs() {
+        const form=this.content.querySelector('.form-grid');if(!form||this.content.querySelector('.classic-tabs'))return;
+        const categories={display:[],controls:[],gameplay:[]};
+        for(const field of [...form.children]){
+            const key=field.querySelector('[data-setting]')?.dataset.setting;
+            const category=['control','sensitivity','volume','mute','haptics','motion'].includes(key)||field.querySelector('[data-action=motion]')?'controls':
+                ['difficulty','windBase','gate','guide','assist','ghost','watchCPU'].includes(key)?'gameplay':'display';
+            categories[category].push(field);
+        }
+        const tabs=document.createElement('div');tabs.className='classic-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Options categories');
+        for(const [name,fields] of Object.entries(categories)){
+            tabs.insertAdjacentHTML('beforeend',`<button id="ui-tab-${name}" role="tab" data-action="ui-tab" data-tab="${name}" aria-controls="ui-pane-${name}" aria-selected="${name==='display'}">${name.toUpperCase()}</button>`);
+            const pane=document.createElement('div');pane.className='form-grid options-pane';pane.id='ui-pane-'+name;pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','ui-tab-'+name);pane.hidden=name!=='display';pane.append(...fields);form.before(pane);
+        }
+        this.content.prepend(tabs);form.remove();this.optionsTab='display';
+    }
+    selectOptionsTab(name) {
+        if(!['display','controls','gameplay'].includes(name))return;
+        this.optionsTab=name;
+        for(const tab of this.content.querySelectorAll('[data-tab]'))tab.setAttribute('aria-selected',String(tab.dataset.tab===name));
+        for(const pane of this.content.querySelectorAll('.options-pane'))pane.hidden=pane.id!=='ui-pane-'+name;
+        this.menuSkin.refresh();
+    }
+    flattenOptionsTabs() {
+        const panes=[...this.content.querySelectorAll('.options-pane')];if(!panes.length)return;
+        const form=document.createElement('div');form.className='form-grid';form.append(...panes.flatMap(p=>[...p.children]));
+        panes[0].before(form);panes.forEach(p=>p.remove());this.content.querySelector('.classic-tabs')?.remove();
+    }
+    menuBack() {
+        if(this.view==='main')return;
+        const backActions={options:'options-back',help:'help-back',pause:'resume','hill-records':'records','personal-records':'records','reset-records':'records',
+            'replay-details':'replays','rename-replay':'replays','delete-replay':'replays',tour:'tour-back','history-event':'cup-history','team-details':'start-list',
+            'live-results':'start-list','cup-history':'start-list',standings:'standings-back',session:'practice'};
+        if(this.view==='players'){this.flushPlayer();this.savePlayers();}
+        if(this.view==='result'){this.mode==='practice'?this.showHills():this.showStartList();return;}
+        this.act(backActions[this.view]||'main').catch(e=>this.showError(e));
+    }
+    syncMenuHost() {
+        this.menuHost.replaceChildren();this.menuHost.hidden=this.menu.hidden||this.settings.presentation!=='classic';
+        if(this.menuHost.hidden)return;
+        for(const el of this.content.querySelectorAll('.classic-extensions,.classic-record-tools')){
+            for(const copy of el.querySelectorAll('.classic-copy'))copy.replaceWith(document.createTextNode(copy.querySelector('.classic-semantic')?.textContent||''));
+            for(const ink of el.querySelectorAll('.classic-ink'))ink.replaceWith(document.createTextNode(ink.querySelector('.classic-semantic')?.textContent||ink.dataset.text||''));
+            this.menuHost.append(el);
+        }
+        const controls=document.createElement('div');controls.className='classic-host-navigation';
+        controls.innerHTML='<button class="touch-nav" data-host-command="ArrowUp" aria-label="Previous menu control">UP</button><button class="touch-nav" data-host-command="ArrowDown" aria-label="Next menu control">DOWN</button><button class="touch-nav" data-host-command="activate" aria-label="Activate menu control">OK</button><button class="touch-nav" data-host-command="back" aria-label="Go back">BACK</button><button data-host-command="fit" aria-label="Toggle integer or fitted menu scaling">FIT</button>';
+        this.menuHost.append(controls);
+    }
     updateBackend() { const d = this.renderer.diagnostics(); $('#renderer-name').textContent = `${d.backend.toUpperCase()} / ${d.resolution.join('X')}`; $('#footer-left').textContent = this.store.persistent ? '32 HILLS / LOCAL HOT-SEAT' : 'LOCAL STORAGE UNAVAILABLE / IN-MEMORY'; }
     setHill(id) { const hill = typeof id === 'string' ? getHill(id) : id; this.hill = hill; this.profile = new HillProfile(hill); const record = this.store.records()[this.store.recordKey(hill.id, this.settings.assist, this.settings.rules)]?.distance || 0; this.hillRecordKey = this.store.recordKey(hill.id, this.settings.assist, this.settings.rules); this.renderer.setHill(this.profile, record); this.idle = new JumpSimulation(this.profile).snapshot(); this.lastHill = hill.id; this.store.set('lastHill', hill.id); }
-    openMenu(view, title, html) { this.view = view; this.menu.dataset.view = view; this.input.setEnabled(false); this.virtualPointers?.clear(); this.menu.hidden = false; this.arena.classList.add('menu-open'); $('#game-toolbar').hidden = true; $('#touch-controls').hidden = true; $('#replay-controls').hidden = true; $('#menu-heading').innerHTML = title ? `<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>` : ''; this.content.innerHTML = html; this.content.scrollTop = 0; paintLabels(this.menu); this.audio.update(null, true); this.updateBackend(); }
-    hideMenu(view = 'game') { this.view = view; this.menu.hidden = true; this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
+    openMenu(view,title,html) {
+        this.menuSkin.remember();this.view=view;this.menu.dataset.view=view;this.input.setEnabled(false);
+        this.virtualPointers?.clear();this.menu.hidden=false;this.arena.classList.add('menu-open');
+        $('#game-toolbar').hidden=true;$('#touch-controls').hidden=true;$('#replay-controls').hidden=true;
+        $('#menu-heading').innerHTML=title?`<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>`:'';
+        this.content.innerHTML=html;this.content.scrollTop=0;
+        if(view==='options'&&this.settings.presentation==='classic')this.buildOptionsTabs();
+        const classic=this.settings.presentation==='classic';this.menuSkin.setActive(classic);
+        if(classic)drawClassicLogo($('#logo'));else drawLogo($('#logo'));
+        paintLabels(this.menu);this.syncMenuHost();this.resize();this.menuSkin.enter(view);
+        this.audio.update(null,true);this.updateBackend();
+    }
+    hideMenu(view = 'game') { this.menuSkin.remember(); this.menuSkin.closeSelect(); this.menuHost.hidden=true; this.view = view; this.menu.hidden = true; this.arena.tabIndex=-1; this.arena.focus({preventScroll:true}); this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
     showMain() {
         this.turnToken++; this.paused = false;
         const cup = this.store.get('cup'), stats = this.store.stats(), classic = this.settings.presentation === 'classic';
@@ -187,7 +273,7 @@ export class SkiJumpApp {
     showHills(filter = 'all') {
         this.hillFilter = filter;
         const records = this.store.records(), list = HILLS.filter(h => filter === 'all' || (filter === 'small' ? h.k <= 100 : filter === 'large' ? h.k > 100 && h.k < 180 : h.k >= 180));
-        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist, this.settings.rules)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
+        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist, this.settings.rules)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(this.settings.presentation==='classic'?h.code+' K'+h.k:h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
     }
     startPractice(id = this.lastHill, sameSeed = false) { this.turnToken++; this.cup = null; this.mode = 'practice'; if (!sameSeed)
         this.seed = (this.seed + 7919) >>> 0; this.practiceSeed = this.seed; this.launchJump(getHill(id), this.players[this.playerIndex] || this.players[0], { rules: this.settings.rules, seed: this.seed, windStrength: this.settings.windBase === null ? this.settings.windStrength : 0, windBase: this.settings.windBase, gate: this.settings.gate, assist: this.settings.assist }); }
@@ -415,7 +501,15 @@ export class SkiJumpApp {
     confirmResetRecords() {
         this.openMenu('reset-records', 'RESET HILL RECORDS', `<div class="empty">RESET ALL 32 HILL RECORDS FOR THIS BOARD?<br>${this.settings.rules.toUpperCase()} / ${this.recordsAssisted ? 'ASSISTED' : 'UNASSISTED'}<br>Other rules and replay-library entries are preserved.</div><div class="buttons">${btn('records','CANCEL','small-button primary')}${btn('records-reset-confirm','RESET THIS BOARD')}</div>`);
     }
-    showReplays() { const list = this.store.replays(); this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
+    showReplays() { const list = this.store.replays();
+        if(this.settings.presentation==='classic'){
+            this.openMenu('replays','SELECT REPLAY',`<div class="replay-list">${list.length?list.map(r=>`<div class="replay-info">${pixelBtn('replay-details',r.label||r.name,`data-id="${esc(r.id)}"`)}</div>`).join(''):'<p class="empty">NO SAVED REPLAYS.<br>Finish a jump and choose SAVE REPLAY.</p>'}</div><div class="replay-list-footer">${pixelBtn('main','BACK')}${btn('import-replay','IMPORT')}${this.lastReplay?btn('last-replay','LAST JUMP'):''}</div>`);return;
+        } this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
+    showReplayDetails(id) {
+        const row=this.store.replays().find(r=>r.id===id);if(!row){this.showReplays();return;}
+        this.replaySelection=id;const hill=getHill(row.hillId);
+        this.openMenu('replay-details',row.label||row.name,`<div class="replay-detail"><span>HILL</span><span>: ${esc(hill.name)} K${hill.k}</span><span>PLAYER</span><span>: ${esc(row.name)}</span><span>LENGTH</span><span>: ${row.distance.toFixed(2)} M</span><span>DATE</span><span>: ${esc(row.date.slice(0,10))}</span><span>FORMAT</span><span>: SKIJUMPWEB REPLAY</span></div><div class="replay-detail-actions">${pixelBtn('play-replay','VIEW REPLAY',`data-id="${esc(id)}"`)}${pixelBtn('delete-replay','DELETE REPLAY',`data-id="${esc(id)}"`)}${pixelBtn('replays','BACK')}<div class="replay-detail-tools classic-extensions">${btn('rename-replay','NAME','small-button',`data-id="${esc(id)}"`)}${btn('export-replay','EXPORT','small-button',`data-id="${esc(id)}"`)}</div></div>`);
+    }
     startReplay(replay, back = 'replays') { this.playback = new ReplayPlayer(replay); this.replayBack = back; this.cpu = null; this.setHill(replay.hillId); this.player = replay.player; this.renderer.cameraReady = false; this.hideMenu('replay'); this.audio.update(null, true); $('#replay-speed').value = '1'; $('#replay-play').textContent = 'II'; $('#replay-loop').textContent = 'LOOP ON'; }
     replayAction(action) {
         if (this.playback) {
@@ -448,9 +542,9 @@ export class SkiJumpApp {
         const select = (key, label, items) => `<label class="field">${label}<select data-setting="${key}">${items.map(([v, n]) => option(v, n, s[key])).join('')}</select></label>`, check = (key, label) => `<label class="check"><input type="checkbox" data-setting="${key}" ${s[key] ? 'checked' : ''}>${label}</label>`;
         this.openMenu('options', 'OPTIONS', `<div class="form-grid">${select('rules', 'JUMPING RULES', [['dsj210', 'DSJ 2.10 DOCUMENTED RULES'], ['legacy', 'SKIJUMPWEB 0.2 LEGACY']])}${select('presentation', 'HUD / PRESENTATION', [['classic', 'ORIGINAL COMPACT HUD'], ['enhanced', 'ENHANCED / GUIDES']])}${select('resolution', 'RESOLUTION', [['classic', 'CLASSIC / 320 x 200'], ['sharp', 'SHARP / 640 x 400'], ['native', 'NATIVE / ADAPTIVE']])}${select('camera', 'CAMERA', [['classic', 'CLASSIC SIDE VIEW'], ['close', 'CLOSE'], ['wide', 'WIDE'], ['chase', 'CHASE']])}${select('control', 'MOUSE CONTROLS', [['modern', 'ONE BUTTON / KEYBOARD'], ['classic', 'CLASSIC / TWO BUTTONS']])}${select('weather', 'WEATHER', [['clear', 'CLEAR'], ['snow', 'SNOW'], ['dusk', 'DUSK'], ['night', 'NIGHT']])}<label class="field">SENSITIVITY <input data-setting="sensitivity" type="range" min=".2" max="3" step=".1" value="${s.sensitivity}"></label><label class="field">SOUND VOLUME <input data-setting="volume" type="range" min="0" max="1" step=".05" value="${s.volume}"></label>${select('difficulty', 'CPU SKILL', [[.45, 'ROOKIE'], [.65, 'CLUB'], [.8, 'EXPERT'], [.96, 'CHAMPION']])}<label class="field">PRACTICE WIND<select data-setting="windBase">${[[null, 'DYNAMIC WIND'], [0, 'CALM'], [1.5, 'HEADWIND +1.5'], [3, 'HEADWIND +3.0'], [-2, 'TAILWIND -2.0']].map(([v, n]) => option(v === null ? 'null' : v, n, s.windBase === null ? 'null' : s.windBase)).join('')}</select></label><label class="field">PRACTICE GATE (-5 HIGHER / +8 LOWER)<input data-setting="gate" type="number" min="-5" max="8" value="${s.gate}"></label>${select('renderer', 'RENDERER (RELOAD REQUIRED)', [['auto', 'WEBGPU / AUTOMATIC FALLBACK'], ['webgl', 'WEBGL2'], ['software', 'SOFTWARE']])}${check('guide', 'TAKEOFF / FLIGHT GUIDES')}${check('assist', 'FLIGHT ASSIST (PRACTICE ONLY)')}${check('ghost', 'PERSONAL-BEST GHOST')}${check('mute', 'MUTE SOUND')}${check('watchCPU', 'WATCH CPU JUMPERS')}${check('haptics', 'TOUCH VIBRATION')}${check('scanlines', 'CRT SCANLINES')}${check('showFPS', 'PERFORMANCE COUNTER')}${check('motion', 'DEVICE TILT (AFTER PERMISSION)')}<div class="field">${btn('motion', 'ENABLE / CALIBRATE TILT')}</div></div><p class="hint">Practice wind, gate and flight-assist overrides do not apply to cup jumps. Portrait resolution adapts to the screen. Audio starts after your first interaction.</p><div class="buttons">${btn('options-back', 'SAVE & BACK', 'small-button primary')}${btn('original-profile', 'DSJ 2.10 PROFILE')}${btn('reset-options', 'DEFAULTS')}${btn('about', 'ABOUT / FIDELITY')}</div>`);
     }
-    applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
+    applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.menuSkin.setActive(this.settings.presentation==='classic'); if(this.settings.presentation==='classic')drawClassicLogo($('#logo'));else drawLogo($('#logo')); this.syncMenuHost(); this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
     showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Click the left button or press <kbd>SPACE</kbd> to start. In the DSJ 2.10 rules profile you have 15 seconds; the green light blinks with 10 seconds remaining. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. The optional enhanced HUD provides a balance indicator; the compact HUD does not. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Classic mouse: press left and right together for two feet, or one then the other for telemark. Either order works; the interval changes stance width. Release both buttons after takeoff. An unfinished one-foot landing can fall. <kbd>Z</kbd>/<kbd>X</kbd> remain accessible one-action shortcuts in either profile.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. The separate LEFT / RIGHT pads reproduce the original mouse sequence, including two-thumb takeoff and timed telemark.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
-    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.4.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
+    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.5.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
     change(e) {
         if (e.target.id === 'cup-ai') { this.setupAI = Number(e.target.value); return; }
         if (e.target.id === 'tour-name') { this.tour.name = e.target.value.slice(0, 40); return; }
@@ -490,6 +584,7 @@ export class SkiJumpApp {
             if (k === 'windBase')
                 v = v === 'null' ? null : Number(v);
             this.settings[k] = v;
+            if(k==='presentation'&&this.view==='options'){if(v==='classic')this.buildOptionsTabs();else this.flattenOptionsTabs();}
             this.applySettings();
             if (k === 'renderer')
                 this.toast('Renderer choice saved. Reload the page to switch backend.');
@@ -499,6 +594,7 @@ export class SkiJumpApp {
         if (this.view === 'players' && !['delete-player'].includes(action))
             this.flushPlayer();
         switch (action) {
+            case 'ui-tab': this.selectOptionsTab(button.dataset.tab); break;
             case 'continue-start-list': await this.proceedTurn(false); break;
             case 'start-list': this.showStartList(); break;
             case 'edit-tour': this.showTourEditor(); break;
@@ -530,6 +626,7 @@ export class SkiJumpApp {
                 const replay = this.store.ghost(button.dataset.id, !!this.recordsAssisted, this.settings.rules);
                 if (replay) this.startReplay(replay, 'records'); else this.toast('No replay was saved for this record.'); break;
             }
+            case 'replay-details': this.showReplayDetails(button.dataset.id); break;
             case 'rename-replay': {
                 const id = button.dataset.id, row = this.store.replays().find(r => r.id === id);
                 this.openMenu('rename-replay', 'REPLAY NAME', `<label class="field">NAME<input id="replay-name" maxlength="48" value="${esc(row.label || row.name)}"></label><div class="buttons">${btn('confirm-rename-replay', 'SAVE', 'small-button primary', `data-id="${esc(id)}"`)}${btn('replays', 'CANCEL')}</div>`); break;
@@ -688,6 +785,8 @@ export class SkiJumpApp {
                 this.exportReplay(this.store.loadReplay(button.dataset.id));
                 break;
             case 'delete-replay':
+                this.openMenu('delete-replay','DELETE REPLAY',`<div class="classic-confirm"><p>DELETE THIS SAVED REPLAY?</p><p>Hill records and other replays are preserved.</p><div class="buttons">${btn('replays','CANCEL','small-button primary')}${btn('confirm-delete-replay','DELETE','small-button',`data-id="${esc(button.dataset.id)}"`)}</div></div>`);break;
+            case 'confirm-delete-replay':
                 this.store.deleteReplay(button.dataset.id);
                 this.showReplays();
                 break;
@@ -731,7 +830,7 @@ export class SkiJumpApp {
                 downloadText('ski-jump-web-cup-results.json', JSON.stringify({ mode: this.cup.mode, history: this.cup.history, standings: this.cup.standings() }, null, 2));
                 break;
             case 'export-diagnostics':
-                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.3.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
+                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.5.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
                 break;
         }
     }
@@ -822,8 +921,9 @@ export class SkiJumpApp {
                 state = this.sim.state;
                 overview = false;
             }
-            const renderNow = !overview || !this.lastMenuFrame || now - this.lastMenuFrame > 100;
-            if (renderNow) {
+            const renderNow = !this.menuSkin.active || this.menu.hidden;
+            const shouldRender = renderNow && (!overview || !this.lastMenuFrame || now - this.lastMenuFrame > 100);
+            if (shouldRender) {
                 this.renderer.render(state, this.player || this.players[0], dt, overview, ghost);
                 if (overview)
                     this.lastMenuFrame = now;

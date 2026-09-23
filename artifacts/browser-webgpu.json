@@ -59,7 +59,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1.2999999999883585,
+    "frameMilliseconds": 1.6000000000058208,
     "sections": [
       {
         "name": "snow",
@@ -103,7 +103,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 3.2999999999883585,
+    "frameMilliseconds": 4,
     "sections": [
       {
         "name": "snow",

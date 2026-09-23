@@ -32,3 +32,7 @@ See [`docs/REFERENCE-DSJ210.md`](../../docs/REFERENCE-DSJ210.md) in the reposito
 for documented behavior versus authored reconstruction parameters. New profile
 APIs are declared in `index.d.ts`; old low-level defaults and replay v1 remain
 compatible. Application defaults are separate from the SDK defaults.
+
+## Classic menu skin (0.5.0)
+
+`ClassicMenuSkin` styles any supplied DOM root using scoped styles, authored bitmap ink, semantic controls and fixed 320×200 coordinates. `classicViewport`, `navigationIndex`, `drawMenuBackdrop`, `drawClassicLogo` and `CLASSIC_MENU_LAYOUT` are independently reusable. Call `dispose()` on teardown. See the repository `docs/CLASSIC-UI.md` for a complete example and fidelity boundaries. No font files or original game assets are bundled.

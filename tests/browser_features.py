@@ -112,6 +112,7 @@ with sync_playwright() as p:
     page.locator('[data-replay=loop]').click();check(not page.evaluate('__SKI_DEBUG__.playback.loop'),'loop control can disable looping')
     page.screenshot(path=str(SHOTS/'replay-controls.png'))
     page.locator('[data-replay=back]').click();page.evaluate('__SKI_DEBUG__.showReplays()')
+    if page.locator('[data-action=replay-details]').count(): page.locator('[data-action=replay-details]').first.click()
     page.locator('[data-action=rename-replay]').first.click();page.locator('#replay-name').fill('FINLAND TEST');page.locator('[data-action=confirm-rename-replay]').click()
     check('FINLAND TEST' in page.locator('.replay-info').first.inner_text(),'replay labels are editable and visible')
     page.evaluate('__SKI_DEBUG__.showRecords()');page.locator('[data-action=hill-records][data-id=fin]').click()

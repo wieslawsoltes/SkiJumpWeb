@@ -1,0 +1,180 @@
+PASS classic menu is 320x200 independent of browser dimensions
+PASS 800x600 window uses integer 2x scaling
+PASS observed main-menu ordering has no web entries inserted
+PASS browser extensions are outside the classic picture
+PASS semantic text appears exactly once, not duplicated by bitmap ink
+PASS public game version identifies the UI release
+PASS classic logo uses its native bitmap dimensions
+PASS original-style main-menu rows use a twelve-pixel interval
+PASS menu backdrop is static rather than a moving hill
+PASS initial keyboard focus starts at first original menu entry
+PASS Down moves to the next menu item once
+PASS End selects last menu entry
+PASS type-ahead selects a matching menu entry
+PASS Enter activates the focused item rather than a hard-coded action
+PASS Back restores focus to the control used to leave the main menu
+PASS records uses the fixed 320x200 surface
+PASS records retains eight-row pagination
+PASS board extensions do not change the original records composition
+PASS reset-dialog uses the fixed 320x200 surface
+PASS Escape cancels record reset
+PASS sound uses the fixed 320x200 surface
+PASS skinned range controls still change actual mixer settings
+PASS options-display uses the fixed 320x200 surface
+PASS all options remain available in three compact tabs
+PASS pointer opens a skinned, accessible select popup
+PASS skinned select dispatches the real setting change
+PASS Escape closes only the select popup and restores its control
+PASS controls tab exposes sensitivity and input settings
+PASS gameplay tab exposes practice overrides
+PASS enhanced presentation remains selectable without reload
+PASS switching to enhanced restores the complete form rather than hiding settings
+PASS returning to classic restores the scoped pixel skin
+PASS players uses the fixed 320x200 surface
+PASS native text editing is preserved underneath bitmap rendering
+PASS editable values use bitmap overlays rather than a system font
+PASS editing preserves the existing player normalization contract
+PASS world-cup uses the fixed 320x200 surface
+PASS compact cup setup still includes all 32 hills
+PASS tour-editor uses the fixed 320x200 surface
+PASS classic tour buttons edit the real schedule
+PASS team-cup uses the fixed 320x200 surface
+PASS help uses the fixed 320x200 surface
+PASS about uses the fixed 320x200 surface
+PASS results display all five real judge marks
+PASS replay-library uses the fixed 320x200 surface
+PASS classic replay selection opens metadata before playback
+PASS canceling delete keeps the replay
+PASS replay renaming updates visible bitmap and semantic text
+PASS playback hides all menu host controls
+PASS start list presents the real eight-jumper field
+PASS event results use completed two-round scores
+PASS cup-standings uses the fixed 320x200 surface
+PASS cup-history uses the fixed 320x200 surface
+PASS event-history screen retains all competitor rows
+PASS team detail presents each of the four athletes
+PASS native-size desktop preserves 1:1 pixels
+PASS native frame is pixel-aligned, unclipped and clear of browser controls
+PASS portrait preserves the same logical grid rather than reflowing the classic screen
+PASS mobile navigation has independent 44px touch controls
+PASS touch host preserves and moves the actual menu focus
+PASS touch OK activates the selected original menu entry
+PASS rotation preserves active screen and selection
+PASS optional FIT expands touch display without changing the logical layout
+PASS fitted landscape frame never overlaps touch controls
+PASS touch hill selection starts the real game
+PASS hidden menu focus cannot swallow gameplay input
+PASS sub-native touch window reserves the measured wrapped control height
+PASS disposing a reusable skin restores text, values and DOM without duplication
+PASS all classic UI workflows finish without JavaScript errors
+{
+  "version": "0.5.0",
+  "status": "passed",
+  "checks": 69,
+  "passed": [
+    "classic menu is 320x200 independent of browser dimensions",
+    "800x600 window uses integer 2x scaling",
+    "observed main-menu ordering has no web entries inserted",
+    "browser extensions are outside the classic picture",
+    "semantic text appears exactly once, not duplicated by bitmap ink",
+    "public game version identifies the UI release",
+    "classic logo uses its native bitmap dimensions",
+    "original-style main-menu rows use a twelve-pixel interval",
+    "menu backdrop is static rather than a moving hill",
+    "initial keyboard focus starts at first original menu entry",
+    "Down moves to the next menu item once",
+    "End selects last menu entry",
+    "type-ahead selects a matching menu entry",
+    "Enter activates the focused item rather than a hard-coded action",
+    "Back restores focus to the control used to leave the main menu",
+    "records uses the fixed 320x200 surface",
+    "records retains eight-row pagination",
+    "board extensions do not change the original records composition",
+    "reset-dialog uses the fixed 320x200 surface",
+    "Escape cancels record reset",
+    "sound uses the fixed 320x200 surface",
+    "skinned range controls still change actual mixer settings",
+    "options-display uses the fixed 320x200 surface",
+    "all options remain available in three compact tabs",
+    "pointer opens a skinned, accessible select popup",
+    "skinned select dispatches the real setting change",
+    "Escape closes only the select popup and restores its control",
+    "controls tab exposes sensitivity and input settings",
+    "gameplay tab exposes practice overrides",
+    "enhanced presentation remains selectable without reload",
+    "switching to enhanced restores the complete form rather than hiding settings",
+    "returning to classic restores the scoped pixel skin",
+    "players uses the fixed 320x200 surface",
+    "native text editing is preserved underneath bitmap rendering",
+    "editable values use bitmap overlays rather than a system font",
+    "editing preserves the existing player normalization contract",
+    "world-cup uses the fixed 320x200 surface",
+    "compact cup setup still includes all 32 hills",
+    "tour-editor uses the fixed 320x200 surface",
+    "classic tour buttons edit the real schedule",
+    "team-cup uses the fixed 320x200 surface",
+    "help uses the fixed 320x200 surface",
+    "about uses the fixed 320x200 surface",
+    "results display all five real judge marks",
+    "replay-library uses the fixed 320x200 surface",
+    "classic replay selection opens metadata before playback",
+    "canceling delete keeps the replay",
+    "replay renaming updates visible bitmap and semantic text",
+    "playback hides all menu host controls",
+    "start list presents the real eight-jumper field",
+    "event results use completed two-round scores",
+    "cup-standings uses the fixed 320x200 surface",
+    "cup-history uses the fixed 320x200 surface",
+    "event-history screen retains all competitor rows",
+    "team detail presents each of the four athletes",
+    "native-size desktop preserves 1:1 pixels",
+    "native frame is pixel-aligned, unclipped and clear of browser controls",
+    "portrait preserves the same logical grid rather than reflowing the classic screen",
+    "mobile navigation has independent 44px touch controls",
+    "touch host preserves and moves the actual menu focus",
+    "touch OK activates the selected original menu entry",
+    "rotation preserves active screen and selection",
+    "optional FIT expands touch display without changing the logical layout",
+    "fitted landscape frame never overlaps touch controls",
+    "touch hill selection starts the real game",
+    "hidden menu focus cannot swallow gameplay input",
+    "sub-native touch window reserves the measured wrapped control height",
+    "disposing a reusable skin restores text, values and DOM without duplication",
+    "all classic UI workflows finish without JavaScript errors"
+  ],
+  "errors": [],
+  "screens": [
+    "main",
+    "hills",
+    "records",
+    "reset-dialog",
+    "sound",
+    "options-display",
+    "options-controls",
+    "options-gameplay",
+    "players",
+    "world-cup",
+    "tour-editor",
+    "team-cup",
+    "help",
+    "about",
+    "result",
+    "replay-library",
+    "replay-detail",
+    "delete-dialog",
+    "start-list",
+    "live-standings",
+    "event-results",
+    "cup-standings",
+    "cup-history",
+    "history-event",
+    "team-detail",
+    "main-native",
+    "records-native",
+    "portrait",
+    "landscape"
+  ],
+  "bundleSha256": "9898221b3ac521ac7be88ba77de385b4a22f984e5a02377d4a6319cd999845c3",
+  "originalPixelParity": "unverified",
+  "scope": "Semantic input, fixed-grid layout, owned bitmap artwork, keyboard/touch and lifecycle tests. Not original-game pixel equality."
+}
