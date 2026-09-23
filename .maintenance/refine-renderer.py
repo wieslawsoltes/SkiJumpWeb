@@ -44,3 +44,17 @@ replace('packages/renderer/index.js', 'this.gl = gl;\n', '''this.gl = gl;
 ''')
 replace('packages/renderer/index.js', 'for(let y=0;y<height;y++)pixels.set(data.subarray((height-y-1)*width*4,(height-y)*width*4),y*width*4);', 'pixels.set(data); // GL storage was rendered in top-left logical orientation.')
 print('Normalized OpenGL raster edge convention before coverage, not after readback')
+p=Path('packages/renderer/scene.js');s=p.read_text()
+old='''            m.tri(a,b,c,[.035,.19+.04*rng.next(),.105],false);
+            m.tri(a,d,b,[.025,.15,.08],false);
+            if(branch%2===0) m.tri([x,yy+height*.075,z],c,[x+dx*len*.58,yy,z+dz*len*.58],[.75,.77,.77],false);'''
+new='''            const green=[.035,.19+.04*rng.next(),.105];
+            if(branch%2===0){
+                // Partition the facet instead of overlaying an intersecting snow
+                // triangle. Opaque coverage is shared without coplanar depth races.
+                const ab=b.map((v,i)=>v+(a[i]-v)*.36),cb=b.map((v,i)=>v+(c[i]-v)*.36);
+                m.quad(a,ab,cb,c,green,false);
+                m.tri(b,cb,ab,[.75,.77,.77],false);
+            }else m.tri(a,b,c,green,false);
+            m.tri(a,d,b,[.025,.15,.08],false);'''
+assert s.count(old)==1;p.write_text(s.replace(old,new));print('Partitioned snow-covered branch facets to eliminate intersecting surface depth races')
