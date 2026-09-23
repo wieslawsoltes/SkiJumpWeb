@@ -37,3 +37,12 @@ const input = new SkiInput(document.body, {}, {rules:'dsj210',control:'classic'}
 input.virtualButton('right',true); input.dispose();
 const classicSize: number = UI.CLASSIC_HUD_LAYOUT.statusHeight;
 void [footAccepted, originalCup, classicSize];
+
+import { getHillVisual, HILL_VISUALS } from '@wieslawsoltes/ski-hills';
+import { createClassicHillScene } from '@wieslawsoltes/ski-renderer';
+const visual = getHillVisual('fin');
+const vertices: Float32Array = createClassicHillScene('fin').vertices;
+const bands: readonly (readonly number[])[] = visual.inrunBands;
+const rendered = new SkiRenderer(document.body,{presentation:'classic'});
+const readback: Promise<{width:number;height:number;pixels:Uint8Array}> = rendered.captureFrame();
+void [HILL_VISUALS, vertices, bands, readback];

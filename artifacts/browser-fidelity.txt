@@ -34,7 +34,7 @@ PASS rotation preserves simulation and timed landing state
 PASS landscape keeps virtual mouse controls reachable
 PASS original-profile desktop and touch paths produce no JavaScript exceptions
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "checks": 35,
   "passed": [
     "fresh game selects documented rules and compact presentation",
@@ -76,13 +76,44 @@ PASS original-profile desktop and touch paths produce no JavaScript exceptions
   "errors": [],
   "renderer": {
     "backend": "webgl2",
+    "renderProfile": "classic",
+    "hillId": "fin",
+    "visualParity": "unverified",
+    "frameMilliseconds": 1.599999999976717,
+    "sections": [
+      {
+        "name": "snow",
+        "first": 0,
+        "count": 17706
+      },
+      {
+        "name": "landing-walls",
+        "first": 17706,
+        "count": 6336
+      },
+      {
+        "name": "distance-lines",
+        "first": 24042,
+        "count": 48
+      },
+      {
+        "name": "inrun",
+        "first": 24090,
+        "count": 11856
+      },
+      {
+        "name": "trees",
+        "first": 35946,
+        "count": 101520
+      }
+    ],
     "resolution": [
       320,
       200
     ],
-    "triangles": 18072,
+    "triangles": 45822,
     "fps": 9,
-    "staticBytes": 1301184,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null

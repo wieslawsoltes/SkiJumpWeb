@@ -1,4 +1,4 @@
-import { Hill, HillProfile } from '@wieslawsoltes/ski-hills';
+import { Hill, HillProfile, HillVisual } from '@wieslawsoltes/ski-hills';
 export type Vec3 = [
     number,
     number,
@@ -25,6 +25,7 @@ export interface SkierAppearance {
     skis?: string;
 }
 export interface RendererOptions {
+    presentation?: 'classic' | 'enhanced';
     resolution?: 'classic' | 'sharp' | 'native';
     renderer?: 'auto' | 'webgl' | 'software';
     weather?: 'clear' | 'snow' | 'dusk' | 'night';
@@ -32,6 +33,11 @@ export interface RendererOptions {
 }
 export interface RenderDiagnostics {
     backend: string;
+    renderProfile: 'classic' | 'enhanced';
+    hillId: string | null;
+    visualParity: string;
+    frameMilliseconds: number;
+    sections: Array<{name: string; first: number; count: number}>;
     resolution: number[];
     triangles: number;
     fps: number;
@@ -65,6 +71,17 @@ export declare class SkiRenderer {
     setHill(hill: HillProfile | Hill | string, record?: number): void;
     render(state: RenderState, player?: SkierAppearance, dt?: number, overview?: boolean, ghost?: RenderState | null): void;
     project(x: number, y: number, z?: number): number[];
+    captureFrame(): Promise<{width: number; height: number; pixels: Uint8Array}>;
     diagnostics(): RenderDiagnostics;
     dispose(): void;
 }
+
+export interface ClassicHillScene {
+    vertices: Float32Array;
+    sections: Array<{name: string; first: number; count: number}>;
+    trees: Array<{x: number; y: number; z: number; height: number; seed: number}>;
+    visual: HillVisual;
+    surface: string;
+    version: number;
+}
+export declare function createClassicHillScene(profile: HillProfile | Hill | string, record?: number): ClassicHillScene;

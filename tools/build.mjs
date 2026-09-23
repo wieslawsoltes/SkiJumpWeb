@@ -8,12 +8,38 @@ const out = path.join(root, 'dist');
 fs.mkdirSync(out, { recursive: true });
 // This deliberately small bundler accepts only the static, named ESM imports used
 // by this workspace. There is no eval, runtime fetching, or external dependency.
-function compile(id, file) { let source = fs.readFileSync(file, 'utf8'); const exports = [...source.matchAll(/\bexport\s+(?:const|let|class|function)\s+(\w+)/g)].map(m => m[1]); source = source.replace(/import\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"];?/g, (_, what, from) => `const {${what.replace(/\s+as\s+/g, ':')}}=require(${JSON.stringify(from)});`).replace(/\bexport\s+(?=const|let|class|function)/g, ''); if (/(^|\n)\s*(?:import|export)\s/.test(source))
-    throw new Error(`Unsupported import/export in ${file}`); return `define(${JSON.stringify(id)},function(require){\n${source}\nreturn {${exports.join(',')}};\n});\n`; }
+const compiled = new Map();
+function compile(id, file) {
+    if(compiled.has(id))return;
+    // Mark before walking dependencies; definitions are registered before require.
+    compiled.set(id, '');
+    let source=fs.readFileSync(file,'utf8');
+    const exports=[...source.matchAll(/\bexport\s+(?:const|let|class|function)\s+(\w+)/g)].map(m=>m[1]);
+    source=source.replace(/import\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"];?/g,(_,what,from)=>{
+        let target=from;
+        if(from.startsWith('.')){
+            const resolved=path.resolve(path.dirname(file),from);
+            const packageDir=path.join(root,'packages',id.replace('@wieslawsoltes/ski-','').split('/')[0]);
+            if(!resolved.startsWith(packageDir+path.sep)||path.extname(resolved)!=='.js')throw new Error('Unsafe relative module '+from);
+            target=id.split('/').slice(0,2).join('/')+'/'+path.relative(packageDir,resolved).split(path.sep).join('/');
+            compile(target,resolved);
+        }
+        return `const {${what.replace(/\s+as\s+/g,':')}}=require(${JSON.stringify(target)});`;
+    }).replace(/\bexport\s*\{([^}]+)\};?/g,(_,names)=>{
+        for(const name of names.split(',').map(s=>s.trim())){
+            if(!/^[A-Za-z_$][\w$]*$/.test(name))throw new Error('Unsupported re-export '+name);
+            exports.push(name);
+        }
+        return '';
+    }).replace(/\bexport\s+(?=const|let|class|function)/g,'');
+    if(/(^|\n)\s*(?:import|export)\s/.test(source))throw new Error('Unsupported import/export in '+file);
+    compiled.set(id,`define(${JSON.stringify(id)},function(require){\n${source}\nreturn {${[...new Set(exports)].join(',')}};\n});\n`);
+}
 let js = `/*! SkiJumpWeb ${version} - independent recreation, MIT. See README for scope. */\n(function(){'use strict';\nconst modules=new Map(),cache=new Map();\nfunction define(id,factory){modules.set(id,factory)}\nfunction require(id){if(cache.has(id))return cache.get(id);const factory=modules.get(id);if(!factory)throw new Error('Missing module '+id);const exports=factory(require);cache.set(id,exports);return exports}\n`;
 for (const name of names)
-    js += compile('@wieslawsoltes/ski-' + name, path.join(root, 'packages', name, 'index.js'));
-js += compile('app', path.join(root, 'app/main.js')) + `require('app');\n})();\n`;
+    compile('@wieslawsoltes/ski-' + name, path.join(root, 'packages', name, 'index.js'));
+compile('app', path.join(root, 'app/main.js'));
+js += [...compiled.values()].join('') + `require('app');\n})();\n`;
 const css = fs.readFileSync(path.join(root, 'app/style.css'), 'utf8');
 let html = fs.readFileSync(path.join(root, 'app/index.html'), 'utf8');
 fs.writeFileSync(path.join(out, 'app.js'), js);

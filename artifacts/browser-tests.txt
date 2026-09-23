@@ -72,26 +72,88 @@ PASS no JavaScript or renderer console errors
   "warnings": [],
   "desktop": {
     "backend": "webgl2",
+    "renderProfile": "classic",
+    "hillId": "fin",
+    "visualParity": "unverified",
+    "frameMilliseconds": 0.5999999999767169,
+    "sections": [
+      {
+        "name": "snow",
+        "first": 0,
+        "count": 17706
+      },
+      {
+        "name": "landing-walls",
+        "first": 17706,
+        "count": 6336
+      },
+      {
+        "name": "distance-lines",
+        "first": 24042,
+        "count": 48
+      },
+      {
+        "name": "inrun",
+        "first": 24090,
+        "count": 11856
+      },
+      {
+        "name": "trees",
+        "first": 35946,
+        "count": 101520
+      }
+    ],
     "resolution": [
       320,
       200
     ],
-    "triangles": 18072,
-    "fps": 16,
-    "staticBytes": 1301184,
+    "triangles": 45822,
+    "fps": 18,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null
   },
   "mobile": {
     "backend": "webgl2",
+    "renderProfile": "classic",
+    "hillId": "fin",
+    "visualParity": "unverified",
+    "frameMilliseconds": 1,
+    "sections": [
+      {
+        "name": "snow",
+        "first": 0,
+        "count": 17706
+      },
+      {
+        "name": "landing-walls",
+        "first": 17706,
+        "count": 6336
+      },
+      {
+        "name": "distance-lines",
+        "first": 24042,
+        "count": 48
+      },
+      {
+        "name": "inrun",
+        "first": 24090,
+        "count": 11856
+      },
+      {
+        "name": "trees",
+        "first": 35946,
+        "count": 101520
+      }
+    ],
     "resolution": [
       320,
       200
     ],
-    "triangles": 18072,
-    "fps": 17,
-    "staticBytes": 1301184,
+    "triangles": 45822,
+    "fps": 19,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null

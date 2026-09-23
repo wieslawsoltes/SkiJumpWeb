@@ -132,6 +132,6 @@ with sync_playwright() as p:
     check(mobile.evaluate('__SKI_DEBUG__.view')=='start-list','landscape touch starts edited cup')
     mobile.screenshot(path=str(SHOTS/'mobile-start-list.png'))
     check(not ERRORS,'new desktop and touch workflows produce no JavaScript errors')
-    report={'version':'0.2.0','checks':len(CHECKS),'passed':CHECKS,'errors':ERRORS,'renderer':page.evaluate('SkiJumpWeb.diagnostics()'),'scope':'Offline Chromium desktop + touch emulation; physical devices and native WebGPU are separate tests.'}
+    report={'version':json.loads((ROOT/'package.json').read_text())['version'],'checks':len(CHECKS),'passed':CHECKS,'errors':ERRORS,'renderer':page.evaluate('SkiJumpWeb.diagnostics()'),'scope':'Offline Chromium desktop + touch emulation; physical devices and native WebGPU are separate tests.'}
     (ROOT/'artifacts/browser-features.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2));browser.close()

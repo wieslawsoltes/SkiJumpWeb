@@ -1,0 +1,53 @@
+fin 12 frames per backend 0 errors
+sui 12 frames per backend 0 errors
+cze 12 frames per backend 0 errors
+blr 12 frames per backend 0 errors
+aut 12 frames per backend 0 errors
+usa 12 frames per backend 0 errors
+lat 12 frames per backend 0 errors
+pol 12 frames per backend 0 errors
+jpn 12 frames per backend 0 errors
+bel 12 frames per backend 0 errors
+isl 12 frames per backend 0 errors
+eng 12 frames per backend 0 errors
+ger 12 frames per backend 0 errors
+est 12 frames per backend 0 errors
+nor 12 frames per backend 0 errors
+aus 12 frames per backend 0 errors
+irl 12 frames per backend 0 errors
+ukr 12 frames per backend 0 errors
+hun 12 frames per backend 0 errors
+swe 12 frames per backend 0 errors
+ita 12 frames per backend 0 errors
+den 12 frames per backend 0 errors
+svk 12 frames per backend 0 errors
+can 12 frames per backend 0 errors
+ltu 12 frames per backend 0 errors
+kaz 12 frames per backend 0 errors
+chn 12 frames per backend 0 errors
+fra 12 frames per backend 0 errors
+ned 12 frames per backend 0 errors
+rus 12 frames per backend 0 errors
+kor 12 frames per backend 0 errors
+slo 12 frames per backend 0 errors
+{
+  "schema": 2,
+  "bundleSha256": "786568ba0211dffa5ec1052e97e8ef2452f399ccddc680f02728e49d95d93b74",
+  "status": "passed",
+  "scope": "cross-backend",
+  "originalParity": "unverified",
+  "originalMatchedFrames": 0,
+  "errors": [],
+  "budgets": {
+    "gpuGlMean": 0.15,
+    "gpuGlFractionOver8": 0.001,
+    "gpuSoftwareMean": 1.5,
+    "gpuSoftwareFractionOver8": 0.01
+  },
+  "framesPerBackend": 384,
+  "backends": [
+    "webgpu",
+    "webgl2",
+    "software"
+  ]
+}
