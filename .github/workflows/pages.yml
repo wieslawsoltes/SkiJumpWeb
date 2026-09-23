@@ -5,6 +5,8 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
 defaults:
   run:
     shell: bash
@@ -15,7 +17,7 @@ jobs:
   build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
       pages: read
@@ -33,19 +35,32 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_*.py'
           npm run verify 2>&1 | tee artifacts/verify.txt
           npm run pack:all 2>&1 | tee artifacts/pack.txt
+      - name: Validate isolated SDK installation and strict TypeScript consumption
+        run: |
+          npm install --global typescript@5.9.3
+          node tools/verify-packages.mjs --types 2>&1 | tee artifacts/package-install.txt
       - name: Install browser test tools
         run: |
           python3 -m venv "$RUNNER_TEMP/ski-playwright"
           "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0
           "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
-      - name: Validate desktop and touch layouts
+      - name: Validate desktop, touch, cups, records and replay workflows
         run: |
           PY="$RUNNER_TEMP/ski-playwright/bin/python"
           CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
           export CHROMIUM
           "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
-      - name: Build downloadable release archives
-        run: python3 tools/package-release.py
+          "$PY" tests/browser_features.py 2>&1 | tee artifacts/browser-features.txt
+      - name: Require actual WebGPU execution and device-loss recovery
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          "$PY" tests/browser_gpu.py --require-webgpu 2>&1 | tee artifacts/browser-webgpu.txt
+      - name: Write evidence and build downloadable release archives
+        run: |
+          node tools/write-validation.mjs
+          python3 tools/package-release.py
       - name: Stage Pages site
         run: |
           mkdir -p _site/downloads
@@ -58,12 +73,16 @@ jobs:
         with:
           path: _site
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: ski-jump-web-release
           if-no-files-found: error
           path: |
             release/
-            artifacts/browser-tests.*
+            artifacts/browser-*
+            artifacts/verify.txt
+            artifacts/package-install.txt
+            artifacts/release.json
             artifacts/screenshots/
   deploy:
     needs: build

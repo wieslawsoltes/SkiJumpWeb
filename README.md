@@ -4,9 +4,19 @@
 
 [![Build, test and package](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml)
 
-A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.1.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
+A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.2.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
 
 **This is not a verified full-fidelity clone.** The 32 country/K-point roster entries match the publisher's public list. Hill geometry, physics, scenery, glyphs and sounds are newly authored approximations. Menus follow the original yellow-on-gray/pixel presentation, not a pixel-perfect reconstruction of every original screen. Original `.rpl` files, original saves and Mediamond online records are not supported. See [the fidelity matrix](docs/FIDELITY.md).
+
+## New in 0.2.0
+
+The tour editor preserves preset ordering and supports up to 64 events, repeated hills, reordering, duplication, deterministic shuffling, JSON import/export and 20 locally saved named tours. World/team cups now include a bibbed start list, previous-round results, live standings, round transitions, event history, four-athlete team breakdowns and CSV export. Watched CPU jumps can be skipped with Space or the touch-friendly SKIP button; the current simulation finishes and submits once.
+
+Practice has a last-50-attempt session table, landing rate/mean distance and deterministic SAME WIND retries. Records include a top-ten display per hill, up to 64 retained personal bests, aggregate personal distances and direct playback of the overall-record ghost. Replay entries can be renamed independently of their recorded player identity.
+
+Replay controls add reverse playback, exact recorded-frame stepping, phase markers and adjustable flight-only/full-range loops. Left/Right steps samples; Home/End seeks bounds; T seeks the first flight sample; L seeks the landing transition. The FLIGHT marker is not a reconstructed original takeoff-button timestamp. Classic mouse commands react only to new primary/secondary presses, never releases or the middle button.
+
+These are working features of this independent implementation. Their presence is not evidence of exact original-menu, physics, hill-geometry or binary-format equivalence. See [CHANGELOG](CHANGELOG.md) and [fidelity boundaries](docs/FIDELITY.md).
 
 ## Play immediately
 
@@ -47,7 +57,7 @@ World Cup supports custom multi-hill tours, 1–16 local human players, CPU oppo
 
 Results include distance, five judge marks with highest/lowest discarded, distance/style points, takeoff quality, wind and landing status. Local records exclude falls. Save files and cup results can be exported. Player names, countries, teams and suit/helmet/ski colors are editable.
 
-Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, looped and viewed at 0.25×–4× speed using four cameras. The library retains up to 20 saved replays. Records retain per-hill ghosts separately. Backup export includes settings, players, records, statistics and the cup save; export replays separately.
+Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, looped and viewed at ±0.25×–4× speed using four cameras. The library retains up to 20 saved replays. Records retain per-hill ghosts separately. Backup export includes settings, players, records, personal leaderboards, named tours, statistics and the cup save; export replays separately.
 
 ## Reusable npm SDK
 
@@ -56,20 +66,22 @@ Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, loope
 | `@wieslawsoltes/ski-core` | Fixed clock, deterministic RNG, events and math |
 | `@wieslawsoltes/ski-hills` | Hill catalog and smooth arc-length profiles |
 | `@wieslawsoltes/ski-physics` | Inrun, takeoff, flight, landing, scoring and CPU control |
-| `@wieslawsoltes/ski-competition` | Individual/team cups and serialization |
-| `@wieslawsoltes/ski-replay` | Recording, validation, seeking and interpolation |
+| `@wieslawsoltes/ski-competition` | Individual/team cups, ordered tours and serialization |
+| `@wieslawsoltes/ski-replay` | Recording, validation, seeking, exact samples and interpolation |
 | `@wieslawsoltes/ski-renderer` | WebGPU, WebGL2 and software rendering |
 | `@wieslawsoltes/ski-audio` | Procedural Web Audio mixer and effects |
 | `@wieslawsoltes/ski-input` | Mouse, keyboard, touch, gamepad and motion |
-| `@wieslawsoltes/ski-storage` | Local persistence, records, ghosts and backups |
+| `@wieslawsoltes/ski-storage` | Local persistence, records, tours, ghosts and backups |
 | `@wieslawsoltes/ski-ui` | Authored bitmap lettering and HUD |
 
-Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
+Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.2.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
 
 ```sh
-npm test              # 64 deterministic Node tests; links workspace packages locally
-npm run verify        # publication-file checks, syntax checks, tests and build
-npm run pack:all      # regenerate ten npm tarballs
+npm test                          # 100 deterministic Node tests; links workspace packages locally
+npm run verify                    # publication-file checks, syntax checks, tests and build
+npm run pack:all                   # regenerate ten npm tarballs, removing stale versions
+node tools/verify-packages.mjs     # install/import tarballs in an isolated offline consumer
+node tools/verify-packages.mjs --types  # also run strict TypeScript checking; tsc must be installed
 ```
 
 To consume the SDK without publishing it, install all ten tarballs together in another project:
@@ -92,11 +104,11 @@ while (sim.state.phase !== 'finished') {
 console.log(sim.result);
 ```
 
-Publication is deliberately opt-in: review namespace ownership, versions, licenses and npm authentication, then run `node tools/publish.mjs --confirm`. Without `--confirm`, it publishes nothing. GitHub Actions verifies Node 20/22/24 and deploys GitHub Pages automatically on pushes to `main`. The Pages build also reruns the desktop/touch integration suite, generates the ten npm tarballs and publishes downloadable source/static/package archives. Registry publication remains opt-in; the Pages workflow never publishes to npm.
+Publication is deliberately opt-in: review namespace ownership, versions, licenses and npm authentication, then run `node tools/publish.mjs --confirm`. Without `--confirm`, it publishes nothing. GitHub Actions validates Node 20/22/24, independently installed npm tarballs, browser workflows and a dedicated secure-origin WebGPU suite. Pushes to `main` redeploy the game and checksum-verified downloads to GitHub Pages. npm registry publication remains opt-in; packing and deploying the game do not publish packages to npm.
 
 ## Rendering and performance architecture
 
-The preferred backend is actual WebGPU: batched static terrain/structures, a small dynamic skier/shadow buffer, flat-shaded low-resolution 3D, depth testing and a GPU compute snow system. Static geometry is uploaded when changing hills, not every frame. WebGL2 uses the same geometry; a lower-detail Canvas software rasterizer is the last fallback. Device loss can fall back to WebGL2.
+The preferred backend is actual WebGPU: batched static terrain/structures, a small dynamic skier/shadow buffer, flat-shaded low-resolution 3D, depth testing and a GPU compute snow system. Static geometry is uploaded when changing hills, not every frame. Dynamic, uniform and weather upload arrays are reused. This is not a claim of an allocation-free render loop. WebGL2 uses the same geometry; a lower-detail Canvas software rasterizer is the last fallback. Device-loss recovery releases stale GPU resources and selects a usable fallback.
 
 Simulation is a bounded-catch-up **120 Hz CPU fixed step**, independent of display frame rate. It is intentionally not a GPU physics implementation. Menus render at a reduced cadence. Resolution choices are classic 320×200 in 8:5 landscape, sharp 640×400, or capped adaptive; portrait adapts the render surface and enlarges HUD lettering. Audio is synthesized after interaction and has a bounded voice budget.
 
@@ -104,9 +116,11 @@ These architectural choices reduce work; they are **not a guarantee of a particu
 
 ## Validation and limitations
 
-**64 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, a complete 32-hill cup, replay validation and storage failures. **33 Chromium integration checks pass** using desktop and mobile touch emulation: controls, rotation during flight, replay UI, audio lifecycle, WebGL2 and software fallback. Type declarations pass a strict TypeScript check. Test logs and screenshots are included in `artifacts/` and in the downloadable release. The first Pages run initializes generated distributions and captures in the repository; subsequent runs publish fresh captures in the release downloads and workflow artifacts without growing Git history on each build.
+**100 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline and 36 additional Chromium workflow checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
 
-The test environment did not expose WebGPU to the offline browser document, so **the browser WebGPU backend was not executed here**. The shaders and host path were reviewed, but this is not a substitute for testing on a real adapter. Physical iOS/Android devices, Safari, gamepad hardware, motion permission prompts, PWA installation and real GPU device loss still need device validation. See [testing notes](docs/TESTING.md).
+**Hosted WebGPU validation passed on Chromium using Google's SwiftShader adapter.** The suite executed actual WebGPU rendering and compute across all 32 hills in four weather modes, rendered a complete jump through landing, resized portrait/landscape surfaces, checked validation error scopes, deliberately destroyed the device, and recovered to WebGL2. The Pages workflow now requires this suite to pass rather than accepting an unavailable adapter as a successful GPU test. See [the recorded GPU report](artifacts/browser-webgpu.json), [release evidence](artifacts/release.json) and [testing notes](docs/TESTING.md). Subsequent Pages runs place fresh reports in downloadable source and workflow artifacts without committing generated captures on every build.
+
+SwiftShader validates browser API/shader behavior, **not physical GPU performance or drivers**. The local offline host used Canvas software rendering; hosted baseline checks used WebGL2. Backend identities are recorded in the reports. Physical iOS/Android devices, Safari, gamepad hardware, motion permission prompts, installed-PWA behavior and real hardware device loss still need device validation. No test here establishes original DSJ2 pixel, physics, hill-geometry or binary-format equivalence.
 
 ## Layout
 

@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -27,6 +30,8 @@ jobs:
           package-manager-cache: false
       - run: npm run verify
       - run: npm run pack:all
+      - name: Install and import actual SDK tarballs in an isolated offline consumer
+        run: node tools/verify-packages.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: ski-jump-web-node-${{ matrix.node }}
