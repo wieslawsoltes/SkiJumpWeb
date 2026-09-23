@@ -51,6 +51,7 @@ jobs:
           export CHROMIUM
           "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
           "$PY" tests/browser_features.py 2>&1 | tee artifacts/browser-features.txt
+          "$PY" tests/browser_fidelity.py 2>&1 | tee artifacts/browser-fidelity.txt
       - name: Require actual WebGPU execution and device-loss recovery
         run: |
           PY="$RUNNER_TEMP/ski-playwright/bin/python"
