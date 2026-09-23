@@ -56,6 +56,7 @@ jobs:
               path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(output)
           print(f'Applied {len(outputs)} verified source files')
           PY
+          python3 .maintenance/refine-renderer.py
       - name: Validate engine, build and package metadata
         run: |
           mkdir -p artifacts
@@ -89,10 +90,10 @@ jobs:
           node tools/write-validation.mjs
       - name: Commit all validated sources and regenerated distributions
         run: |
-          rm .maintenance/renderer.{0,1,2,3,4}
+          rm .maintenance/renderer.{0,1,2,3,4} .maintenance/refine-renderer.py
           git add -A -- README.md CHANGELOG.md app packages docs package.json tools tests dist SkiJumpWeb.html artifacts .maintenance
           git diff --cached --check
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement shared classic hill rendering and all-hill pixel regressions' -m 'Ship 0.4.0 with layered inruns, continuous sidewalls, faceted supports, branch pines, perspective tracking, projected skier shadows and shared fog, dithering and replay-time snowfall. Use the same full scene on WebGPU, WebGL2 and a clipped depth-buffered software rasterizer. Validate 201 engine tests, 104 browser workflows, GPU recovery and 288 image fixtures per backend. Preserve original-fidelity provenance: four observed color families, remaining original geometry/camera/scenery and pixel equality unverified.'
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement shared classic hill rendering and all-hill pixel regressions' -m 'Ship 0.4.0 with layered inruns, continuous sidewalls, faceted supports, branch pines, perspective tracking, projected skier shadows and shared fog, dithering and replay-time snowfall. Use the same full scene on WebGPU, WebGL2 and a clipped depth-buffered software rasterizer. Validate engine, browser workflows, GPU recovery and 288 image fixtures per backend. Preserve original-fidelity provenance: four observed color families, remaining original geometry/camera/scenery and pixel equality unverified.'
           git push origin HEAD:feature/renderer-parity
           echo "Implementation commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
