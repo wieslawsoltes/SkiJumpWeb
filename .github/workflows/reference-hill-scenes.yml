@@ -1,0 +1,58 @@
+name: Observe original hill rendering
+on:
+  push:
+    branches: [research/dsj210-fidelity]
+    paths: [.github/workflows/reference-hill-scenes.yml]
+permissions:
+  contents: read
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq dosbox xvfb xdotool python3-pil
+      - name: Observe unmodified demo and publisher-supplied replays
+        shell: bash
+        env:
+          DISPLAY: ':99'
+          SDL_AUDIODRIVER: dummy
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/reference-scenes"
+          curl -fsS https://www.mediamond.fi/dsj2/downloads/dsj210.zip -o "$RUNNER_TEMP/dsj.zip"
+          echo "c58c4484c911e1a91b1bc62710a6a1ddc911defbe77a06c72ebec51f3c78c431  $RUNNER_TEMP/dsj.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/dsj.zip" -d "$RUNNER_TEMP/dsj"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, urllib.request
+          p=Path(os.environ['RUNNER_TEMP'])/'dsj'
+          for f in p.iterdir(): print(f.name, f.stat().st_size)
+          for name in ['sui-193m','cze-149m','slo-283m']:
+              try: (p/(name+'.rpl')).write_bytes(urllib.request.urlopen('https://www.mediamond.fi/dsj2/replays/'+name+'.rpl', timeout=30).read())
+              except Exception as e: print(name, str(e))
+          PY
+          Xvfb :99 -screen 0 800x600x24 &
+          sleep 2
+          printf '[sdl]\nfullscreen=false\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n' > "$RUNNER_TEMP/reference.conf"
+          dosbox -conf "$RUNNER_TEMP/reference.conf" -c "mount c $RUNNER_TEMP/dsj" -c 'c:' -c 'dsj.exe' > "$RUNNER_TEMP/dosbox.log" 2>&1 &
+          sleep 8
+          click() { xdotool mousemove "$1" "$2"; sleep .2; xdotool mousedown 1; sleep .3; xdotool mouseup 1; sleep 2; }
+          shot() { /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-scenes/$1.png')"; }
+          click 215 315
+          click 205 426
+          sleep 8
+          shot 00-main
+          click 205 362; shot 01-replay-library
+          click 205 250; shot 02-replay-selection
+          xdotool key Return; sleep 3; shot 03-replay-enter
+          xdotool key Escape; sleep 2
+          click 205 314; shot 04-practice-menu
+          click 205 267; shot 05-practice-selection
+          click 205 453; shot 06-practice-start
+          xdotool key Escape; sleep 1; shot 07-end
+          pkill dosbox || true
+          rm -rf "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/dsj.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: original-hill-observations
+          path: ${{ runner.temp }}/reference-scenes/*.png
+          retention-days: 1
