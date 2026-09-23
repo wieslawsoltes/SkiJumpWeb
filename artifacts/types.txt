@@ -1,4 +1,4 @@
 
-added 10 packages in 433ms
+added 10 packages in 296ms
 Imported 10 independently installed packages 0.4.0
 Strict TypeScript consumer passed

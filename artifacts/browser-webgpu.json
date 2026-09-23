@@ -59,7 +59,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1.7999999999883585,
+    "frameMilliseconds": 1.2999999999883585,
     "sections": [
       {
         "name": "snow",
@@ -79,11 +79,11 @@
       {
         "name": "inrun",
         "first": 24090,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31698,
+        "first": 35946,
         "count": 101520
       }
     ],
@@ -91,9 +91,9 @@
       866,
       400
     ],
-    "triangles": 44406,
+    "triangles": 45822,
     "fps": 60,
-    "staticBytes": 3197232,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null
@@ -103,7 +103,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 4.2000000000116415,
+    "frameMilliseconds": 3.2999999999883585,
     "sections": [
       {
         "name": "snow",
@@ -123,11 +123,11 @@
       {
         "name": "inrun",
         "first": 24090,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31698,
+        "first": 35946,
         "count": 101520
       }
     ],
@@ -135,9 +135,9 @@
       866,
       400
     ],
-    "triangles": 44406,
+    "triangles": 45822,
     "fps": 60,
-    "staticBytes": 3197232,
+    "staticBytes": 3299184,
     "deviceLosses": 1,
     "fallbackReason": "GPU device lost: destroyed",
     "lastError": null

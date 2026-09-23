@@ -64,11 +64,11 @@
       {
         "name": "inrun",
         "first": 24090,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31698,
+        "first": 35946,
         "count": 101520
       }
     ],
@@ -76,9 +76,9 @@
       320,
       200
     ],
-    "triangles": 44406,
+    "triangles": 45822,
     "fps": 9,
-    "staticBytes": 3197232,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null

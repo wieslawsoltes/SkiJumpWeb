@@ -135,17 +135,22 @@ const fascia = {
     gray:[[109,109,113],[97,97,101],[85,85,89],[73,73,77],[60,60,65]],
     teal:[[24,97,101],[16,73,77],[12,48,52],[4,24,28],[0,0,8]]
 };
+// The public gameplay gallery shows brighter landing-wall paint than inrun
+// fascias. These independently authored family colors are not recovered palette
+// indices or verified assignments for the unobserved hills.
+const landingPaint = { ochre:[.69,.68,.08], teal:[.09,.69,.71], brown:[.62,.39,.20], gray:[.60,.61,.63] };
 export const HILL_VISUALS = Object.freeze(visualRows.map(([id,palette]) => {
     const hill=getHill(id);
     return Object.freeze({id,k:hill.k,version:1,palette,
         railColor:Object.freeze(fascia[palette][0].map(v=>v/255)),
+        landingRailColor:Object.freeze([...landingPaint[palette]]),
         inrunBands:Object.freeze(fascia[palette].map(c=>Object.freeze(c.map(v=>v/255)))),
         inrunDepth:4.8,platformLength:18,supportRadius:3.6,
         inrunWidth:3.6,landingWidth:8,landingFlare:.027,
         cameraHeight:28,cameraYaw:-.16,cameraElevation:.17,
         treeSeed:hill.seed,treeCount:180,
         evidence:Object.freeze({roster:'publisher',geometry:'reconstructed',
-            palette:['fin','sui','cze','blr'].includes(id)?'observed-inrun-colors':'unverified',scenery:'reconstructed',camera:'reconstructed',pixelParity:'unverified'})
+            palette:['fin','sui','cze','blr'].includes(id)?'observed-inrun-colors':'unverified',landingRails:'gallery-family-reconstruction',scenery:'reconstructed',camera:'reconstructed',pixelParity:'unverified'})
     });
 }));
 export function getHillVisual(id) {

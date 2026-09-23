@@ -75,9 +75,12 @@ depth and scratch reuse. The packaged consumer test imports the actual .tgz file
 including the renderer's new internal ESM modules and their declarations.
 
 `python tests/browser_rendering.py` requires real WebGPU and WebGL2 contexts,
-plus software. Each hill uses nine identical fixtures on all three paths:
+plus software. Each hill uses twelve identical fixtures on all three paths:
 gate, board, flight, landing; snow/dusk/night flight; portrait and wide snow
-surfaces. The report records all 288 comparisons and numeric image errors.
+surfaces; close, wide and chase cameras. Snow frames are repeated after seeking
+to another timestamp and must be byte-identical on the same backend. Missing
+simulation phases fail rather than substituting the gate. The report records all
+384 comparisons and numeric image errors.
 WebGPU/WebGL2 budgets: mean absolute RGB <= 0.15 byte and fraction of pixels with
 any channel error > 8 <= 0.001. GPU/software budgets: mean <= 1.5 bytes and fraction
 <= 0.01. These are stated regression budgets, not claims of bit-identical output.
@@ -104,3 +107,16 @@ Example (reference images remain local and are not shipped in npm):
 The original reference set is not complete. No all-level original pixel-parity
 claim is made by this release. Hardware/driver differences and physical mobile
 performance also require separate device validation.
+
+## Finalization corrections
+
+Inrun shoulders, stepped fascia joins, underside and end cross-sections now form
+closed surfaces. Oblique/close cameras no longer look through missing strips.
+Landing-wall paint is separate from inrun fascia colors, following the brighter
+wall families visible in the public gameplay gallery. The family assignments and
+RGB values are reconstructions, not newly verified original hill palettes.
+
+Published render evidence is tied to the SHA-256 of the just-built app bundle.
+The permanent Pages workflow reruns the entire image matrix and refuses stale,
+software-only, partial, duplicate-hill or mismatched-bundle evidence. This is
+strict internal-renderer regression, still not original-game parity certification.

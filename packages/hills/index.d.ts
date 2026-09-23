@@ -53,6 +53,7 @@ export interface HillVisual {
     readonly k: number;
     readonly version: number;
     readonly palette: string;
+    readonly landingRailColor: readonly number[];
     readonly railColor: readonly number[];
     readonly inrunBands: readonly (readonly number[])[];
     readonly inrunDepth: number;
@@ -66,7 +67,7 @@ export interface HillVisual {
     readonly cameraElevation: number;
     readonly treeSeed: number;
     readonly treeCount: number;
-    readonly evidence: Readonly<Record<'roster' | 'geometry' | 'palette' | 'scenery' | 'camera' | 'pixelParity', string>>;
+    readonly evidence: Readonly<Record<'roster' | 'geometry' | 'palette' | 'landingRails' | 'scenery' | 'camera' | 'pixelParity', string>>;
 }
 export declare const HILL_VISUALS: readonly HillVisual[];
 export declare function getHillVisual(id: string): HillVisual;

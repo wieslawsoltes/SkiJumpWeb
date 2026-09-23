@@ -45,7 +45,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1.900000000023283,
+    "frameMilliseconds": 0.9000000000232831,
     "sections": [
       {
         "name": "snow",
@@ -65,11 +65,11 @@
       {
         "name": "inrun",
         "first": 24096,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31704,
+        "first": 35952,
         "count": 101520
       }
     ],
@@ -77,9 +77,9 @@
       320,
       200
     ],
-    "triangles": 44408,
+    "triangles": 45824,
     "fps": 3,
-    "staticBytes": 3197376,
+    "staticBytes": 3299328,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null

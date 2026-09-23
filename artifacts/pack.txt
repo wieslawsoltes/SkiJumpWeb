@@ -64,17 +64,17 @@ npm notice 📦  @wieslawsoltes/ski-hills@0.4.0
 npm notice Tarball Contents
 npm notice 1.3kB LICENSE
 npm notice 1.7kB README.md
-npm notice 2.2kB index.d.ts
-npm notice 8.8kB index.js
+npm notice 2.3kB index.d.ts
+npm notice 9.2kB index.js
 npm notice 914B package.json
 npm notice Tarball Details
 npm notice name: @wieslawsoltes/ski-hills
 npm notice version: 0.4.0
 npm notice filename: wieslawsoltes-ski-hills-0.4.0.tgz
-npm notice package size: 6.1 kB
-npm notice unpacked size: 14.9 kB
-npm notice shasum: 99fe495e1593f56c0bf4a9928b3794f6b2eefc10
-npm notice integrity: sha512-kjFdh7w0p885H[...]1+F0H/gX+oyRQ==
+npm notice package size: 6.3 kB
+npm notice unpacked size: 15.4 kB
+npm notice shasum: d1776aff4929f68b671646c720c4b11d3f65f5b7
+npm notice integrity: sha512-X8xXmQuVIyF4/[...]dbt8JaoQ3aGVw==
 npm notice total files: 5
 npm notice
 wieslawsoltes-ski-hills-0.4.0.tgz
@@ -126,16 +126,16 @@ npm notice 37.8kB index.js
 npm notice 3.9kB mesh.js
 npm notice 956B package.json
 npm notice 6.4kB raster.js
-npm notice 9.8kB scene.js
+npm notice 11.1kB scene.js
 npm notice 7.4kB shading.js
 npm notice Tarball Details
 npm notice name: @wieslawsoltes/ski-renderer
 npm notice version: 0.4.0
 npm notice filename: wieslawsoltes-ski-renderer-0.4.0.tgz
-npm notice package size: 24.4 kB
-npm notice unpacked size: 73.4 kB
-npm notice shasum: 43b81594541e09928876572e02ffc0d809a6399b
-npm notice integrity: sha512-Yse0UZHNVODi9[...]JjZie5hgZktAg==
+npm notice package size: 24.8 kB
+npm notice unpacked size: 74.7 kB
+npm notice shasum: ab89e8cfdacce4dbb44a1f2fb0db5d05f94a77c1
+npm notice integrity: sha512-l3UgrjDXX7zGQ[...]XRKHSUXpuf6Vw==
 npm notice total files: 9
 npm notice
 wieslawsoltes-ski-renderer-0.4.0.tgz

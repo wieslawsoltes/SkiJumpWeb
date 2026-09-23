@@ -2,6 +2,9 @@
 
 ## 0.4.0 — 2026-09-23
 
+- Close inrun shoulders, stepped-fascia joins, undersides and end caps; remove intersecting box caps. Separate landing-wall paint from inrun fascias.
+- Extend cross-backend coverage to all four cameras: 384 fixtures per backend, with byte-identical replay-time snow after seeking. Reject missing poses and stale bundle evidence.
+
 - Add shared full-detail classic hill scenes for all 32 entries, continuous walls, layered fascias, faceted supports, branch pines, distance markings and projected skier shadows.
 - Match directly observed inrun color families for Finland, Switzerland, Czech Republic and Belarus; keep unobserved assignments and original geometry/camera parity explicit.
 - Add perspective tracking and homogeneous clipping/perspective interpolation/depth in the software fallback.

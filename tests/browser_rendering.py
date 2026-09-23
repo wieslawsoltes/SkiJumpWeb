@@ -8,7 +8,7 @@ from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from playwright.sync_api import sync_playwright
 from PIL import Image, ImageDraw
-import argparse, base64, json, os, threading
+import argparse, base64, hashlib, json, os, threading
 
 ROOT=Path(__file__).resolve().parents[1]
 NAMES=['core','hills','physics','competition','replay','renderer','audio','input','storage','ui']
@@ -36,17 +36,24 @@ window.captureHill=async id=>{
   if(!states.flight&&s.phase==='flight'&&s.flightTime>.9)states.flight={...s};
   if(!states.landing&&['runout'].includes(s.phase))states.landing={...s};
  }
- states.board??=states.gate;states.flight??={...sim.state};states.landing??={...sim.state};
+ for(const phase of ['gate','board','flight','landing'])if(!states[phase])throw new Error(id+' never reached required '+phase+' pose');
  const fixtures=Object.entries(states).map(([phase,state])=>({phase,state,weather:'clear',size:[320,200]}));
  for(const weather of ['snow','dusk','night'])fixtures.push({phase:'flight',state:states.flight,weather,size:[320,200]});
  for(const size of [[320,568],[432,200]])fixtures.push({phase:'flight',state:states.flight,weather:'snow',size});
+ for(const camera of ['close','wide','chase'])fixtures.push({phase:'flight',state:states.flight,weather:'clear',size:[320,200],camera});
  const comparisons=[],images=[],checks=[],errors=[];
  for(const r of renderers){r.setHill(id);if(r.device)r.device.pushErrorScope('validation');}
  for(const fixture of fixtures){
-  const frames=[];const key=id+'-'+fixture.phase+'-'+fixture.weather+'-'+fixture.size.join('x');
+  const frames=[];const key=id+'-'+fixture.phase+'-'+fixture.weather+'-'+fixture.size.join('x')+(fixture.camera?'-'+fixture.camera:'');
   for(const r of renderers){
-   r.host.style.width=fixture.size[0]+'px';r.host.style.height=fixture.size[1]+'px';r.setOptions({weather:fixture.weather});
+   r.host.style.width=fixture.size[0]+'px';r.host.style.height=fixture.size[1]+'px';r.setOptions({weather:fixture.weather,camera:fixture.camera||'classic'});
    r.render(fixture.state,{},1/60);const frame=await r.captureFrame();frames.push(frame);
+   if(fixture.weather==='snow'){
+    r.render({...fixture.state,time:100}, {},1/120);
+    r.render(fixture.state,{},1/30);
+    const repeated=await r.captureFrame();
+    if(frame.pixels.some((v,i)=>v!==repeated.pixels[i]))throw new Error('Replay-time snow/camera history changed pixels '+key+' '+r.kind);
+   }
    if(frame.width!==fixture.size[0]||frame.height!==fixture.size[1])throw new Error('Incorrect fixture size '+key);
    if(fixture.weather==='clear'||id==='fin')images.push({key,backend:r.kind,width:frame.width,height:frame.height,rgba:encoded(frame.pixels)});
    if(r.gl&&r.gl.getError()!==r.gl.NO_ERROR)throw new Error('WebGL error at '+key);
@@ -92,7 +99,7 @@ class Handler(SimpleHTTPRequestHandler):
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--software-offline',action='store_true');args=parser.parse_args()
     out=ROOT/'artifacts/rendering';out.mkdir(parents=True,exist_ok=True)
-    report={'status':'running','scope':'software-only' if args.software_offline else 'cross-backend',
+    report={'schema':2,'bundleSha256':hashlib.sha256((ROOT/'dist/app.js').read_bytes()).hexdigest(),'status':'running','scope':'software-only' if args.software_offline else 'cross-backend',
             'originalParity':'unverified','originalMatchedFrames':0,'hills':[],'errors':[],
             'budgets':{'gpuGlMean':.15,'gpuGlFractionOver8':.001,'gpuSoftwareMean':1.5,'gpuSoftwareFractionOver8':.01}}
     server=None;thread=None
@@ -111,7 +118,7 @@ def main():
                 for shot in data.pop('images'):
                     image=Image.frombytes('RGBA',(shot['width'],shot['height']),base64.b64decode(shot['rgba']))
                     image.save(out/(shot['key']+'-'+shot['backend']+'.png'))
-                report['hills'].append(data);report['errors'].extend(data['errors'])
+                data['name']=hill['name'];data['k']=hill['k'];report['hills'].append(data);report['errors'].extend(data['errors'])
                 print(hill['id'],len(data['checks']),'frames per backend',len(data['errors']),'errors',flush=True)
             page.evaluate('window.cleanup()');browser.close()
         report['status']='failed' if report['errors'] else 'passed'

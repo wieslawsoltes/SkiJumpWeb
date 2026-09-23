@@ -20,6 +20,12 @@ function rampFascia(m,a,b,z,side,spec){
     for(let i=0;i<bands.length;i++){
         const top=-depth*i/bands.length,bottom=-depth*(i+1)/bands.length,zz=z+side*i*.055;
         m.quad([a.x,a.y+bottom,zz],[b.x,b.y+bottom,zz],[b.x,b.y+top,zz],[a.x,a.y+top,zz],bands[i],false);
+        // Join each stepped fascia to the next band. Open strips show through
+        // from oblique cameras even when a side-on image looks solid.
+        if(i+1<bands.length){
+            const next=zz+side*.055;
+            m.quad([a.x,a.y+bottom,zz],[a.x,a.y+bottom,next],[b.x,b.y+bottom,next],[b.x,b.y+bottom,zz],shade(bands[i],.82),false);
+        }
     }
     wall(m,a,b,z,z,side*.22,.38,shade(spec.railColor,.48));
 }
@@ -93,7 +99,7 @@ export function createClassicHillScene(profile, record=0) {
         const end=p.end.s;
         for(let s=0;s<end;s+=2) {
             const a=p.atDistance(s),b=p.atDistance(Math.min(end,s+2));
-            for(const side of [-1,1]) wall(m,a,b,side*halfWidth(s),side*halfWidth(b.s),side*.27,.72,spec.railColor);
+            for(const side of [-1,1]) wall(m,a,b,side*halfWidth(s),side*halfWidth(b.s),side*.27,.72,spec.landingRailColor);
         }
         for(let s=4;s<end;s+=10) {
             const q=p.atDistance(s);
@@ -116,22 +122,38 @@ export function createClassicHillScene(profile, record=0) {
         for(let x=p.startX;x<0;x+=.8)points.push({x,y:p.inrunY(x)});
         points.push({x:0,y:p.inrunY(0)});
         const width=spec.inrunWidth/2;
+        const shell=(a,b)=>{
+            const shoulder=width+.22,outer=shoulder+(spec.inrunBands.length-1)*.055;
+            for(const side of [-1,1]){
+                m.quad([a.x,a.y,side*width],[b.x,b.y,side*width],[b.x,b.y,side*shoulder],[a.x,a.y,side*shoulder],shade(spec.railColor,.48),false);
+            }
+            surface(m,a,b,outer,outer,spec.inrunBands.at(-1),-spec.inrunDepth);
+        };
+        const cap=q=>{
+            // Cross-section has the same five widths as the fascia. A box cap
+            // would intersect its faces and reintroduce coplanar depth races.
+            for(let i=0;i<spec.inrunBands.length;i++){
+                const w=width+.22+i*.055,top=q.y-spec.inrunDepth*i/spec.inrunBands.length,bottom=q.y-spec.inrunDepth*(i+1)/spec.inrunBands.length;
+                m.quad([q.x,top,-w],[q.x,top,w],[q.x,bottom,w],[q.x,bottom,-w],shade(spec.inrunBands[i],.8),false);
+            }
+        };
         for(let i=0;i<points.length-1;i++) {
             const a=points[i],b=points[i+1];
             surface(m,a,b,width,width,[.73,.76,.79]);
+            shell(a,b);
             for(const z of [-.26,.26]) m.quad([a.x,a.y+.008,z-.045],[b.x,b.y+.008,z-.045],[b.x,b.y+.008,z+.045],[a.x,a.y+.008,z+.045],[.34,.38,.39],false);
             for(const side of [-1,1])rampFascia(m,a,b,side*(width+.22),side,spec);
         }
         const length=spec.platformLength,depth=spec.inrunDepth;
         const a={x:p.startX-length,y:p.startY},b={x:p.startX,y:p.startY};
         surface(m,a,b,width,width,[.73,.76,.79]);
+        shell(a,b);cap(a);cap(points.at(-1));
         for(const side of [-1,1])rampFascia(m,a,b,side*(width+.22),side,spec);
         for(let x=p.startX-5;x<-.5;x+=Math.max(12,p.inrunLength*.32)){
             const top=x<p.startX?p.startY:p.inrunY(x),bottom=p.atX(x).y;
             support(m,x,bottom,0,Math.max(.1,top-bottom-depth),spec.supportRadius);
         }
-        // Visible board end and dark underside.
-        m.box(-.12,-depth,-width-.3,.12,depth,2*width+.6,spec.inrunBands[3]);
+        // The underside and both terminal cross-sections are closed above.
     });
     const trees=[];
     section('trees',()=>{

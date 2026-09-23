@@ -75,7 +75,7 @@ PASS no JavaScript or renderer console errors
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 0.6000000000058208,
+    "frameMilliseconds": 0.5999999999767169,
     "sections": [
       {
         "name": "snow",
@@ -95,11 +95,11 @@ PASS no JavaScript or renderer console errors
       {
         "name": "inrun",
         "first": 24090,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31698,
+        "first": 35946,
         "count": 101520
       }
     ],
@@ -107,9 +107,9 @@ PASS no JavaScript or renderer console errors
       320,
       200
     ],
-    "triangles": 44406,
-    "fps": 16,
-    "staticBytes": 3197232,
+    "triangles": 45822,
+    "fps": 18,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null
@@ -119,7 +119,7 @@ PASS no JavaScript or renderer console errors
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1.8999999999650754,
+    "frameMilliseconds": 1,
     "sections": [
       {
         "name": "snow",
@@ -139,11 +139,11 @@ PASS no JavaScript or renderer console errors
       {
         "name": "inrun",
         "first": 24090,
-        "count": 7608
+        "count": 11856
       },
       {
         "name": "trees",
-        "first": 31698,
+        "first": 35946,
         "count": 101520
       }
     ],
@@ -151,9 +151,9 @@ PASS no JavaScript or renderer console errors
       320,
       200
     ],
-    "triangles": 44406,
-    "fps": 15,
-    "staticBytes": 3197232,
+    "triangles": 45822,
+    "fps": 19,
+    "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null

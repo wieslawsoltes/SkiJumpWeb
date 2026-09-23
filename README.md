@@ -50,7 +50,7 @@ scene detail. All 32 hills have explicit visual descriptors and provenance.
 Finland, Switzerland, Czech Republic and Belarus inrun color families were
 observed directly; the other 28 assignments and every original geometry/camera
 remain unverified. See [rendering fidelity and acceptance](docs/RENDERING-FIDELITY.md).
-Cross-backend image regression covers 288 fixtures per backend; this is separate
+Cross-backend image regression covers 384 fixtures per backend; this is separate
 from original-game matching. Exact all-level visual parity is **not** established.
 
 ## Play immediately
@@ -112,7 +112,7 @@ Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, loope
 Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.4.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
 
 ```sh
-npm test                          # 201 deterministic Node tests; links workspace packages locally
+npm test                          # 233 deterministic Node tests; links workspace packages locally
 npm run verify                    # publication-file checks, syntax checks, tests and build
 npm run pack:all                   # regenerate ten npm tarballs, removing stale versions
 node tools/verify-packages.mjs     # install/import tarballs in an isolated offline consumer
@@ -151,7 +151,7 @@ These architectural choices reduce work; they are **not a guarantee of a particu
 
 ## Validation and limitations
 
-**201 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline, 36 feature-workflow and 35 fidelity-focused Chromium checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
+**233 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline, 36 feature-workflow and 35 fidelity-focused Chromium checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
 
 **Hosted WebGPU validation passed on Chromium using Google's SwiftShader adapter.** The suite executed actual WebGPU rendering and compute across all 32 hills in four weather modes, rendered a complete jump through landing, resized portrait/landscape surfaces, checked validation error scopes, deliberately destroyed the device, and recovered to WebGL2. The Pages workflow now requires this suite to pass rather than accepting an unavailable adapter as a successful GPU test. See [the recorded GPU report](artifacts/browser-webgpu.json), [release evidence](artifacts/release.json) and [testing notes](docs/TESTING.md). Subsequent Pages runs place fresh reports in downloadable source and workflow artifacts without committing generated captures on every build.
 
