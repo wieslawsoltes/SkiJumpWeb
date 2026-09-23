@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
 const names = ['core', 'hills', 'physics', 'competition', 'replay', 'renderer', 'audio', 'input', 'storage', 'ui'];
 const out = path.join(root, 'dist');
 fs.mkdirSync(out, { recursive: true });
@@ -9,7 +10,7 @@ fs.mkdirSync(out, { recursive: true });
 // by this workspace. There is no eval, runtime fetching, or external dependency.
 function compile(id, file) { let source = fs.readFileSync(file, 'utf8'); const exports = [...source.matchAll(/\bexport\s+(?:const|let|class|function)\s+(\w+)/g)].map(m => m[1]); source = source.replace(/import\s*\{([^}]+)\}\s*from\s*['"]([^'"]+)['"];?/g, (_, what, from) => `const {${what.replace(/\s+as\s+/g, ':')}}=require(${JSON.stringify(from)});`).replace(/\bexport\s+(?=const|let|class|function)/g, ''); if (/(^|\n)\s*(?:import|export)\s/.test(source))
     throw new Error(`Unsupported import/export in ${file}`); return `define(${JSON.stringify(id)},function(require){\n${source}\nreturn {${exports.join(',')}};\n});\n`; }
-let js = `/*! SkiJumpWeb 0.1.0 - independent recreation, MIT. See README for scope. */\n(function(){'use strict';\nconst modules=new Map(),cache=new Map();\nfunction define(id,factory){modules.set(id,factory)}\nfunction require(id){if(cache.has(id))return cache.get(id);const factory=modules.get(id);if(!factory)throw new Error('Missing module '+id);const exports=factory(require);cache.set(id,exports);return exports}\n`;
+let js = `/*! SkiJumpWeb ${version} - independent recreation, MIT. See README for scope. */\n(function(){'use strict';\nconst modules=new Map(),cache=new Map();\nfunction define(id,factory){modules.set(id,factory)}\nfunction require(id){if(cache.has(id))return cache.get(id);const factory=modules.get(id);if(!factory)throw new Error('Missing module '+id);const exports=factory(require);cache.set(id,exports);return exports}\n`;
 for (const name of names)
     js += compile('@wieslawsoltes/ski-' + name, path.join(root, 'packages', name, 'index.js'));
 js += compile('app', path.join(root, 'app/main.js')) + `require('app');\n})();\n`;

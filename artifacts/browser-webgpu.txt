@@ -1,0 +1,83 @@
+{
+  "status": "passed",
+  "checks": [
+    "secure-origin test harness",
+    "renderer uses WebGPU, not a hidden fallback: undefined",
+    "render hill fin in four weather modes",
+    "render hill sui in four weather modes",
+    "render hill cze in four weather modes",
+    "render hill blr in four weather modes",
+    "render hill aut in four weather modes",
+    "render hill usa in four weather modes",
+    "render hill lat in four weather modes",
+    "render hill pol in four weather modes",
+    "render hill jpn in four weather modes",
+    "render hill bel in four weather modes",
+    "render hill isl in four weather modes",
+    "render hill eng in four weather modes",
+    "render hill ger in four weather modes",
+    "render hill est in four weather modes",
+    "render hill nor in four weather modes",
+    "render hill aus in four weather modes",
+    "render hill irl in four weather modes",
+    "render hill ukr in four weather modes",
+    "render hill hun in four weather modes",
+    "render hill swe in four weather modes",
+    "render hill ita in four weather modes",
+    "render hill den in four weather modes",
+    "render hill svk in four weather modes",
+    "render hill can in four weather modes",
+    "render hill ltu in four weather modes",
+    "render hill kaz in four weather modes",
+    "render hill chn in four weather modes",
+    "render hill fra in four weather modes",
+    "render hill ned in four weather modes",
+    "render hill rus in four weather modes",
+    "render hill kor in four weather modes",
+    "render hill slo in four weather modes",
+    "reused dynamic/uniform staging storage",
+    "full simulation renders through landing",
+    "WebGPU resize 390x844",
+    "WebGPU resize 844x390",
+    "no render/compute validation errors: undefined",
+    "no uncaptured WebGPU errors",
+    "device loss recovers to a usable fallback",
+    "device loss counted once",
+    "dispose removes render surface"
+  ],
+  "errors": [],
+  "scope": "Browser WebGPU API; adapter identity recorded. Not physical-device certification.",
+  "adapter": {
+    "vendor": "google",
+    "architecture": "swiftshader",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": true
+  },
+  "webgpu": {
+    "backend": "webgpu",
+    "resolution": [
+      866,
+      400
+    ],
+    "triangles": 18072,
+    "fps": 60,
+    "staticBytes": 1301184,
+    "deviceLosses": 0,
+    "fallbackReason": null,
+    "lastError": null
+  },
+  "fallback": {
+    "backend": "webgl2",
+    "resolution": [
+      866,
+      400
+    ],
+    "triangles": 18072,
+    "fps": 60,
+    "staticBytes": 1301184,
+    "deviceLosses": 1,
+    "fallbackReason": "GPU device lost: destroyed",
+    "lastError": null
+  }
+}

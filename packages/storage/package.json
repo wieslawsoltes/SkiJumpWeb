@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/ski-storage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Reusable classic ski jumping storage package",
   "main": "./index.js",
@@ -28,10 +28,11 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@wieslawsoltes/ski-core": "0.1.0",
-    "@wieslawsoltes/ski-hills": "0.1.0",
-    "@wieslawsoltes/ski-replay": "0.1.0",
-    "@wieslawsoltes/ski-physics": "0.1.0"
+    "@wieslawsoltes/ski-core": "0.2.0",
+    "@wieslawsoltes/ski-hills": "0.2.0",
+    "@wieslawsoltes/ski-replay": "0.2.0",
+    "@wieslawsoltes/ski-physics": "0.2.0",
+    "@wieslawsoltes/ski-competition": "0.2.0"
   },
   "repository": {
     "type": "git",

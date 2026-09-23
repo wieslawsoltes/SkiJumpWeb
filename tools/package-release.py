@@ -34,7 +34,7 @@ try:
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 except (OSError, subprocess.CalledProcessError):
     commit = None
-manifest = {"name": "SkiJumpWeb", "version": "0.1.0", "commit": commit,
+manifest = {"name": "SkiJumpWeb", "version": json.loads((ROOT / "package.json").read_text())["version"], "commit": commit,
             "files": {p.name: {"bytes": p.stat().st_size,
                                "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
                       for p in sorted(OUT.iterdir()) if p.suffix in {".zip", ".html"}}}

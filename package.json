@@ -1,6 +1,6 @@
 {
   "name": "ski-jump-web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Independent, dependency-free classic ski jumping recreation with WebGPU rendering.",
@@ -15,7 +15,8 @@
     "pack:all": "node tools/pack.mjs",
     "check": "node tools/check.mjs",
     "verify": "npm run check && npm test && npm run build",
-    "pretest": "node tools/link.mjs"
+    "pretest": "node tools/link.mjs",
+    "verify:packages": "node tools/verify-packages.mjs"
   },
   "engines": {
     "node": ">=20"

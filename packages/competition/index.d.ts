@@ -77,7 +77,24 @@ export declare class Competition {
     standings(): Array<Ranked<(Player | Team) & {
         total: number;
     }>>;
+    startList(): Array<Player & { bib: number; group: number; completed: boolean; current: boolean; previous: JumpResult | null }>;
+    target(stylePoints?: number): { leader: string; points: number; assumedStyle: number; distance: number } | null;
+    teamDetails(teamId: string): Array<Player & ScoreFields>;
     cpuResult(): JumpResult;
     serialize(): string;
     static restore(text: string): Competition;
 }
+
+export declare class TourSchedule {
+    hills: string[];
+    name: string;
+    constructor(hills?: string[], name?: string);
+    insert(hillId: string, index?: number): this;
+    remove(index: number): this;
+    move(from: number, to: number): this;
+    reverse(): this;
+    shuffle(seed?: number): this;
+    serialize(): string;
+    static parse(text: string): TourSchedule;
+}
+export declare function competitionCSV(competition: Competition): string;

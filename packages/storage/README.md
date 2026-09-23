@@ -2,7 +2,7 @@
 
 Versioned local settings, separate assisted records, ghosts, replay library and cup saves with quota-safe memory fallback.
 
-Version **0.1.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
+Version **0.2.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
 
 ## Example
 
@@ -26,3 +26,7 @@ Browser packages require their respective platform APIs only when instantiated. 
 This is an independent implementation, not original DSJ2 code, an official port, or a verified 1:1 replica. Geometry, physics, glyphs and audio are newly authored. Original `.rpl`/save files and Mediamond online services are not supported. No original copyrighted assets are included. See the workspace README and `docs/FIDELITY.md` for the exact implementation boundary.
 
 API signatures are in `index.d.ts`; implementation and lifecycle behavior are in `index.js`.
+
+## Local records and tours (0.2)
+
+`hillLeaderboard(hillId, assisted, limit)` defaults to ten visible bests; up to 64 player-name bests are retained separately per hill and assisted mode. `personalBests(name)` returns that player's retained hill results. `saveTour({name,hills})`, `tours()` and `deleteTour(name)` manage up to 20 named ordered/repeated tours. `renameReplay(id,label)` changes the library display name, not recording identity. Backup import/export includes boards/tours and validates saved cups before writing. Local records are not server-verified rankings.

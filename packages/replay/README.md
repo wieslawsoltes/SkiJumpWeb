@@ -2,7 +2,7 @@
 
 60 Hz compact numeric replay capture; validated imports, interpolation, seeking and variable-speed playback.
 
-Version **0.1.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
+Version **0.2.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
 
 ## Example
 
@@ -28,3 +28,7 @@ Browser packages require their respective platform APIs only when instantiated. 
 This is an independent implementation, not original DSJ2 code, an official port, or a verified 1:1 replica. Geometry, physics, glyphs and audio are newly authored. Original `.rpl`/save files and Mediamond online services are not supported. No original copyrighted assets are included. See the workspace README and `docs/FIDELITY.md` for the exact implementation boundary.
 
 API signatures are in `index.d.ts`; implementation and lifecycle behavior are in `index.js`.
+
+## Exact sample navigation (0.2)
+
+`stepFrame(-1|1)` pauses on a neighboring actual recorded timestamp; it does not approximate a sample using 1/60 seconds. `jumpTo('start'|'takeoff'|'landing'|'end')` seeks phase markers. The `takeoff` marker is the first flight-phase sample, not the input button timestamp. Set negative `speed` for reverse playback, or call `setLoop(start,end)` to define a bounded loop. `.loop=false` pauses at recording endpoints.

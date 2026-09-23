@@ -43,19 +43,41 @@ export function parseReplay(text) { if (typeof text !== 'string' || text.length 
     throw new Error('Replay exceeds 3 MB'); return validateReplay(JSON.parse(text)); }
 export function serializeReplay(replay) { return JSON.stringify(validateReplay(replay)); }
 export class ReplayPlayer {
-    constructor(replay) { this.replay = validateReplay(replay); this.time = 0; this.speed = 1; this.paused = false; this.loop = true; this.duration = this.replay.frames.at(-1)[0]; this.flightStart = this.replay.frames.find(f => f[8] === 2)?.[0] || 0; this.runoutStart = this.replay.frames.find(f => f[8] === 3)?.[0] || this.duration; }
+    constructor(replay) { this.replay = validateReplay(replay); this.time = 0; this.speed = 1; this.paused = false; this.loop = true; this.duration = this.replay.frames.at(-1)[0]; this.flightStart = this.replay.frames.find(f => f[8] === 2)?.[0] || 0; this.loopStart = 0; this.loopEnd = this.duration; this.runoutStart = this.replay.frames.find(f => f[8] === 3)?.[0] || this.duration; }
     seek(t) { this.time = clamp(Number(t) || 0, 0, this.duration); return this.sample(this.time); }
-    update(dt) { if (!this.paused) {
-        this.time += Math.max(0, dt) * this.speed;
-        if (this.time > this.duration) {
-            if (this.loop)
-                this.time %= this.duration;
-            else {
-                this.time = this.duration;
-                this.paused = true;
+    get markers() {
+        return { start: 0, takeoff: this.flightStart, landing: this.runoutStart, end: this.duration };
+    }
+    setLoop(start = 0, end = this.duration) {
+        if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end > this.duration || end - start < .001)
+            throw new RangeError('Loop end must follow its start within the replay');
+        this.loopStart = start; this.loopEnd = end; this.seek(clamp(this.time, start, end)); return this;
+    }
+    stepFrame(direction = 1) {
+        if (!Number.isInteger(direction) || !direction) throw new RangeError('Frame direction must be a nonzero integer');
+        const frames = this.replay.frames;
+        let lo = 0, hi = frames.length;
+        while (lo < hi) { const mid = (lo + hi) >>> 1; if (frames[mid][0] < this.time - 1e-7) lo = mid + 1; else hi = mid; }
+        const exact = lo < frames.length && Math.abs(frames[lo][0] - this.time) < 1e-7;
+        const index = direction > 0 ? (exact ? lo : lo - 1) + direction : lo + direction;
+        this.paused = true;
+        return this.seek(frames[clamp(index, 0, frames.length - 1)][0]);
+    }
+    jumpTo(marker) {
+        if (!Object.hasOwn(this.markers, marker)) throw new RangeError('Unknown replay marker');
+        return this.seek(this.markers[marker]);
+    }
+    update(dt) {
+        if (!this.paused && Number.isFinite(dt) && dt > 0 && Number.isFinite(this.speed)) {
+            const speed = clamp(this.speed, -4, 4), start = this.loop ? this.loopStart : 0, end = this.loop ? this.loopEnd : this.duration;
+            this.time = clamp(this.time, start, end) + dt * speed;
+            if (this.time > end || this.time < start || (!this.loop && ((speed > 0 && this.time === end) || (speed < 0 && this.time === start)))) {
+                if (this.loop) { const span = end - start; this.time = start + ((this.time - start) % span + span) % span; }
+                else { this.time = clamp(this.time, start, end); this.paused = true; }
             }
         }
-    } return this.sample(this.time); }
+        return this.sample(this.time);
+    }
     sample(t) {
         const fs = this.replay.frames;
         t = clamp(t, 0, this.duration);

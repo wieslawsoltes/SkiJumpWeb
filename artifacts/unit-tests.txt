@@ -1,402 +1,130 @@
 
-> ski-jump-web@0.1.0 pretest
+> ski-jump-web@0.2.0 verify
+> npm run check && npm test && npm run build
+
+
+> ski-jump-web@0.2.0 check
+> node tools/check.mjs
+
+Checked 10 package manifests, publication files and all JavaScript syntax.
+
+> ski-jump-web@0.2.0 pretest
 > node tools/link.mjs
 
 
-> ski-jump-web@0.1.0 test
+> ski-jump-web@0.2.0 test
 > node --test tests/*.test.mjs
 
-TAP version 13
-# Subtest: seeded RNG and shuffle are deterministic without mutating input
-ok 1 - seeded RNG and shuffle are deterministic without mutating input
-  ---
-  duration_ms: 2.015523
-  type: 'test'
-  ...
-# Subtest: math guards and color fallback
-ok 2 - math guards and color fallback
-  ---
-  duration_ms: 0.546465
-  type: 'test'
-  ...
-# Subtest: fixed clock is presentation-rate independent
-ok 3 - fixed clock is presentation-rate independent
-  ---
-  duration_ms: 1.021933
-  type: 'test'
-  ...
-# Subtest: fixed clock bounds tab-resume catch-up
-ok 4 - fixed clock bounds tab-resume catch-up
-  ---
-  duration_ms: 0.262025
-  type: 'test'
-  ...
-# Subtest: event listeners unsubscribe
-ok 5 - event listeners unsubscribe
-  ---
-  duration_ms: 0.293073
-  type: 'test'
-  ...
-# Subtest: 32 verified hill roster entries, endpoints and IDs
-ok 6 - 32 verified hill roster entries, endpoints and IDs
-  ---
-  duration_ms: 0.166391
-  type: 'test'
-  ...
-# Subtest: Finland K105: finite smooth geometry and complete landed CPU jump
-ok 7 - Finland K105: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 10.199635
-  type: 'test'
-  ...
-# Subtest: Switzerland K170: finite smooth geometry and complete landed CPU jump
-ok 8 - Switzerland K170: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 4.917595
-  type: 'test'
-  ...
-# Subtest: Czech Rep. K135: finite smooth geometry and complete landed CPU jump
-ok 9 - Czech Rep. K135: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 5.207553
-  type: 'test'
-  ...
-# Subtest: Belarus K220: finite smooth geometry and complete landed CPU jump
-ok 10 - Belarus K220: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 6.366382
-  type: 'test'
-  ...
-# Subtest: Austria K70: finite smooth geometry and complete landed CPU jump
-ok 11 - Austria K70: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 3.312842
-  type: 'test'
-  ...
-# Subtest: USA K130: finite smooth geometry and complete landed CPU jump
-ok 12 - USA K130: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 10.422406
-  type: 'test'
-  ...
-# Subtest: Latvia K165: finite smooth geometry and complete landed CPU jump
-ok 13 - Latvia K165: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 3.019083
-  type: 'test'
-  ...
-# Subtest: Poland K80: finite smooth geometry and complete landed CPU jump
-ok 14 - Poland K80: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.790714
-  type: 'test'
-  ...
-# Subtest: Japan K210: finite smooth geometry and complete landed CPU jump
-ok 15 - Japan K210: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.209276
-  type: 'test'
-  ...
-# Subtest: Belgium K95: finite smooth geometry and complete landed CPU jump
-ok 16 - Belgium K95: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.606376
-  type: 'test'
-  ...
-# Subtest: Iceland K190: finite smooth geometry and complete landed CPU jump
-ok 17 - Iceland K190: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.9695
-  type: 'test'
-  ...
-# Subtest: England K50: finite smooth geometry and complete landed CPU jump
-ok 18 - England K50: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.362157
-  type: 'test'
-  ...
-# Subtest: Germany K120: finite smooth geometry and complete landed CPU jump
-ok 19 - Germany K120: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.604973
-  type: 'test'
-  ...
-# Subtest: Estonia K155: finite smooth geometry and complete landed CPU jump
-ok 20 - Estonia K155: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.831495
-  type: 'test'
-  ...
-# Subtest: Norway K90: finite smooth geometry and complete landed CPU jump
-ok 21 - Norway K90: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.60267
-  type: 'test'
-  ...
-# Subtest: Australia K240: finite smooth geometry and complete landed CPU jump
-ok 22 - Australia K240: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 2.243518
-  type: 'test'
-  ...
-# Subtest: Ireland K125: finite smooth geometry and complete landed CPU jump
-ok 23 - Ireland K125: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.530731
-  type: 'test'
-  ...
-# Subtest: Ukraine K60: finite smooth geometry and complete landed CPU jump
-ok 24 - Ukraine K60: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.713197
-  type: 'test'
-  ...
-# Subtest: Hungary K180: finite smooth geometry and complete landed CPU jump
-ok 25 - Hungary K180: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.493725
-  type: 'test'
-  ...
-# Subtest: Sweden K140: finite smooth geometry and complete landed CPU jump
-ok 26 - Sweden K140: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 4.306152
-  type: 'test'
-  ...
-# Subtest: Italy K230: finite smooth geometry and complete landed CPU jump
-ok 27 - Italy K230: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.335306
-  type: 'test'
-  ...
-# Subtest: Denmark K75: finite smooth geometry and complete landed CPU jump
-ok 28 - Denmark K75: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.588709
-  type: 'test'
-  ...
-# Subtest: Slovakia K110: finite smooth geometry and complete landed CPU jump
-ok 29 - Slovakia K110: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.75552
-  type: 'test'
-  ...
-# Subtest: Canada K185: finite smooth geometry and complete landed CPU jump
-ok 30 - Canada K185: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.161238
-  type: 'test'
-  ...
-# Subtest: Lithuania K145: finite smooth geometry and complete landed CPU jump
-ok 31 - Lithuania K145: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.595048
-  type: 'test'
-  ...
-# Subtest: Kazakhstan K85: finite smooth geometry and complete landed CPU jump
-ok 32 - Kazakhstan K85: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.398271
-  type: 'test'
-  ...
-# Subtest: China K205: finite smooth geometry and complete landed CPU jump
-ok 33 - China K205: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 3.18942
-  type: 'test'
-  ...
-# Subtest: France K160: finite smooth geometry and complete landed CPU jump
-ok 34 - France K160: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.961622
-  type: 'test'
-  ...
-# Subtest: Holland K100: finite smooth geometry and complete landed CPU jump
-ok 35 - Holland K100: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.469809
-  type: 'test'
-  ...
-# Subtest: Russia K200: finite smooth geometry and complete landed CPU jump
-ok 36 - Russia K200: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.202385
-  type: 'test'
-  ...
-# Subtest: Korea K150: finite smooth geometry and complete landed CPU jump
-ok 37 - Korea K150: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 1.001071
-  type: 'test'
-  ...
-# Subtest: Slovenia K250: finite smooth geometry and complete landed CPU jump
-ok 38 - Slovenia K250: finite smooth geometry and complete landed CPU jump
-  ---
-  duration_ms: 0.916454
-  type: 'test'
-  ...
-# Subtest: wind is absolute-time deterministic and fixed-wind mode is constant
-ok 39 - wind is absolute-time deterministic and fixed-wind mode is constant
-  ---
-  duration_ms: 0.258019
-  type: 'test'
-  ...
-# Subtest: same inputs and seed produce identical results
-ok 40 - same inputs and seed produce identical results
-  ---
-  duration_ms: 8.26558
-  type: 'test'
-  ...
-# Subtest: unprepared landing crashes
-ok 41 - unprepared landing crashes
-  ---
-  duration_ms: 5.256927
-  type: 'test'
-  ...
-# Subtest: command state guards and non-finite input rejection
-ok 42 - command state guards and non-finite input rejection
-  ---
-  duration_ms: 0.415537
-  type: 'test'
-  ...
-# Subtest: takeoff near the lip is much stronger than early takeoff
-ok 43 - takeoff near the lip is much stronger than early takeoff
-  ---
-  duration_ms: 1.15205
-  type: 'test'
-  ...
-# Subtest: parallel command upgrades existing telemark but cannot downgrade
-ok 44 - parallel command upgrades existing telemark but cannot downgrade
-  ---
-  duration_ms: 0.340264
-  type: 'test'
-  ...
-# Subtest: distance scoring and dropped judge marks
-ok 45 - distance scoring and dropped judge marks
-  ---
-  duration_ms: 0.242927
-  type: 'test'
-  ...
-# Subtest: all seeds and extreme winds terminate without non-finite state
-ok 46 - all seeds and extreme winds terminate without non-finite state
-  ---
-  duration_ms: 16.388019
-  type: 'test'
-  ...
-# Subtest: replay roundtrip, seeking, end-frame phase and pause
-ok 47 - replay roundtrip, seeking, end-frame phase and pause
-  ---
-  duration_ms: 3.978958
-  type: 'test'
-  ...
-# Subtest: replay frame sampling at 60 Hz remains bounded and monotonic
-ok 48 - replay frame sampling at 60 Hz remains bounded and monotonic
-  ---
-  duration_ms: 1.983545
-  type: 'test'
-  ...
-# Subtest: replay import rejects unsupported format, unsorted frames and non-finite values
-ok 49 - replay import rejects unsupported format, unsorted frames and non-finite values
-  ---
-  duration_ms: 4.367975
-  type: 'test'
-  ...
-# Subtest: replay import strips unsafe player HTML and unknown top-level data
-ok 50 - replay import strips unsafe player HTML and unknown top-level data
-  ---
-  duration_ms: 2.061342
-  type: 'test'
-  ...
-# Subtest: 16 human players and 64 total are supported; names and colors sanitized
-ok 51 - 16 human players and 64 total are supported; names and colors sanitized
-  ---
-  duration_ms: 0.740528
-  type: 'test'
-  ...
-# Subtest: rank ties share positions and use stable deterministic ordering
-ok 52 - rank ties share positions and use stable deterministic ordering
-  ---
-  duration_ms: 6.249747
-  type: 'test'
-  ...
-# Subtest: individual top-30 cutoff, reversed final order and event points
-ok 53 - individual top-30 cutoff, reversed final order and event points
-  ---
-  duration_ms: 1.157137
-  type: 'test'
-  ...
-# Subtest: ties at the cutoff all advance
-ok 54 - ties at the cutoff all advance
-  ---
-  duration_ms: 0.379543
-  type: 'test'
-  ...
-# Subtest: cup save resumes exactly, including partial round and next hill
-ok 55 - cup save resumes exactly, including partial round and next hill
-  ---
-  duration_ms: 0.545944
-  type: 'test'
-  ...
-# Subtest: four-jumper teams, eight-team final, four groups and two rounds
-ok 56 - four-jumper teams, eight-team final, four groups and two rounds
-  ---
-  duration_ms: 0.929244
-  type: 'test'
-  ...
-# Subtest: full 32-hill cup progresses to finish without a stranded turn
-ok 57 - full 32-hill cup progresses to finish without a stranded turn
-  ---
-  duration_ms: 82.572833
-  type: 'test'
-  ...
-# Subtest: result for another hill is rejected
-ok 58 - result for another hill is rejected
-  ---
-  duration_ms: 0.541939
-  type: 'test'
-  ...
-# Subtest: settings validate enums and clamp numeric ranges
-ok 59 - settings validate enums and clamp numeric ranges
-  ---
-  duration_ms: 0.320043
-  type: 'test'
-  ...
-# Subtest: records reject falls and keep assisted records separate
-ok 60 - records reject falls and keep assisted records separate
-  ---
-  duration_ms: 3.77547
-  type: 'test'
-  ...
-# Subtest: storage quota exceptions preserve in-memory play
-ok 61 - storage quota exceptions preserve in-memory play
-  ---
-  duration_ms: 0.283999
-  type: 'test'
-  ...
-# Subtest: save and replay library export/import and cleanup
-ok 62 - save and replay library export/import and cleanup
-  ---
-  duration_ms: 2.368857
-  type: 'test'
-  ...
-# Subtest: replay library handles a damaged index and keeps at most 20 entries
-ok 63 - replay library handles a damaged index and keeps at most 20 entries
-  ---
-  duration_ms: 15.77631
-  type: 'test'
-  ...
-# Subtest: geometry batches contain finite vertex positions and RGB colors
-ok 64 - geometry batches contain finite vertex positions and RGB colors
-  ---
-  duration_ms: 71.634137
-  type: 'test'
-  ...
-1..64
-# tests 64
-# suites 0
-# pass 64
-# fail 0
-# cancelled 0
-# skipped 0
-# todo 0
-# duration_ms 427.214129
+✔ seeded RNG and shuffle are deterministic without mutating input (1.95868ms)
+✔ math guards and color fallback (0.267519ms)
+✔ fixed clock is presentation-rate independent (0.243132ms)
+✔ fixed clock bounds tab-resume catch-up (0.189773ms)
+✔ event listeners unsubscribe (0.223474ms)
+✔ 32 verified hill roster entries, endpoints and IDs (0.252296ms)
+✔ Finland K105: finite smooth geometry and complete landed CPU jump (7.149629ms)
+✔ Switzerland K170: finite smooth geometry and complete landed CPU jump (4.914797ms)
+✔ Czech Rep. K135: finite smooth geometry and complete landed CPU jump (1.233098ms)
+✔ Belarus K220: finite smooth geometry and complete landed CPU jump (2.195703ms)
+✔ Austria K70: finite smooth geometry and complete landed CPU jump (0.713464ms)
+✔ USA K130: finite smooth geometry and complete landed CPU jump (1.440067ms)
+✔ Latvia K165: finite smooth geometry and complete landed CPU jump (0.910277ms)
+✔ Poland K80: finite smooth geometry and complete landed CPU jump (0.776678ms)
+✔ Japan K210: finite smooth geometry and complete landed CPU jump (1.161341ms)
+✔ Belgium K95: finite smooth geometry and complete landed CPU jump (1.020492ms)
+✔ Iceland K190: finite smooth geometry and complete landed CPU jump (2.731362ms)
+✔ England K50: finite smooth geometry and complete landed CPU jump (0.541688ms)
+✔ Germany K120: finite smooth geometry and complete landed CPU jump (0.484112ms)
+✔ Estonia K155: finite smooth geometry and complete landed CPU jump (0.916921ms)
+✔ Norway K90: finite smooth geometry and complete landed CPU jump (0.599965ms)
+✔ Australia K240: finite smooth geometry and complete landed CPU jump (1.11335ms)
+✔ Ireland K125: finite smooth geometry and complete landed CPU jump (0.762006ms)
+✔ Ukraine K60: finite smooth geometry and complete landed CPU jump (0.394098ms)
+✔ Hungary K180: finite smooth geometry and complete landed CPU jump (0.662067ms)
+✔ Sweden K140: finite smooth geometry and complete landed CPU jump (0.926842ms)
+✔ Italy K230: finite smooth geometry and complete landed CPU jump (0.880824ms)
+✔ Denmark K75: finite smooth geometry and complete landed CPU jump (0.423692ms)
+✔ Slovakia K110: finite smooth geometry and complete landed CPU jump (1.104066ms)
+✔ Canada K185: finite smooth geometry and complete landed CPU jump (0.76453ms)
+✔ Lithuania K145: finite smooth geometry and complete landed CPU jump (0.577501ms)
+✔ Kazakhstan K85: finite smooth geometry and complete landed CPU jump (0.520777ms)
+✔ China K205: finite smooth geometry and complete landed CPU jump (0.800283ms)
+✔ France K160: finite smooth geometry and complete landed CPU jump (0.401919ms)
+✔ Holland K100: finite smooth geometry and complete landed CPU jump (0.275551ms)
+✔ Russia K200: finite smooth geometry and complete landed CPU jump (0.542749ms)
+✔ Korea K150: finite smooth geometry and complete landed CPU jump (0.839592ms)
+✔ Slovenia K250: finite smooth geometry and complete landed CPU jump (0.715176ms)
+✔ wind is absolute-time deterministic and fixed-wind mode is constant (0.138456ms)
+✔ same inputs and seed produce identical results (4.472628ms)
+✔ unprepared landing crashes (1.542459ms)
+✔ command state guards and non-finite input rejection (0.457702ms)
+✔ takeoff near the lip is much stronger than early takeoff (0.233628ms)
+✔ parallel command upgrades existing telemark but cannot downgrade (0.140049ms)
+✔ distance scoring and dropped judge marks (0.211025ms)
+✔ all seeds and extreme winds terminate without non-finite state (9.153677ms)
+✔ replay roundtrip, seeking, end-frame phase and pause (7.530306ms)
+✔ replay frame sampling at 60 Hz remains bounded and monotonic (1.608408ms)
+✔ replay import rejects unsupported format, unsorted frames and non-finite values (1.188021ms)
+✔ replay import strips unsafe player HTML and unknown top-level data (1.231566ms)
+✔ 16 human players and 64 total are supported; names and colors sanitized (0.701997ms)
+✔ rank ties share positions and use stable deterministic ordering (6.636414ms)
+✔ individual top-30 cutoff, reversed final order and event points (1.397774ms)
+✔ ties at the cutoff all advance (0.247079ms)
+✔ cup save resumes exactly, including partial round and next hill (0.423501ms)
+✔ four-jumper teams, eight-team final, four groups and two rounds (0.899ms)
+✔ full 32-hill cup progresses to finish without a stranded turn (61.350766ms)
+✔ result for another hill is rejected (0.28153ms)
+✔ settings validate enums and clamp numeric ranges (0.207539ms)
+✔ records reject falls and keep assisted records separate (1.396061ms)
+✔ storage quota exceptions preserve in-memory play (0.144957ms)
+✔ save and replay library export/import and cleanup (1.716389ms)
+✔ replay library handles a damaged index and keeps at most 20 entries (8.857495ms)
+✔ geometry batches contain finite vertex positions and RGB colors (55.654294ms)
+✔ tour presets preserve their explicit sequence, not hill roster order (1.696559ms)
+✔ tour duplicate, movement and removal work by event index (0.223353ms)
+✔ tour operations never mutate the source preset (0.141591ms)
+✔ tour supports 64 repeated venues and rejects a 65th (0.40223ms)
+✔ tour rejects unknown hills, malformed files, and invalid indices (0.245786ms)
+✔ tour shuffle is deterministic, preserves multiplicity, and remains serializable (0.257153ms)
+✔ start list exposes bib, state and previous round without mutating a cup (0.990937ms)
+✔ team start list separates the four jumping groups (0.523058ms)
+✔ target estimate clears the leader after the assumed style points (7.510277ms)
+✔ team details expose all four athletes and both round scores (0.572393ms)
+✔ a repeated 64-event tour progresses, saves, and resumes through every event (9.718381ms)
+✔ cup restoration rejects duplicate queue entries and an exhausted running queue (0.821545ms)
+✔ reserved prototype property player IDs are rejected (0.228621ms)
+✔ CSV exports all event results and cup standings with escaped fields (0.432394ms)
+✔ replay frame step -1 follows actual recorded timestamps (2.440098ms)
+✔ replay frame step 1 follows actual recorded timestamps (0.578373ms)
+✔ replay multiframe stepping and boundary clamps (0.413527ms)
+✔ replay markers point to recorded flight and landing transitions (0.273068ms)
+✔ reverse non-looping replay pauses exactly at the beginning (0.515859ms)
+✔ forward non-looping replay pauses exactly at its final frame (0.366126ms)
+✔ flight-only loop wraps correctly forwards and backwards (0.405905ms)
+✔ invalid loop ranges, deltas and playback rates do not produce NaN state (0.487217ms)
+✔ record board keeps one best per name, excludes falls, and sorts top ten (1.278776ms)
+✔ leaderboards migrate the old overall record on the first additional jump (0.243684ms)
+✔ assisted personal bests and leaderboard snapshots remain isolated (0.220278ms)
+✔ named saved tours preserve repeats and bounded library size (0.714766ms)
+✔ replay label editing leaves the recorded player and frames unchanged (1.672612ms)
+✔ backup roundtrip retains named tours and personal record boards (7.282362ms)
+✔ invalid tour or leaderboard import cannot partially replace existing data (0.428499ms)
+✔ releasing mouse buttons never starts, takes off or changes a landing (0.253298ms)
+✔ classic takeoff requires a rising two-button chord (0.105257ms)
+✔ classic landing upgrades a one-button telemark to a two-button parallel landing (0.061983ms)
+✔ middle mouse button and movement with no buttons never issue jump commands (0.050195ms)
+✔ backup rejects malformed cup before replacing settings and records (0.209872ms)
+✔ importing a backup without a cup removes an unrelated saved cup (0.187179ms)
+✔ audio volume never becomes nonfinite and a disposed mixer stays disposed (1.350623ms)
+ℹ tests 100
+ℹ suites 0
+ℹ pass 100
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 287.965914
+
+> ski-jump-web@0.2.0 build
+> node tools/build.mjs
+
+Built dist/ and SkiJumpWeb.html (203.0 KiB, no runtime dependencies).

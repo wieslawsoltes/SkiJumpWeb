@@ -282,6 +282,9 @@ export class SkiRenderer {
         this.kind = 'initializing';
         this.staticData = null;
         this.dynamicCapacity = 65536;
+        this.dynamicData = new Float32Array(this.dynamicCapacity);
+        this.uniformData = new Float32Array(28);
+        this.weatherData = new Float32Array(4);
         this.width = 320;
         this.height = 200;
         this.camera = { x: 0, y: 0 };
@@ -381,9 +384,21 @@ export class SkiRenderer {
         this.resize();
         if (this.profile)
             this.setHill(this.profile, this.record);
-        device.lost.then(info => { if (this.disposed)
-            return; this.losses++; this.fallbackReason = `GPU device lost: ${info.reason}`; this.kind = 'lost'; this.options.renderer = 'webgl'; this.initialize(); });
-        device.addEventListener('uncapturederror', e => { this.lastError = e.error.message; console.error('WebGPU:', e.error.message); });
+        device.lost.then(info => {
+            if (this.disposed || this.device !== device) return;
+            this.losses++;
+            this.fallbackReason = `GPU device lost: ${info.reason}`;
+            this.kind = 'lost';
+            for (const name of ['depth', 'staticBuffer', 'dynamicBuffer', 'uniform', 'snowBuffer', 'weatherUniform']) {
+                this[name]?.destroy();
+                this[name] = null;
+            }
+            this.gpuContext?.unconfigure();
+            this.device = null;
+            this.options.renderer = 'webgl';
+            this.ready = this.initialize();
+        });
+        device.addEventListener('uncapturederror', e => { if (this.disposed || this.device !== device) return; this.lastError = e.error.message; console.error('WebGPU:', e.error.message); });
     }
     initGL() {
         const gl = this.canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'low-power', preserveDrawingBuffer: true });
@@ -493,7 +508,11 @@ export class SkiRenderer {
             return;
         this.resize();
         const matrix = this.cameraMatrix(state, dt, overview), skier = skierMesh(state, player), ghostData = ghost ? skierMesh(ghost, player, true) : null;
-        const shadow = overview ? null : shadowMesh(state, this.profile), dyn = new Float32Array((shadow?.length || 0) + (ghostData?.length || 0) + skier.length);
+        const shadow = overview ? null : shadowMesh(state, this.profile);
+        const dynamicLength = (shadow?.length || 0) + (ghostData?.length || 0) + skier.length;
+        if (dynamicLength > this.dynamicCapacity) throw new RangeError('Dynamic mesh capacity exceeded');
+        // Reuse the same upload storage on every backend; only the populated range is submitted.
+        const dyn = this.dynamicData.subarray(0, dynamicLength);
         let off = 0;
         for (const data of [shadow, ghostData, skier])
             if (data) {
@@ -502,7 +521,7 @@ export class SkiRenderer {
             }
         const weather = ['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather);
         if (this.kind === 'webgpu') {
-            const u = new Float32Array(28);
+            const u = this.uniformData;
             u.set(matrix);
             u.set([.86, .88, .96, 0], 16);
             u.set([weather, state.time || 0, this.width, this.height], 20);
@@ -513,7 +532,8 @@ export class SkiRenderer {
             this.device.queue.writeBuffer(this.dynamicBuffer, 0, dyn);
             const encoder = this.device.createCommandEncoder();
             if (weather === 1) {
-                this.device.queue.writeBuffer(this.weatherUniform, 0, new Float32Array([state.wind || 0, Math.min(dt, .05), this.width, this.height]));
+                this.weatherData.set([state.wind || 0, Math.min(dt, .05), this.width, this.height]);
+                this.device.queue.writeBuffer(this.weatherUniform, 0, this.weatherData);
                 const c = encoder.beginComputePass();
                 c.setPipeline(this.snowCompute);
                 c.setBindGroup(0, this.computeBind);

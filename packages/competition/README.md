@@ -2,7 +2,7 @@
 
 Serializable two-round individual cups and four-athlete team cups, with qualification, tied ranks and season points.
 
-Version **0.1.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
+Version **0.2.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
 
 ## Example
 
@@ -29,3 +29,15 @@ Browser packages require their respective platform APIs only when instantiated. 
 This is an independent implementation, not original DSJ2 code, an official port, or a verified 1:1 replica. Geometry, physics, glyphs and audio are newly authored. Original `.rpl`/save files and Mediamond online services are not supported. No original copyrighted assets are included. See the workspace README and `docs/FIDELITY.md` for the exact implementation boundary.
 
 API signatures are in `index.d.ts`; implementation and lifecycle behavior are in `index.js`.
+
+## Ordered tours and results (0.2)
+
+```js
+import { TourSchedule, Competition, createField, competitionCSV } from '@wieslawsoltes/ski-competition';
+const tour = new TourSchedule(['fin', 'eng', 'fin'], 'THREE EVENTS').move(2, 0);
+const cup = new Competition({ hills: tour.hills, players: createField([{name:'PLAYER'}], 7) });
+console.log(cup.startList(), cup.target(54));
+const csv = competitionCSV(cup);
+```
+
+Schedules preserve repeats; insert/move/remove validate indices and the 64-event limit. `teamDetails(id)` returns athlete result copies. CSV cells are quoted and formula-prefix escaped.

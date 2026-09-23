@@ -1,9 +1,9 @@
 import { clamp, Random } from '@wieslawsoltes/ski-core';
 /** Dependency-free Web Audio mixer. All sound is synthesized; no samples are shipped. */
 export class SkiAudio {
-    constructor(options = {}) { this.volume = clamp(options.volume ?? .55, 0, 1); this.muted = !!options.mute; this.ready = false; this.voices = new Set(); this.loops = []; this.failed = false; }
+    constructor(options = {}) { this.volume = clamp(Number.isFinite(options.volume) ? options.volume : .55, 0, 1); this.muted = !!options.mute; this.ready = false; this.voices = new Set(); this.loops = []; this.failed = false; }
     async unlock() {
-        if (this.failed)
+        if (this.failed || this.disposed)
             return false;
         try {
             if (!this.context) {
@@ -43,7 +43,7 @@ export class SkiAudio {
         }
     }
     makeLoop(frequency, volume) { const c = this.context, src = c.createBufferSource(), filter = c.createBiquadFilter(), gain = c.createGain(); src.buffer = this.noise; src.loop = true; filter.type = 'lowpass'; filter.frequency.value = frequency; gain.gain.value = volume; src.connect(filter); filter.connect(gain); gain.connect(this.master); src.start(); const loop = { src, filter, gain }; this.loops.push(loop); return loop; }
-    setVolume(volume, muted = this.muted) { this.volume = clamp(volume, 0, 1); this.muted = !!muted; if (this.master)
+    setVolume(volume, muted = this.muted) { this.volume = clamp(Number.isFinite(volume) ? volume : this.volume, 0, 1); this.muted = !!muted; if (this.master)
         this.master.gain.setTargetAtTime(this.muted ? 0 : this.volume * .7, this.context.currentTime, .03); }
     update(state, paused = false) {
         if (!this.ready)
@@ -86,7 +86,7 @@ export class SkiAudio {
     }
     async suspend() { if (this.context?.state === 'running')
         await this.context.suspend().catch(() => { }); }
-    dispose() { for (const v of this.voices) {
+    dispose() { this.disposed = true; for (const v of this.voices) {
         try {
             v.stop();
         }

@@ -2,7 +2,7 @@
 
 ## Dependency direction
 
-`core → hills → physics → competition/replay`, with `storage` consuming replay and hill identifiers. Renderer and input/audio/UI adapters are separately instantiable. The application composes all ten packages; no package imports the application. Core simulation and competition execute without a DOM.
+`core → hills → physics → competition/replay`, with `storage` consuming replay, competition validation and hill identifiers. Renderer and input/audio/UI adapters are separately instantiable. The application composes all ten packages; no package imports the application. Core simulation and competition execute without a DOM.
 
 ## Coordinates and terrain
 
@@ -39,3 +39,15 @@ Web Audio combines a master gain/compressor, two filtered noise loops and bounde
 ## Build
 
 The build tool resolves this workspace's controlled named ESM imports into a tiny module registry, then emits normal static files and a fully inline HTML. It does not use eval or fetch runtime modules. Npm tarballs retain original ESM files and declarations. There are no build-time package downloads.
+
+## 0.2.0 state and reusable APIs
+
+`TourSchedule` stores an ordered event sequence rather than a set of selected hill IDs, so duplicates and preset order survive edits, JSON roundtrips and cup construction. Its operation boundary is 64 events. Start lists, target estimates and team detail rows are derived from the current competition state; UI screens do not maintain a second competing score model. The lead-distance hint explicitly assumes a chosen style score (54 by default), and is not a prediction of judge marks.
+
+CPU skipping advances the currently watched simulation with its existing controller and recorder. It never rolls a new result or submits a second score. Cup asynchronous operations use turn tokens to prevent a stale transition from overwriting a newly opened practice session.
+
+Replay stepping uses binary search over recorded timestamps rather than an assumed 60 Hz clock. Signed speeds support reverse play. Loops operate over validated inclusive bounds, while non-loop playback pauses at either endpoint. The first-flight/landing markers come from recorded phase transitions.
+
+Storage retains 64 distinct player-name bests per hill/assistance group and exposes ten by default. Replay labels live in the library index and do not rewrite the recording's player identity. Backup validation completes before the first store write, including optional tours/boards and saved-competition validation. Storage quota failures still fall back to memory; disk writes are not claimed to be transactional.
+
+Rendering reuses a bounded dynamic upload slab plus scene/weather uniform arrays. Hill geometry remains static between hill changes. Device-loss recovery releases obsolete GPU resources and replaces the public `ready` promise with the fallback initialization promise.

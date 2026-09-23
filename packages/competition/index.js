@@ -1,6 +1,6 @@
 import { clamp, Random, round } from '@wieslawsoltes/ski-core';
 import { getHill } from '@wieslawsoltes/ski-hills';
-import { simulateCPU } from '@wieslawsoltes/ski-physics';
+import { simulateCPU, pointsPerMetre } from '@wieslawsoltes/ski-physics';
 export const CUP_POINTS = Object.freeze([100, 80, 60, 50, 45, 40, 36, 32, 29, 26, 24, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
 const aiNames = ['A. KORHONEN', 'M. WEBER', 'J. NOWICKI', 'T. BERG', 'S. YAMAMOTO', 'P. NOVAK', 'L. ROSSI', 'E. ANDERSEN', 'D. MILLER', 'R. KOVAC', 'O. LIND', 'N. MARTIN', 'K. LEE', 'V. PETROV', 'B. FISCHER', 'A. KOVAL'];
 const countries = ['FIN', 'GER', 'POL', 'NOR', 'JPN', 'CZE', 'ITA', 'AUT', 'USA', 'SLO', 'SWE', 'FRA', 'KOR', 'RUS', 'SUI', 'UKR'];
@@ -54,7 +54,7 @@ export class Competition {
         hills.forEach(getHill);
         if (!Array.isArray(players) || players.length < 1 || players.length > 64)
             throw new RangeError('Invalid field');
-        if (new Set(players.map(p => p.id)).size !== players.length)
+        if (players.some(p => !p || typeof p.id !== 'string' || !p.id || ['__proto__', 'constructor', 'prototype'].includes(p.id)) || new Set(players.map(p => p.id)).size !== players.length)
             throw new Error('Player IDs must be unique');
         if (mode === 'team' && (!teams?.length || teams.some(t => t.members.length !== 4)))
             throw new Error('Team cup requires four jumpers per team');
@@ -137,6 +137,34 @@ export class Competition {
         return true;
     }
     standings() { return ranked(this.competitors.map(p => ({ ...p, total: this.cup[p.id] || 0 }))); }
+    startList() {
+        return this.queue.map((id, i) => {
+            const player = this.players.find(p => p.id === id);
+            return { ...player, bib: i + 1, group: this.mode === 'team' ? Math.floor(i / (this.queue.length / 4)) + 1 : 1,
+                completed: i < this.turn, current: this.status === 'running' && i === this.turn,
+                previous: this.round === 2 ? this.scores[id][0] : null };
+        });
+    }
+    target(stylePoints = 54) {
+        const player = this.current();
+        if (!player || !Number.isFinite(stylePoints)) return null;
+        const id = this.mode === 'team' ? player.teamId : player.id;
+        const rows = this.rows(), self = rows.find(row => row.id === id);
+        const rivals = rows.filter(row => row.id !== id && row.jumps.some(Boolean));
+        if (!rivals.length || !self) return null;
+        const leader = rivals.reduce((a, b) => a.total >= b.total ? a : b);
+        const needed = round(leader.total - self.total + .1, 1);
+        const k = this.hill.k, base = k >= 165 ? 120 : 60;
+        return { leader: leader.name, points: needed, assumedStyle: clamp(stylePoints, 0, 60),
+            distance: Math.max(0, Math.ceil((k + (needed - clamp(stylePoints, 0, 60) - base) / pointsPerMetre(k)) * 2) / 2) };
+    }
+    teamDetails(teamId) {
+        if (this.mode !== 'team') throw new Error('Team details require a team cup');
+        const team = this.teams.find(t => t.id === teamId);
+        if (!team) throw new Error('Unknown team');
+        return team.members.map(p => ({ ...p, jumps: this.scores[p.id].map(j => j ? { ...j } : null),
+            total: round(this.scores[p.id].reduce((sum, j) => sum + (j?.total || 0), 0), 1) }));
+    }
     cpuResult() { const p = this.current(); if (!p || p.human)
         throw new Error('Current turn is not a CPU'); return simulateCPU(this.hill, this.options(), p.skill); }
     serialize() { return JSON.stringify(this); }
@@ -153,8 +181,9 @@ export class Competition {
             throw new Error('Invalid cup position');
         if (!Array.isArray(d.players) || !d.players.length || d.players.length > 64 || new Set(d.players.map(p => p.id)).size !== d.players.length)
             throw new Error('Invalid players');
-        if (!Array.isArray(d.queue) || d.queue.length > 64 || d.queue.some(id => !d.players.some(p => p.id === id)) || !Number.isInteger(d.turn) || d.turn < 0 || d.turn > d.queue.length)
+        if (!Array.isArray(d.queue) || !d.queue.length || new Set(d.queue).size !== d.queue.length || (d.status === 'running' && d.turn >= d.queue.length) || d.queue.length > 64 || d.queue.some(id => !d.players.some(p => p.id === id)) || !Number.isInteger(d.turn) || d.turn < 0 || d.turn > d.queue.length)
             throw new Error('Invalid turn queue');
+        if (d.players.some(p => !p || typeof p.id !== 'string' || ['__proto__', 'constructor', 'prototype'].includes(p.id))) throw new Error('Invalid player ID');
         if (!d.scores || !d.cup || !Array.isArray(d.history) || d.history.length > 64)
             throw new Error('Invalid score data');
         for (const p of d.players) {
@@ -169,4 +198,46 @@ export class Competition {
             obj[key] = d[key];
         return obj;
     }
+}
+
+/** Ordered tour with repeated venues. A preset's order is never inferred from DOM order. */
+export class TourSchedule {
+    constructor(hills = [], name = 'CUSTOM TOUR') {
+        if (!Array.isArray(hills) || hills.length > 64) throw new RangeError('A tour supports at most 64 events');
+        hills.forEach(getHill);
+        this.hills = [...hills];
+        this.name = String(name).replace(/[<>\x00-\x1f]/g, '').trim().slice(0, 40) || 'CUSTOM TOUR';
+    }
+    insert(hillId, index = this.hills.length) {
+        getHill(hillId);
+        if (this.hills.length >= 64) throw new RangeError('A tour supports at most 64 events');
+        if (!Number.isInteger(index) || index < 0 || index > this.hills.length) throw new RangeError('Invalid event position');
+        this.hills.splice(index, 0, hillId); return this;
+    }
+    remove(index) { this.checkIndex(index); this.hills.splice(index, 1); return this; }
+    move(from, to) { this.checkIndex(from); this.checkIndex(to); const [id] = this.hills.splice(from, 1); this.hills.splice(to, 0, id); return this; }
+    checkIndex(index) { if (!Number.isInteger(index) || index < 0 || index >= this.hills.length) throw new RangeError('Invalid event position'); }
+    reverse() { this.hills.reverse(); return this; }
+    shuffle(seed = 1) { this.hills = new Random(seed).shuffle(this.hills); return this; }
+    serialize() { return JSON.stringify({ format: 'ski-jump-web-tour', version: 1, name: this.name, hills: this.hills }); }
+    static parse(text) {
+        if (typeof text !== 'string' || text.length > 10000) throw new Error('Invalid tour file');
+        const data = JSON.parse(text);
+        if (!data || data.format !== 'ski-jump-web-tour' || data.version !== 1) throw new Error('Unsupported tour file');
+        return new TourSchedule(data.hills, data.name);
+    }
+}
+
+/** RFC 4180 output; neutralizes spreadsheet formulas in untrusted player names. */
+export function competitionCSV(competition) {
+    const cell = value => '"' + String(value ?? '').replace(/^[=+@\-\t\r]/, c => "'" + c).replace(/"/g, '""') + '"';
+    const lines = [['Event', 'Hill', 'Rank', 'Name', 'Round 1 metres', 'Round 2 metres', 'Points']];
+    competition.history.forEach((event, index) => event.rows.forEach(row => lines.push([
+        index + 1, getHill(event.hillId).name, row.rank, row.name,
+        competition.mode === 'team' ? '' : row.jumps[0]?.distance ?? '',
+        competition.mode === 'team' ? '' : row.jumps[1]?.distance ?? '', row.total
+    ])));
+    lines.push([], ['Cup rank', 'Name', 'Cup points']);
+    competition.standings().forEach(row => lines.push([row.rank, row.name, row.total]));
+    return lines.map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
 }

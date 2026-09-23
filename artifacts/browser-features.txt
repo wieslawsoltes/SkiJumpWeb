@@ -1,0 +1,93 @@
+PASS tour editor reverses actual competition order
+PASS tour duplicate is retained as a separate event
+PASS named tour saves from editable UI
+PASS CPU selection survives tour editor redraw
+PASS starting cup preserves edited order and repeated hills
+PASS cup opens a playable start list
+PASS start list opens live hill standings
+PASS CPU fast-forward stops at next human
+PASS human cup jump reaches results exactly once
+PASS result returns to current cup start list
+PASS saved cup resumes through the start-list state
+PASS event 1 finishes after both human rounds
+PASS event 2 finishes after both human rounds
+PASS history keeps both repeated-hill results
+PASS event-history drilldown displays the saved result
+PASS team score drilldown displays four athletes
+PASS CPU watch exposes touch-friendly skip control
+PASS skipping a watched CPU submits exactly one result
+PASS practice session shows recorded attempt statistics
+PASS same-wind retry reuses the deterministic seed
+PASS FLIGHT marker seeks to recorded flight transition
+PASS next frame pauses on the next recorded timestamp
+PASS keyboard previous frame returns to exact prior sample
+PASS reverse replay speed is selectable
+PASS flight-only loop uses recorded markers
+PASS full-range replay loop restores the entire recording
+PASS loop control can disable looping
+PASS replay labels are editable and visible
+PASS per-hill board is populated by actual practice jumps
+PASS best record opens its saved ghost replay
+PASS record replay returns to records instead of an unrelated screen
+PASS personal aggregate record totals are accessible
+PASS touch schedule duplication works in portrait
+PASS rotation preserves the edited tour
+PASS landscape touch starts edited cup
+PASS new desktop and touch workflows produce no JavaScript errors
+{
+  "version": "0.2.0",
+  "checks": 36,
+  "passed": [
+    "tour editor reverses actual competition order",
+    "tour duplicate is retained as a separate event",
+    "named tour saves from editable UI",
+    "CPU selection survives tour editor redraw",
+    "starting cup preserves edited order and repeated hills",
+    "cup opens a playable start list",
+    "start list opens live hill standings",
+    "CPU fast-forward stops at next human",
+    "human cup jump reaches results exactly once",
+    "result returns to current cup start list",
+    "saved cup resumes through the start-list state",
+    "event 1 finishes after both human rounds",
+    "event 2 finishes after both human rounds",
+    "history keeps both repeated-hill results",
+    "event-history drilldown displays the saved result",
+    "team score drilldown displays four athletes",
+    "CPU watch exposes touch-friendly skip control",
+    "skipping a watched CPU submits exactly one result",
+    "practice session shows recorded attempt statistics",
+    "same-wind retry reuses the deterministic seed",
+    "FLIGHT marker seeks to recorded flight transition",
+    "next frame pauses on the next recorded timestamp",
+    "keyboard previous frame returns to exact prior sample",
+    "reverse replay speed is selectable",
+    "flight-only loop uses recorded markers",
+    "full-range replay loop restores the entire recording",
+    "loop control can disable looping",
+    "replay labels are editable and visible",
+    "per-hill board is populated by actual practice jumps",
+    "best record opens its saved ghost replay",
+    "record replay returns to records instead of an unrelated screen",
+    "personal aggregate record totals are accessible",
+    "touch schedule duplication works in portrait",
+    "rotation preserves the edited tour",
+    "landscape touch starts edited cup",
+    "new desktop and touch workflows produce no JavaScript errors"
+  ],
+  "errors": [],
+  "renderer": {
+    "backend": "webgl2",
+    "resolution": [
+      320,
+      200
+    ],
+    "triangles": 18074,
+    "fps": 3,
+    "staticBytes": 1301328,
+    "deviceLosses": 0,
+    "fallbackReason": null,
+    "lastError": null
+  },
+  "scope": "Offline Chromium desktop + touch emulation; physical devices and native WebGPU are separate tests."
+}

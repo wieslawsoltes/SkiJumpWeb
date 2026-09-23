@@ -1,7 +1,7 @@
 import { FixedClock, Random, clamp, round } from '@wieslawsoltes/ski-core';
 import { HILLS, getHill, HillProfile, TOUR_PRESETS } from '@wieslawsoltes/ski-hills';
 import { JumpSimulation, CPUController, FIXED_DT } from '@wieslawsoltes/ski-physics';
-import { Competition, createField, createTeams, normalizePlayer } from '@wieslawsoltes/ski-competition';
+import { Competition, TourSchedule, competitionCSV, createField, createTeams, normalizePlayer } from '@wieslawsoltes/ski-competition';
 import { ReplayRecorder, ReplayPlayer, parseReplay, serializeReplay } from '@wieslawsoltes/ski-replay';
 import { SkiRenderer } from '@wieslawsoltes/ski-renderer';
 import { SkiAudio } from '@wieslawsoltes/ski-audio';
@@ -20,6 +20,8 @@ export class SkiJumpApp {
         const saved = this.store.get('players', []);
         this.players = (Array.isArray(saved) && saved.length ? saved.slice(0, 16) : [{ name: 'PLAYER 1', country: 'POL', team: 'POLAND' }]).map(normalizePlayer);
         this.playerIndex = 0;
+        this.practiceLog = [];
+        this.readyRound = null;
         this.view = 'main';
         this.clock = new FixedClock(120);
         this.lastTime = 0;
@@ -50,14 +52,14 @@ export class SkiJumpApp {
         this.frameId = requestAnimationFrame(t => this.frame(t));
         if (new URLSearchParams(location.search).has('debug'))
             globalThis.__SKI_DEBUG__ = this;
-        globalThis.SkiJumpWeb = { version: '0.1.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
+        globalThis.SkiJumpWeb = { version: '0.2.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
         if (location.protocol !== 'file:' && 'serviceWorker' in navigator)
             navigator.serviceWorker.register('./sw.js').catch(() => { });
     }
     bind() {
         this.menu.addEventListener('click', e => { const b = e.target.closest('[data-action]'); if (!b || b.disabled)
             return; this.audio.unlock(); this.audio.play('menu'); this.act(b.dataset.action, b).catch?.(e => this.showError(e)); });
-        this.menu.addEventListener('change', e => this.change(e));
+        this.menu.addEventListener('change', e => { try { this.change(e); } catch (error) { this.showError(error); } });
         document.querySelectorAll('[data-game]').forEach(b => { b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.audio.unlock(); this.gameAction(b.dataset.game); }); b.addEventListener('click', e => { if (e.detail === 0)
             this.gameAction(b.dataset.game); }); });
         document.querySelectorAll('[data-replay]').forEach(b => b.addEventListener('click', () => this.replayAction(b.dataset.replay)));
@@ -78,6 +80,10 @@ export class SkiJumpApp {
                 this.applySettings();
                 this.showMain();
                 this.toast('Saved settings, players and records imported.');
+            }
+            else if (this.importKind === 'tour') {
+                const tour = TourSchedule.parse(text); this.store.saveTour(tour);
+                this.tour = tour; this.selectedHills = new Set(tour.hills); this.setupPreset = 'custom'; this.showTourEditor();
             }
             else {
                 const replay = parseReplay(text);
@@ -100,6 +106,8 @@ export class SkiJumpApp {
             if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName))
                 return;
             if (this.view === 'replay') {
+                const keys = { ArrowLeft: 'frame-back', ArrowRight: 'frame-next', Home: 'start', End: 'end', KeyT: 'takeoff', KeyL: 'landing', KeyC: 'camera' };
+                if (keys[e.code]) { e.preventDefault(); this.replayAction(keys[e.code]); return; }
                 if (e.code === 'Space') {
                     e.preventDefault();
                     this.replayAction('play');
@@ -108,14 +116,20 @@ export class SkiJumpApp {
                     this.replayAction('back');
                 return;
             }
-            if (this.view === 'game')
+            if (this.view === 'game') {
+                if (this.cpu && ['Space', 'Escape', 'KeyP'].includes(e.code)) {
+                    e.preventDefault(); this.gameAction(e.code === 'Space' ? 'skip-cpu' : 'pause');
+                }
                 return;
+            }
             if (e.code === 'Escape') {
                 e.preventDefault();
-                if (this.view === 'pause')
+                if (['tour'].includes(this.view)) { this.selectedHills = new Set(this.tour.hills); this.renderSetup(); }
+                else if (['live-results', 'cup-history', 'history-event', 'team-details'].includes(this.view)) this.showStartList();
+                else if (this.view === 'pause')
                     this.resume();
                 else if (this.view === 'result')
-                    this.showHills();
+                    this.mode === 'practice' ? this.showHills() : this.showStartList();
                 else
                     this.showMain();
             }
@@ -140,14 +154,14 @@ export class SkiJumpApp {
     updateBackend() { const d = this.renderer.diagnostics(); $('#renderer-name').textContent = `${d.backend.toUpperCase()} / ${d.resolution.join('X')}`; $('#footer-left').textContent = this.store.persistent ? '32 HILLS / LOCAL HOT-SEAT' : 'LOCAL STORAGE UNAVAILABLE / IN-MEMORY'; }
     setHill(id) { const hill = typeof id === 'string' ? getHill(id) : id; this.hill = hill; this.profile = new HillProfile(hill); const record = this.store.records()[this.store.recordKey(hill.id, this.settings.assist)]?.distance || 0; this.renderer.setHill(this.profile, record); this.idle = new JumpSimulation(this.profile).snapshot(); this.lastHill = hill.id; this.store.set('lastHill', hill.id); }
     openMenu(view, title, html) { this.view = view; this.menu.dataset.view = view; this.input.setEnabled(false); this.menu.hidden = false; this.arena.classList.add('menu-open'); $('#game-toolbar').hidden = true; $('#touch-controls').hidden = true; $('#replay-controls').hidden = true; $('#menu-heading').innerHTML = title ? `<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>` : ''; this.content.innerHTML = html; this.content.scrollTop = 0; paintLabels(this.menu); this.audio.update(null, true); this.updateBackend(); }
-    hideMenu(view = 'game') { this.view = view; this.menu.hidden = true; this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
+    hideMenu(view = 'game') { this.view = view; this.menu.hidden = true; this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
     showMain() { this.turnToken++; this.paused = false; const cup = this.store.get('cup'), stats = this.store.stats(); this.openMenu('main', '', `<nav class="main-menu" aria-label="Main menu">${cup ? pixelBtn('continue-cup', 'CONTINUE CUP') : ''}${pixelBtn('world', 'WORLD CUP')}${pixelBtn('team', 'TEAM CUP')}${pixelBtn('practice', 'PRACTICE')}${pixelBtn('players', 'PLAYERS')}${pixelBtn('records', 'HILL RECORDS')}${pixelBtn('replays', 'REPLAYS')}${pixelBtn('options', 'OPTIONS')}${pixelBtn('help', 'HOW TO JUMP')}</nav><aside class="main-side">${stats.jumps} JUMPS / ${stats.landings} LANDED<br>ENGLAND K50 - SLOVENIA K250<br>NO DOWNLOADS. NO SIGN-IN.</aside>`); }
     showHills(filter = 'all') {
         this.hillFilter = filter;
         const records = this.store.records(), list = HILLS.filter(h => filter === 'all' || (filter === 'small' ? h.k <= 100 : filter === 'large' ? h.k > 100 && h.k < 180 : h.k >= 180));
         this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
     }
-    startPractice(id = this.lastHill, sameSeed = false) { this.cup = null; this.mode = 'practice'; if (!sameSeed)
+    startPractice(id = this.lastHill, sameSeed = false) { this.turnToken++; this.cup = null; this.mode = 'practice'; if (!sameSeed)
         this.seed = (this.seed + 7919) >>> 0; this.practiceSeed = this.seed; this.launchJump(getHill(id), this.players[this.playerIndex] || this.players[0], { seed: this.seed, windStrength: this.settings.windBase === null ? this.settings.windStrength : 0, windBase: this.settings.windBase, gate: this.settings.gate, assist: this.settings.assist }); }
     launchJump(hill, player, options, cpu = false) {
         if (this.hill?.id !== hill.id)
@@ -179,6 +193,18 @@ export class SkiJumpApp {
     }
     refreshTouch() { const phase = this.sim?.state.phase || 'gate'; $('#touch-main').textContent = phase === 'gate' ? 'START' : phase === 'inrun' ? 'JUMP' : phase === 'flight' ? 'TELEMARK' : 'FINISH'; $('#touch-safe').disabled = phase !== 'flight'; $('#drag-tip').innerHTML = phase === 'flight' ? 'DRAG UP / DOWN<br>TO BALANCE' : phase === 'inrun' ? 'WAIT FOR THE LIP<br>THEN TAP JUMP' : 'HOLD WITH BOTH HANDS'; }
     gameAction(action) {
+        if (action === 'skip-cpu') {
+            if (this.view === 'game' && this.cpu && this.cup) {
+                // Finish the current simulation, not a fresh CPU run: observed and skipped outcomes agree.
+                let steps = 0;
+                while (this.sim.state.phase !== 'finished' && steps++ < 14400) {
+                    this.cpu.update(this.sim, FIXED_DT); this.sim.step(FIXED_DT); this.recorder.capture();
+                }
+                if (this.sim.state.phase !== 'finished') throw new Error('CPU jump exceeded simulation budget');
+                this.finishJump();
+            }
+            return;
+        }
         if (action === 'fullscreen') {
             this.fullscreen();
             return;
@@ -224,6 +250,10 @@ export class SkiJumpApp {
         this.lastResult = this.sim.result;
         this.lastPlayer = this.player;
         this.lastWasCPU = !!this.cpu;
+        if (this.mode === 'practice' && !this.cpu) {
+            this.practiceLog.unshift({ ...this.lastResult, name: this.player.name });
+            this.practiceLog.length = Math.min(this.practiceLog.length, 50);
+        }
         this.newRecord = false;
         if (!this.cpu) {
             this.store.addJump(this.lastResult);
@@ -231,12 +261,13 @@ export class SkiJumpApp {
             if (this.newRecord)
                 this.audio.play('record');
         }
+        let transition = 'turn';
         if (this.mode !== 'practice' && this.cup) {
-            this.cup.submit(this.lastResult);
+            transition = this.cup.submit(this.lastResult);
             this.saveCup();
         }
         if (this.cpu) {
-            this.proceedTurn().catch(e => this.showError(e));
+            this.proceedTurn(transition === 'round').catch(e => this.showError(e));
             return;
         }
         this.showResult();
@@ -248,7 +279,7 @@ export class SkiJumpApp {
             return;
         }
         const style = r.crashed ? 'FALL' : r.landing === 'telemark' ? 'TELEMARK' : 'TWO-FOOT LANDING';
-        this.openMenu('result', `${this.lastPlayer.name} / ${getHill(r.hillId).name}`, `<div class="result-top"><div class="jump-distance"><span data-pixel="${r.distance.toFixed(2)} M" data-size="4"></span><p class="${r.crashed ? 'bad' : 'good'}" style="font-size:11px">${style}${r.assisted ? ' / ASSISTED PRACTICE' : ''}</p></div><div class="points-big">${r.total.toFixed(1)}<small>TOTAL POINTS</small></div></div>${this.newRecord ? '<div class="new-record">NEW LOCAL HILL RECORD!</div>' : ''}<div class="judge-marks">${r.judges.map((j, i) => `<div class="judge ${r.counted.includes(i) ? '' : 'dropped'}"><small>JUDGE ${i + 1}</small>${j.toFixed(1)}</div>`).join('')}</div><div class="result-meta"><div>DISTANCE<strong>${r.distancePoints.toFixed(1)} PTS</strong></div><div>STYLE<strong>${r.stylePoints.toFixed(1)} PTS</strong></div><div>TAKEOFF<strong>${Math.round(r.takeoffQuality * 100)}%</strong></div><div>WIND<strong>${r.wind.toFixed(1)} M/S</strong></div></div><p class="hint">${r.crashed ? (r.landing === 'none' ? 'Prepare your landing before touching the snow. Use Z / X or the touch landing buttons.' : 'A hard impact, late landing or unstable body position caused the fall. Try a two-foot landing.') : r.takeoffQuality < .6 ? 'Jump closer to the lip for a stronger takeoff.' : 'The highest and lowest judge marks are discarded.'}</p><div class="buttons">${btn('next-jump', this.mode === 'practice' ? 'JUMP AGAIN' : 'CONTINUE CUP', 'small-button primary')}${btn('last-replay', 'REPLAY')}${btn('save-last-replay', 'SAVE REPLAY')}${this.mode === 'practice' ? btn('practice', 'HILLS') : btn('cup-table', 'STANDINGS')}${btn('main', 'MENU')}</div>`);
+        this.openMenu('result', `${this.lastPlayer.name} / ${getHill(r.hillId).name}`, `<div class="result-top"><div class="jump-distance"><span data-pixel="${r.distance.toFixed(2)} M" data-size="4"></span><p class="${r.crashed ? 'bad' : 'good'}" style="font-size:11px">${style}${r.assisted ? ' / ASSISTED PRACTICE' : ''}</p></div><div class="points-big">${r.total.toFixed(1)}<small>TOTAL POINTS</small></div></div>${this.newRecord ? '<div class="new-record">NEW LOCAL HILL RECORD!</div>' : ''}<div class="judge-marks">${r.judges.map((j, i) => `<div class="judge ${r.counted.includes(i) ? '' : 'dropped'}"><small>JUDGE ${i + 1}</small>${j.toFixed(1)}</div>`).join('')}</div><div class="result-meta"><div>DISTANCE<strong>${r.distancePoints.toFixed(1)} PTS</strong></div><div>STYLE<strong>${r.stylePoints.toFixed(1)} PTS</strong></div><div>TAKEOFF<strong>${Math.round(r.takeoffQuality * 100)}%</strong></div><div>WIND<strong>${r.wind.toFixed(1)} M/S</strong></div></div><p class="hint">${r.crashed ? (r.landing === 'none' ? 'Prepare your landing before touching the snow. Use Z / X or the touch landing buttons.' : 'A hard impact, late landing or unstable body position caused the fall. Try a two-foot landing.') : r.takeoffQuality < .6 ? 'Jump closer to the lip for a stronger takeoff.' : 'The highest and lowest judge marks are discarded.'}</p><div class="buttons">${btn('next-jump', this.mode === 'practice' ? 'JUMP AGAIN' : 'CONTINUE CUP', 'small-button primary')}${btn('last-replay', 'REPLAY')}${btn('save-last-replay', 'SAVE REPLAY')}${this.mode === 'practice' ? btn('practice', 'HILLS') + btn('session', 'SESSION') + btn('retry', 'SAME WIND') : btn('cup-table', 'STANDINGS')}${btn('main', 'MENU')}</div>`);
     }
     nextJump() { if (this.mode === 'practice')
         this.startPractice(this.lastHill);
@@ -258,13 +289,17 @@ export class SkiJumpApp {
     flushPlayer() { if (this.view !== 'players')
         return; const read = id => $(id)?.value; this.players[this.playerIndex] = normalizePlayer({ ...this.players[this.playerIndex], name: read('#player-name'), country: read('#player-country'), team: read('#player-team'), suit: read('#player-suit'), helmet: read('#player-helmet'), skis: read('#player-skis') }, this.playerIndex); this.savePlayers(); }
     savePlayers() { this.store.set('players', this.players); }
-    showSetup(mode) { this.setupMode = mode; this.selectedHills = new Set(TOUR_PRESETS['Original eight']); this.setupPreset = 'Original eight'; this.renderSetup(); }
-    renderSetup() { const mode = this.setupMode; this.openMenu('setup', mode === 'team' ? 'TEAM CUP / SELECT HILLS' : 'WORLD CUP / SELECT HILLS', `<div class="setup-top"><label class="field">TOUR<select id="tour-preset">${Object.keys(TOUR_PRESETS).map(n => option(n, n, this.setupPreset)).join('')}${option('custom', 'Custom selection', this.setupPreset)}</select></label><label class="field">${mode === 'team' ? 'CPU TEAMS' : 'CPU JUMPERS'}<select id="cup-ai">${(mode === 'team' ? [0, 3, 7, 11] : [0, 7, 15, 31, 49]).map(n => option(n, n, mode === 'team' ? 7 : this.settings.aiCount)).join('')}</select></label></div><div class="toolbar"><span>${this.players.length} HUMAN PLAYER${this.players.length > 1 ? 'S' : ''}</span>${btn('players', 'EDIT PLAYERS')}${btn('select-all', 'ALL HILLS')}${btn('select-none', 'CLEAR')}</div><div class="check-grid">${HILLS.map(h => `<label class="check"><input type="checkbox" data-hill="${h.id}" ${this.selectedHills.has(h.id) ? 'checked' : ''}>${h.code} K${h.k}</label>`).join('')}</div><p class="hint">${mode === 'team' ? 'Four jumpers per team. Two rounds, top eight teams qualify.' : 'Two rounds per hill. Top 30 (including ties) qualify for the final.'} Final round in reverse score order. Cups are saved automatically.</p><div class="buttons">${btn('start-cup', 'START CUP', 'small-button primary')}${btn('main', 'BACK')}</div>`); }
+    showSetup(mode) {
+        this.setupMode = mode; this.setupAI = mode === 'team' ? 7 : this.settings.aiCount;
+        this.tour = new TourSchedule(TOUR_PRESETS['Original eight'], 'Original eight');
+        this.selectedHills = new Set(this.tour.hills); this.setupPreset = 'Original eight'; this.renderSetup();
+    }
+    renderSetup() { const mode = this.setupMode; this.openMenu('setup', mode === 'team' ? 'TEAM CUP / SELECT HILLS' : 'WORLD CUP / SELECT HILLS', `<div class="setup-top"><label class="field">TOUR<select id="tour-preset">${Object.keys(TOUR_PRESETS).map(n => option(n, n, this.setupPreset)).join('')}${option('custom', 'Custom selection', this.setupPreset)}</select></label><label class="field">${mode === 'team' ? 'CPU TEAMS' : 'CPU JUMPERS'}<select id="cup-ai">${(mode === 'team' ? [0, 3, 7, 11] : [0, 7, 15, 31, 49]).map(n => option(n, n, this.setupAI)).join('')}</select></label></div><div class="toolbar"><span>${this.players.length} HUMAN PLAYER${this.players.length > 1 ? 'S' : ''}</span>${btn('players', 'EDIT PLAYERS')}${btn('select-all', 'ALL HILLS')}${btn('select-none', 'CLEAR')}${btn('edit-tour', 'ORDER / REPEAT')}</div><div class="check-grid">${HILLS.map(h => `<label class="check"><input type="checkbox" data-hill="${h.id}" ${this.selectedHills.has(h.id) ? 'checked' : ''}>${h.code} K${h.k}</label>`).join('')}</div><p class="hint">${mode === 'team' ? 'Four jumpers per team. Two rounds, top eight teams qualify.' : 'Two rounds per hill. Top 30 (including ties) qualify for the final.'} Final round in reverse score order. Cups are saved automatically.</p><div class="buttons">${btn('start-cup', 'START CUP', 'small-button primary')}${btn('main', 'BACK')}</div>`); }
     async startCup() {
-        const hills = [...this.content.querySelectorAll('[data-hill]:checked')].map(c => c.dataset.hill);
+        const hills = [...this.tour.hills];
         if (!hills.length)
             throw new Error('Select at least one hill.');
-        const ai = Number($('#cup-ai').value);
+        const ai = this.setupAI;
         let players, teams = null;
         if (this.setupMode === 'team') {
             teams = createTeams(this.players, ai, this.settings.difficulty);
@@ -291,11 +326,14 @@ export class SkiJumpApp {
         this.store.remove('cup');
         throw e;
     } this.mode = this.cup.mode; await this.proceedTurn(); }
-    async proceedTurn() {
+    async proceedTurn(showList = true) {
         if (!this.cup) {
             this.showMain();
             return;
         }
+        if (this.cup.status === 'event-complete') { this.showEvent(); return; }
+        if (this.cup.status === 'finished') { this.showCupStandings(true); return; }
+        if (showList && this.cup.status === 'running') { this.showStartList(); return; }
         const ticket = ++this.turnToken, cup = this.cup;
         let processed = 0;
         this.openMenu('loading', 'CUP IN PROGRESS', `<div class="loading">${esc(cup.hill.name)} K${cup.hill.k}<br><span class="muted">SIMULATING CPU JUMPERS...</span></div>`);
@@ -303,8 +341,9 @@ export class SkiJumpApp {
         while (cup.status === 'running' && cup.current() && !cup.current().human && !this.settings.watchCPU) {
             if (ticket !== this.turnToken)
                 return;
-            cup.submit(cup.cpuResult());
+            const transition = cup.submit(cup.cpuResult());
             processed++;
+            if (transition === 'round') { this.saveCup(); this.showStartList(); return; }
             if (processed % 4 === 0)
                 await new Promise(r => setTimeout(r, 0));
         }
@@ -322,21 +361,32 @@ export class SkiJumpApp {
         const p = cup.current();
         this.launchJump(cup.hill, p, cup.options(), !p.human);
     }
-    resultTable(rows, team = false) { return `<div class="table-wrap"><table><thead><tr><th>#</th><th>${team ? 'TEAM' : 'JUMPER'}</th>${team ? '' : '<th class="num">ROUND 1</th><th class="num">ROUND 2</th>'}<th class="num">POINTS</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.human || r.members?.some(p => p.human) ? 'you' : ''}"><td>${r.rank}</td><td>${esc(r.name)}</td>${team ? '' : (r.jumps || [null, null]).map(j => `<td class="num">${j ? j.distance.toFixed(2) + (j.crashed ? ' F' : '') : '-'}</td>`).join('')}<td class="num">${r.total.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`; }
+    resultTable(rows, team = false) { return `<div class="table-wrap"><table><thead><tr><th>#</th><th>${team ? 'TEAM' : 'JUMPER'}</th>${team ? '' : '<th class="num">ROUND 1</th><th class="num">ROUND 2</th>'}<th class="num">POINTS</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.human || r.members?.some(p => p.human) ? 'you' : ''}"><td>${r.rank}</td><td>${esc(r.name)}${team && r.members ? btn('team-details', 'DETAILS', 'small-button tiny', `data-id="${esc(r.id)}"`) : ''}</td>${team ? '' : (r.jumps || [null, null]).map(j => `<td class="num">${j ? j.distance.toFixed(2) + (j.crashed ? ' F' : '') : '-'}</td>`).join('')}<td class="num">${r.total.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`; }
     showEvent() { const c = this.cup; this.openMenu('event', `${c.hill.name} / EVENT ${c.eventIndex + 1} OF ${c.hills.length}`, `${this.resultTable(c.rows(), c.mode === 'team')}<div class="buttons">${btn('next-event', c.eventIndex + 1 < c.hills.length ? 'NEXT HILL' : 'FINAL STANDINGS', 'small-button primary')}${btn('cup-table', 'CUP STANDINGS')}${btn('main', 'SAVE & EXIT')}</div>`); }
     showCupStandings(final = false) { const c = this.cup; if (!c)
-        return; this.standingsBack = final ? 'main' : c.status === 'event-complete' ? 'event' : 'result'; this.openMenu('standings', final ? 'FINAL CUP STANDINGS' : 'CUP STANDINGS', `${this.resultTable(c.standings(), true)}<p class="hint">${c.history.length} OF ${c.hills.length} EVENTS COMPLETE. Points: 100, 80, 60, 50, 45 ... down to 1.</p><div class="buttons">${btn('standings-back', final ? 'MAIN MENU' : 'BACK', 'small-button primary')}${btn('export-cup', 'EXPORT RESULTS')}</div>`); }
+        return; this.standingsBack = final ? 'main' : c.status === 'event-complete' ? 'event' : 'result'; this.openMenu('standings', final ? 'FINAL CUP STANDINGS' : 'CUP STANDINGS', `${this.resultTable(c.standings(), true)}<p class="hint">${c.history.length} OF ${c.hills.length} EVENTS COMPLETE. Points: 100, 80, 60, 50, 45 ... down to 1.</p><div class="buttons">${btn('standings-back', final ? 'MAIN MENU' : 'BACK', 'small-button primary')}${btn('export-cup', 'EXPORT RESULTS')}${btn('export-csv', 'CSV')}${btn('cup-history', 'EVENT HISTORY')}</div>`); }
     showRecords() { const records = this.store.records(), assisted = !!this.recordsAssisted; let sum = 0, count = 0; const rows = HILLS.map(h => { const r = records[this.store.recordKey(h.id, assisted)]; if (r) {
         sum += r.distance;
         count++;
-    } return `<tr><td>${esc(h.name)}</td><td>K${h.k}</td><td class="num">${r ? r.distance.toFixed(2) : '-'}</td><td>${r ? esc(r.name) : '-'}</td><td class="num">${r ? Number(r.total || 0).toFixed(1) : '-'}</td></tr>`; }).join(''); this.openMenu('records', 'LOCAL HILL RECORDS', `<div class="toolbar"><label class="check"><input id="records-assisted" type="checkbox" ${assisted ? 'checked' : ''}>ASSISTED PRACTICE</label><span>${count}/32 HILLS / TOTAL ${sum.toFixed(2)} M</span></div><div class="table-wrap"><table><thead><tr><th>HILL</th><th>K</th><th class="num">METRES</th><th>JUMPER</th><th class="num">POINTS</th></tr></thead><tbody>${rows}</tbody></table></div><p class="hint">Local records only. Fallen jumps are excluded. Assisted records are kept separately.</p><div class="buttons">${btn('main', 'BACK')}${btn('export-save', 'EXPORT SAVE')}${btn('import-save', 'IMPORT SAVE')}</div>`); }
-    showReplays() { const list = this.store.replays(); this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
-    startReplay(replay, back = 'replays') { this.playback = new ReplayPlayer(replay); this.replayBack = back; this.cpu = null; this.setHill(replay.hillId); this.player = replay.player; this.renderer.cameraReady = false; this.hideMenu('replay'); this.audio.update(null, true); $('#replay-speed').value = '1'; $('#replay-play').textContent = 'II'; }
-    replayAction(action) { if (!this.playback)
+    } return `<tr><td><button class="table-link" data-action="hill-records" data-id="${h.id}">${esc(h.name)}</button></td><td>K${h.k}</td><td class="num">${r ? r.distance.toFixed(2) : '-'}</td><td>${r ? esc(r.name) : '-'}</td><td class="num">${r ? Number(r.total || 0).toFixed(1) : '-'}</td></tr>`; }).join(''); this.openMenu('records', 'LOCAL HILL RECORDS', `<div class="toolbar"><label class="check"><input id="records-assisted" type="checkbox" ${assisted ? 'checked' : ''}>ASSISTED PRACTICE</label><span>${count}/32 HILLS / TOTAL ${sum.toFixed(2)} M</span></div><div class="table-wrap"><table><thead><tr><th>HILL</th><th>K</th><th class="num">METRES</th><th>JUMPER</th><th class="num">POINTS</th></tr></thead><tbody>${rows}</tbody></table></div><p class="hint">Local records only. Fallen jumps are excluded. Assisted records are kept separately.</p><div class="buttons">${btn('main', 'BACK')}${btn('personal-records', 'PERSONAL TOTALS')}${btn('export-save', 'EXPORT SAVE')}${btn('import-save', 'IMPORT SAVE')}</div>`); }
+    showReplays() { const list = this.store.replays(); this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
+    startReplay(replay, back = 'replays') { this.playback = new ReplayPlayer(replay); this.replayBack = back; this.cpu = null; this.setHill(replay.hillId); this.player = replay.player; this.renderer.cameraReady = false; this.hideMenu('replay'); this.audio.update(null, true); $('#replay-speed').value = '1'; $('#replay-play').textContent = 'II'; $('#replay-loop').textContent = 'LOOP ON'; }
+    replayAction(action) {
+        if (this.playback) {
+            if (action === 'frame-back' || action === 'frame-next') this.playback.stepFrame(action === 'frame-back' ? -1 : 1);
+            if (['start', 'end', 'takeoff', 'landing'].includes(action)) this.playback.jumpTo(action);
+            if (action === 'loop') { this.playback.loop = !this.playback.loop; $('#replay-loop').textContent = this.playback.loop ? 'LOOP ON' : 'LOOP OFF'; }
+            if (action === 'flight-loop') { this.playback.setLoop(this.playback.flightStart, this.playback.runoutStart); this.playback.loop = true; this.playback.seek(this.playback.flightStart); $('#replay-loop').textContent = 'FLIGHT LOOP'; }
+            if (action === 'whole-loop') { this.playback.setLoop(); $('#replay-loop').textContent = this.playback.loop ? 'LOOP ON' : 'LOOP OFF'; }
+            $('#replay-play').textContent = this.playback.paused ? 'PLAY' : 'II';
+            $('#replay-seek').value = String(Math.round(this.playback.time / this.playback.duration * 1000));
+        }
+        if (!this.playback)
         return; if (action === 'back') {
         this.playback = null;
         if (this.replayBack === 'result')
             this.showResult();
+        else if (this.replayBack === 'records') this.showRecords();
         else
             this.showReplays();
     } if (action === 'play') {
@@ -354,8 +404,10 @@ export class SkiJumpApp {
     }
     applySettings() { this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
     showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Press <kbd>SPACE</kbd> or click to start. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. Keep the balance indicator near its centre. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Just before the snow: <kbd>Z</kbd> or left click for telemark. <kbd>X</kbd> or right click for a safer two-foot landing. Classic mode uses both buttons for two feet. No landing preparation means a fall.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. Two-thumb takeoff also works in classic mode.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
-    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.1.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
+    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.2.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
     change(e) {
+        if (e.target.id === 'cup-ai') { this.setupAI = Number(e.target.value); return; }
+        if (e.target.id === 'tour-name') { this.tour.name = e.target.value.slice(0, 40); return; }
         const el = e.target;
         if (el.id === 'hill-filter')
             this.showHills(el.value);
@@ -367,15 +419,20 @@ export class SkiJumpApp {
         }
         if (el.id === 'tour-preset') {
             this.setupPreset = el.value;
-            if (TOUR_PRESETS[el.value])
-                this.selectedHills = new Set(TOUR_PRESETS[el.value]);
+            if (TOUR_PRESETS[el.value]) {
+                this.tour = new TourSchedule(TOUR_PRESETS[el.value], el.value);
+                this.selectedHills = new Set(this.tour.hills);
+            }
             this.renderSetup();
         }
         if (el.dataset.hill) {
-            if (el.checked)
-                this.selectedHills.add(el.dataset.hill);
-            else
+            if (el.checked) {
+                try { this.tour.insert(el.dataset.hill); this.selectedHills.add(el.dataset.hill); }
+                catch (error) { el.checked = false; this.toast(error.message); }
+            } else {
+                this.tour.hills = this.tour.hills.filter(id => id !== el.dataset.hill);
                 this.selectedHills.delete(el.dataset.hill);
+            }
             this.setupPreset = 'custom';
             $('#tour-preset').value = 'custom';
         }
@@ -396,6 +453,42 @@ export class SkiJumpApp {
         if (this.view === 'players' && !['delete-player'].includes(action))
             this.flushPlayer();
         switch (action) {
+            case 'continue-start-list': await this.proceedTurn(false); break;
+            case 'start-list': this.showStartList(); break;
+            case 'edit-tour': this.showTourEditor(); break;
+            case 'tour-back': this.selectedHills = new Set(this.tour.hills); this.renderSetup(); break;
+            case 'tour-up': this.tour.move(Number(button.dataset.index), Number(button.dataset.index) - 1); this.showTourEditor(); break;
+            case 'tour-down': this.tour.move(Number(button.dataset.index), Number(button.dataset.index) + 1); this.showTourEditor(); break;
+            case 'tour-remove': this.tour.remove(Number(button.dataset.index)); this.showTourEditor(); break;
+            case 'tour-duplicate': this.tour.insert(this.tour.hills[Number(button.dataset.index)], Number(button.dataset.index) + 1); this.showTourEditor(); break;
+            case 'tour-add': this.tour.insert($('#tour-add-hill').value); this.showTourEditor(); break;
+            case 'tour-reverse': this.tour.reverse(); this.showTourEditor(); break;
+            case 'tour-shuffle': this.tour.shuffle(++this.seed); this.showTourEditor(); break;
+            case 'tour-save': this.tour.name = $('#tour-name').value; this.store.saveTour(this.tour); this.showTourEditor(); this.toast('Tour saved locally.'); break;
+            case 'tour-load': {
+                const tour = this.store.tours()[Number($('#saved-tour').value)];
+                if (tour) { this.tour = new TourSchedule(tour.hills, tour.name); this.showTourEditor(); } break;
+            }
+            case 'tour-delete': { const tour = this.store.tours()[Number($('#saved-tour').value)]; if (tour) this.store.deleteTour(tour.name); this.showTourEditor(); break; }
+            case 'tour-export': this.tour.name = $('#tour-name').value; downloadText('ski-jump-tour.json', this.tour.serialize()); break;
+            case 'tour-import': this.importKind = 'tour'; $('#file-import').click(); break;
+            case 'session': this.showSession(); break;
+            case 'live-results': this.openMenu('live-results', 'CURRENT HILL STANDINGS', this.resultTable(this.cup.rows(), this.cup.mode === 'team') + `<div class="buttons">${btn('start-list', 'BACK')}</div>`); break;
+            case 'cup-history': this.showCupHistory(); break;
+            case 'history-event': this.showHistoryEvent(Number(button.dataset.index)); break;
+            case 'team-details': this.showTeamDetails(button.dataset.id); break;
+            case 'export-csv': downloadText('ski-jump-cup.csv', competitionCSV(this.cup), 'text/csv;charset=utf-8'); break;
+            case 'personal-records': this.showPersonalRecords(); break;
+            case 'hill-records': this.showHillRecords(button.dataset.id); break;
+            case 'record-ghost': {
+                const replay = this.store.ghost(button.dataset.id, !!this.recordsAssisted);
+                if (replay) this.startReplay(replay, 'records'); else this.toast('No replay was saved for this record.'); break;
+            }
+            case 'rename-replay': {
+                const id = button.dataset.id, row = this.store.replays().find(r => r.id === id);
+                this.openMenu('rename-replay', 'REPLAY NAME', `<label class="field">NAME<input id="replay-name" maxlength="48" value="${esc(row.label || row.name)}"></label><div class="buttons">${btn('confirm-rename-replay', 'SAVE', 'small-button primary', `data-id="${esc(id)}"`)}${btn('replays', 'CANCEL')}</div>`); break;
+            }
+            case 'confirm-rename-replay': this.store.renameReplay(button.dataset.id, $('#replay-name').value); this.showReplays(); break;
             case 'main':
                 this.showMain();
                 break;
@@ -415,12 +508,13 @@ export class SkiJumpApp {
                 this.showSetup('team');
                 break;
             case 'select-all':
-                this.selectedHills = new Set(HILLS.map(h => h.id));
+                this.tour = new TourSchedule(HILLS.map(h => h.id), 'All 32 hills');
+                this.selectedHills = new Set(this.tour.hills);
                 this.setupPreset = 'All 32 hills';
                 this.renderSetup();
                 break;
             case 'select-none':
-                this.selectedHills.clear();
+                this.tour = new TourSchedule(); this.selectedHills.clear();
                 this.setupPreset = 'custom';
                 this.renderSetup();
                 break;
@@ -576,9 +670,53 @@ export class SkiJumpApp {
                 downloadText('ski-jump-web-cup-results.json', JSON.stringify({ mode: this.cup.mode, history: this.cup.history, standings: this.cup.standings() }, null, 2));
                 break;
             case 'export-diagnostics':
-                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.1.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
+                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.2.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
                 break;
         }
+    }
+    showTourEditor() {
+        this.setupPreset = 'custom';
+        this.openMenu('tour', 'TOUR SCHEDULE / ORDER AND REPEAT', `<div class="toolbar"><label>NAME <input id="tour-name" maxlength="40" value="${esc(this.tour.name)}"></label><span>${this.tour.hills.length}/64 EVENTS</span></div><div class="tour-events">${this.tour.hills.map((id, i) => `<div class="tour-event"><strong>${i + 1}. ${esc(getHill(id).name)} K${getHill(id).k}</strong>${btn('tour-up', 'UP', 'small-button tiny', `data-index="${i}" ${i === 0 ? 'disabled' : ''}`)}${btn('tour-down', 'DOWN', 'small-button tiny', `data-index="${i}" ${i === this.tour.hills.length - 1 ? 'disabled' : ''}`)}${btn('tour-duplicate', '+1', 'small-button tiny', `data-index="${i}" ${this.tour.hills.length === 64 ? 'disabled' : ''}`)}${btn('tour-remove', 'X', 'small-button tiny', `data-index="${i}"`)}</div>`).join('') || '<p class="empty">ADD A HILL TO BEGIN.</p>'}</div><div class="toolbar"><select id="tour-add-hill" aria-label="Add hill">${HILLS.map(h => option(h.id, `${h.name} K${h.k}`, this.lastHill)).join('')}</select>${btn('tour-add', 'ADD', 'small-button', this.tour.hills.length === 64 ? 'disabled' : '')}${btn('tour-reverse', 'REVERSE')}${btn('tour-shuffle', 'SHUFFLE')}</div><div class="toolbar"><select id="saved-tour" aria-label="Saved tour">${this.store.tours().map((t, i) => option(i, t.name, 0)).join('')}</select>${btn('tour-load', 'LOAD')}${btn('tour-save', 'SAVE')}${btn('tour-delete', 'DELETE')}</div><div class="buttons">${btn('tour-back', 'DONE', 'small-button primary')}${btn('tour-export', 'EXPORT')}${btn('tour-import', 'IMPORT')}</div>`);
+    }
+    showStartList() {
+        const c = this.cup;
+        if (!c) { this.showMain(); return; }
+        if (c.status === 'event-complete') { this.showEvent(); return; }
+        if (c.status === 'finished') { this.showCupStandings(true); return; }
+        this.turnToken++; this.cpu = null;
+        const target = c.target();
+        this.openMenu('start-list', `${c.hill.name} K${c.hill.k} / ROUND ${c.round}`, `<div class="toolbar"><strong>EVENT ${c.eventIndex + 1}/${c.hills.length}</strong><span>${c.turn}/${c.queue.length} JUMPS COMPLETE</span></div><div class="table-wrap start-list-table"><table><thead><tr><th>BIB</th><th>JUMPER</th><th>TEAM</th><th class="num">PREVIOUS</th><th>STATUS</th></tr></thead><tbody>${c.startList().map(p => `<tr class="${p.current ? 'you' : ''}"><td>${p.bib}${c.mode === 'team' ? ' / G' + p.group : ''}</td><td>${esc(p.name)}</td><td>${esc(p.team)}</td><td class="num">${p.previous ? p.previous.distance.toFixed(2) + ' M' : '-'}</td><td>${p.completed ? 'DONE' : p.current ? 'NEXT' : p.human ? 'HUMAN' : 'CPU'}</td></tr>`).join('')}</tbody></table></div>${target ? `<p class="hint">CURRENT JUMPER TARGET: ${target.distance.toFixed(1)} M TO LEAD ${esc(target.leader)}. Estimate assumes ${target.assumedStyle} style points, not a guaranteed winning distance.</p>` : ''}<div class="buttons">${btn('continue-start-list', 'CONTINUE', 'small-button primary')}${btn('live-results', 'HILL STANDINGS')}${btn('cup-history', 'HISTORY')}${btn('main', 'SAVE & EXIT')}</div>`);
+    }
+    showCupHistory() {
+        if (!this.cup) return;
+        this.openMenu('cup-history', 'CUP EVENT HISTORY', `<div class="tour-events">${this.cup.history.map((e, i) => `<div class="tour-event"><strong>${i + 1}. ${esc(getHill(e.hillId).name)} / ${esc(e.rows[0]?.name || '')}</strong>${btn('history-event', 'RESULTS', 'small-button', `data-index="${i}"`)}</div>`).join('') || '<p class="empty">NO COMPLETED HILLS YET.</p>'}</div><div class="buttons">${btn('start-list', 'BACK TO CUP')}${btn('export-csv', 'EXPORT CSV')}</div>`);
+    }
+    showHistoryEvent(index) {
+        const event = this.cup?.history[index]; if (!event) return;
+        this.openMenu('history-event', `EVENT ${index + 1} / ${getHill(event.hillId).name}`, this.resultTable(event.rows, this.cup.mode === 'team') + `<div class="buttons">${btn('cup-history', 'BACK')}</div>`);
+    }
+    showTeamDetails(id) {
+        const team = this.cup?.teams?.find(t => t.id === id); if (!team) return;
+        this.openMenu('team-details', `${team.name} / JUMPER BREAKDOWN`, this.resultTable(this.cup.teamDetails(id).map((p, i) => ({ ...p, rank: i + 1 }))) + `<div class="buttons">${btn('start-list', 'BACK TO CUP')}</div>`);
+    }
+    showHillRecords(id) {
+        const hill = getHill(id), assisted = !!this.recordsAssisted, rows = this.store.hillLeaderboard(id, assisted);
+        this.openMenu('hill-records', `${hill.name} K${hill.k} / LOCAL TOP TEN`, `<div class="table-wrap"><table><thead><tr><th>#</th><th>JUMPER</th><th class="num">METRES</th><th class="num">POINTS</th><th>DATE</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td class="num">${r.distance.toFixed(2)}</td><td class="num">${Number(r.total || 0).toFixed(1)}</td><td>${esc(String(r.date || '').slice(0, 10))}</td></tr>`).join('')}</tbody></table></div><p class="hint">Best landed jump per player name. ${assisted ? 'Assisted' : 'Unassisted'} records. Practice gates are recorded but not separate categories.</p><div class="buttons">${btn('records', 'BACK')}${btn('hill', 'JUMP HERE', 'small-button primary', `data-id="${id}"`)}${btn('record-ghost', 'BEST REPLAY', 'small-button', `data-id="${id}"`)}</div>`);
+    }
+    showPersonalRecords() {
+        const assisted = !!this.recordsAssisted;
+        const names = new Set(this.players.map(p => p.name));
+        for (const [key, rows] of Object.entries(this.store.leaderboards())) {
+            if (key.endsWith('.assisted') === assisted && Array.isArray(rows)) rows.forEach(r => names.add(r.name));
+        }
+        const totals = [...names].map(name => { const records = Object.values(this.store.personalBests(name, assisted));
+            return { name, hills: records.length, distance: records.reduce((sum, r) => sum + r.distance, 0) }; })
+            .sort((a, b) => b.distance - a.distance || a.name.localeCompare(b.name));
+        this.openMenu('personal-records', 'PERSONAL HILL RECORD TOTALS', `<div class="table-wrap"><table><thead><tr><th>#</th><th>JUMPER</th><th>HILLS</th><th class="num">TOTAL METRES</th></tr></thead><tbody>${totals.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td>${r.hills}/32</td><td class="num">${r.distance.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><p class="hint">${assisted ? 'ASSISTED' : 'UNASSISTED'} best landed jump on each hill, summed by player name. Up to 64 player names per hill are retained.</p><div class="buttons">${btn('records', 'BACK')}</div>`);
+    }
+    showSession() {
+        const rows = this.practiceLog, landed = rows.filter(r => !r.crashed), average = rows.length ? rows.reduce((s, r) => s + r.distance, 0) / rows.length : 0;
+        this.openMenu('session', 'PRACTICE SESSION / LAST 50 JUMPS', `<p class="hint">${rows.length} JUMPS / ${landed.length} LANDED / AVERAGE ${average.toFixed(2)} M</p><div class="table-wrap"><table><thead><tr><th>#</th><th>HILL</th><th class="num">METRES</th><th class="num">TAKEOFF</th><th>LANDING</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${rows.length - i}</td><td>${esc(getHill(r.hillId).name)}</td><td class="num">${r.distance.toFixed(2)}</td><td class="num">${Math.round(r.takeoffQuality * 100)}%</td><td>${r.crashed ? 'FALL' : esc(r.landing.toUpperCase())}</td></tr>`).join('')}</tbody></table></div><div class="buttons">${btn('next-jump', 'JUMP AGAIN', 'small-button primary')}${btn('retry', 'SAME WIND')}${btn('practice', 'HILLS')}</div>`);
     }
     cycleCamera() { const modes = ['classic', 'close', 'wide', 'chase']; this.settings.camera = modes[(modes.indexOf(this.settings.camera) + 1) % modes.length]; this.renderer.setOptions(this.settings); this.renderer.cameraReady = false; this.store.saveSettings(this.settings); this.toast(`${this.settings.camera.toUpperCase()} CAMERA`); }
     async fullscreen() { try {

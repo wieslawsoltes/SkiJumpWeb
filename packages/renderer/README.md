@@ -2,7 +2,7 @@
 
 Batched flat-shaded 3D scene, skier, terrain and WebGPU snow compute, with WebGL2 and software fallback.
 
-Version **0.1.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
+Version **0.2.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
 
 ## Example
 

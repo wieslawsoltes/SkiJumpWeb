@@ -54,6 +54,12 @@ export declare class ReplayPlayer {
     paused: boolean;
     loop: boolean;
     duration: number;
+    loopStart: number;
+    loopEnd: number;
+    readonly markers: { start: number; takeoff: number; landing: number; end: number };
+    setLoop(start?: number, end?: number): this;
+    stepFrame(direction?: number): ReplayState;
+    jumpTo(marker: 'start' | 'takeoff' | 'landing' | 'end'): ReplayState;
     constructor(replay: Replay);
     seek(time: number): ReplayState;
     update(dt: number): ReplayState;

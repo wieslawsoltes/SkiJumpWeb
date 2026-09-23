@@ -9,9 +9,9 @@ The request targets a full-fidelity DSJ2 recreation. **This release does not est
 | Input | Classic button chords plus keyboard/touch/tilt/gamepad adapters | Exact original sensitivity transfer function or device-specific parity |
 | Physics | Deterministic inrun, timing-dependent impulse, lift/drag, body angle, wind, landing preparation and collisions | Recovered original constants, bit-identical trajectories, exact original exploits/records |
 | Rules | Five judges, dropped extremes, distance/style totals, two-round cups and team rounds | Proof that every scoring threshold, tie detail and cup rule matches the DOS executable |
-| Modes | Practice, World Cup, Team Cup, custom tours and up to 16 hot-seat humans | Network multiplayer, original service connectivity |
-| Replays | Own validated numeric format, seeking, speed and cameras | `.rpl` import/export compatibility |
-| Persistence | Local records, separate assisted records, players, saved cups and JSON backup | Original save format compatibility or server-verified world records |
+| Modes | Practice/session statistics, World Cup, Team Cup, editable repeated-venue tours, start lists/history and up to 16 hot-seat humans | Network multiplayer, original service connectivity |
+| Replays | Own validated numeric format, reverse playback, exact sample stepping, phase markers, bounded loops and cameras | `.rpl` import/export compatibility |
+| Persistence | Local top-ten/personal records, separate assisted records, players, saved cups/tours, replay labels and JSON backup | Original save format compatibility or server-verified world records |
 | Sound | Synthesized wind/ski noise and action/result effects | Original recordings or perceptually identical audio |
 | Platforms | Responsive layout and successful Chromium touch emulation | Physical-device certification or universal browser/GPU support |
 
@@ -28,3 +28,9 @@ No executable, DOS data, sound samples or original art are bundled. The public l
 ## Next work needed for genuine parity
 
 Capture a reproducible reference corpus from an authorized original installation: every menu, every hill from multiple cameras, timed control traces, trajectories, judge outcomes and replay/save specimens. Fit measured profiles and input/physics constants against held-out trajectories rather than only visual impressions. Add screenshot/image-difference and control-replay regression tests with measurable acceptance tolerances. Separately validate browser WebGPU on physical adapters and touch/rotation/motion on real mobile hardware. Existing package boundaries allow those changes without rewriting the application shell.
+
+## 0.2.0 evidence classification
+
+The publisher overview confirms the original's high-level hill count, practice/world/team modes, replays, web records and 16-player support. It does not specify every original UI command, tie-break, replay speed or editable-tour feature. The new schedule editor, history views, CSV output, bounded replay loops and session statistics are independently authored implementations/extensions; they are **not asserted to be documented DSJ2 features or pixel-identical replicas**. This version does not change hill profiles or physics constants, and the numeric replay/save schemas remain version 1.
+
+Validation checks correctness of our implementation. The dedicated WebGPU test records whether an actual WebGPU adapter executed render and compute work; a SwiftShader adapter is not a hardware-performance or mobile-compatibility certification. No proprietary original assets or services are bundled or connected.

@@ -20,7 +20,7 @@ export class SkiInput {
         this.listen(element, 'pointermove', e => this.pointerMove(e));
         this.listen(element, 'pointerup', e => this.pointerUp(e));
         this.listen(element, 'pointercancel', e => this.pointerUp(e));
-        this.listen(element, 'lostpointercapture', e => this.pointers.delete(e.pointerId));
+        this.listen(element, 'lostpointercapture', e => { this.pointers.delete(e.pointerId); if (e.pointerType === 'mouse') { this.lastMouse = null; this.lastButtons = 0; } });
         // Pointer Events fire pointerdown only for the first mouse button. mousedown observes chords.
         this.listen(element, 'mousedown', e => { if (this.enabled && !this.interactive(e.target)) {
             e.preventDefault();
@@ -46,7 +46,7 @@ export class SkiInput {
     handleMouseButtons(buttons) {
         const previous = this.lastButtons;
         this.lastButtons = buttons;
-        if (buttons === previous)
+        if (buttons === previous || !(buttons & ~previous & 3))
             return;
         const p = this.phase(), both = (buttons & 3) === 3;
         if (p === 'gate') {
@@ -126,7 +126,7 @@ export class SkiInput {
                 this.action(action);
     }
     poll(dt) {
-        if (!this.enabled)
+        if (!this.enabled || !Number.isFinite(dt) || dt <= 0)
             return;
         let axis = 0;
         if (this.keys.has('ArrowUp') || this.keys.has('ArrowLeft'))
@@ -151,6 +151,7 @@ export class SkiInput {
                 this.gamepadButtons[i] = pressed;
             }
         }
+        if (!pad) this.gamepadButtons = [];
         if (axis)
             this.handlers.lean?.(axis * .9 * dt * this.options.sensitivity);
     }

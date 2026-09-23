@@ -1,1 +1,4 @@
-Strict TypeScript declaration compilation passed for all ten packages.
+
+added 10 packages in 272ms
+Imported 10 independently installed packages 0.2.0
+Strict TypeScript consumer passed

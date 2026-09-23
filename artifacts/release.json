@@ -1,29 +1,35 @@
 {
   "name": "SkiJumpWeb",
-  "version": "0.1.0",
-  "date": "2026-09-22",
-  "runtime": "Self-contained HTML; no external runtime assets or dependencies",
+  "version": "0.2.0",
+  "date": "2026-09-23T04:54:55.575Z",
   "packages": 10,
   "hill_roster_entries": 32,
   "tests": {
-    "node_passed": 64,
-    "browser_checks_passed": 33,
-    "browser_errors": 0,
-    "browser_warnings": 0,
-    "strict_types": "passed",
+    "node_passed": 100,
+    "browser_baseline": 33,
+    "browser_features": 36,
+    "browser_errors": [],
+    "webgpu_status": "passed",
+    "strict_types": "passed in isolated package consumer",
     "packed_sdk_offline_install_and_import": "passed"
   },
   "browser_renderers_exercised": [
     "webgl2",
-    "software"
+    "webgpu"
   ],
+  "gpu_adapter": {
+    "vendor": "google",
+    "architecture": "swiftshader",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": true
+  },
   "not_validated": [
-    "WebGPU execution on secure origin with GPU adapter",
     "Physical iOS/Android devices",
-    "Original DSJ2 pixel/physics fidelity",
+    "Physical GPU performance and drivers",
+    "Original DSJ2 pixel/physics/hill fidelity",
     "Original replay/save format compatibility"
   ],
   "published_to_npm": false,
-  "deployed_to_live_host": false,
-  "standalone_sha256": "3ffee7ea0c05f3f2edece0e3a9913ac98ebcd88fd9b79b3266f8e7aa6f163eb7"
+  "standalone_sha256": "c109773cc39cccb060a8decda32fdce06fb5f91cbbec5b92e0e721bbf91846ab"
 }

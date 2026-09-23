@@ -41,6 +41,7 @@ export interface Stats {
     cups: number;
 }
 export interface ReplayEntry {
+    label?: string;
     id: string;
     name: string;
     hillId: string;
@@ -68,6 +69,13 @@ export declare class GameStore {
     saveSettings(settings: Partial<Settings>): boolean;
     records(): Record<string, HillRecord>;
     recordKey(hillId: string, assisted?: boolean): string;
+    leaderboards(): Record<string, HillRecord[]>;
+    hillLeaderboard(hillId: string, assisted?: boolean, limit?: number): HillRecord[];
+    personalBests(name: string, assisted?: boolean): Record<string, HillRecord>;
+    tours(): Array<{ name: string; hills: string[] }>;
+    saveTour(tour: { name: string; hills: string[] }): string;
+    deleteTour(name: string): void;
+    renameReplay(id: string, name: string): void;
     updateRecord(result: JumpResult, player: ReplayPlayerInfo, replay?: Replay | null): boolean;
     ghost(hillId: string, assisted?: boolean): Replay | null;
     replays(): ReplayEntry[];

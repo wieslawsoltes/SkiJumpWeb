@@ -2,7 +2,7 @@
 
 The 32 public DSJ2 country/K-point labels and newly authored, arc-length-parameterized hill profiles.
 
-Version **0.1.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
+Version **0.2.0**, ESM JavaScript, TypeScript declarations, MIT. No third-party runtime dependencies beyond the other packages in this workspace. The tarball is publish-ready; this delivery does not imply that it has been published to npm.
 
 ## Example
 
