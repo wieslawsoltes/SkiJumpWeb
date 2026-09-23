@@ -1,0 +1,46 @@
+name: Observe original demo screens
+on:
+  push:
+    branches: [research/dsj210-fidelity]
+    paths: [.github/workflows/reference-screens.yml]
+permissions:
+  contents: read
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Install observation tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq dosbox xvfb xdotool python3-pil
+      - name: Observe the unmodified publisher demo in DOSBox
+        shell: bash
+        env:
+          DISPLAY: ':99'
+          SDL_AUDIODRIVER: dummy
+        run: |
+          mkdir -p "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/reference-screens"
+          curl --fail --silent --show-error https://www.mediamond.fi/dsj2/downloads/dsj210.zip -o "$RUNNER_TEMP/dsj.zip"
+          echo "c58c4484c911e1a91b1bc62710a6a1ddc911defbe77a06c72ebec51f3c78c431  $RUNNER_TEMP/dsj.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/dsj.zip" -d "$RUNNER_TEMP/dsj"
+          Xvfb :99 -screen 0 800x600x24 &
+          sleep 2
+          printf '[sdl]\nfullscreen=false\nwindowresolution=640x400\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n' > "$RUNNER_TEMP/reference.conf"
+          dosbox -conf "$RUNNER_TEMP/reference.conf" -c "mount c $RUNNER_TEMP/dsj" -c 'c:' -c 'dsj.exe' > "$RUNNER_TEMP/dosbox.log" 2>&1 &
+          sleep 8
+          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/00-initial.png')"
+          xdotool key Return
+          sleep 3
+          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/01-enter.png')"
+          xdotool mousemove 320 200 click 1
+          sleep 3
+          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/02-click.png')"
+          xdotool key Escape
+          sleep 2
+          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/03-escape.png')"
+          pkill dosbox || true
+          rm -rf "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/dsj.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reference-observation-screens
+          path: ${{ runner.temp }}/reference-screens/*.png
+          retention-days: 1
