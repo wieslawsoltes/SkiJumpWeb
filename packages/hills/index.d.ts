@@ -47,3 +47,26 @@ export declare function hillPreview(hill: Hill | string): Array<{
     x: number;
     y: number;
 }>;
+
+export interface HillVisual {
+    readonly id: string;
+    readonly k: number;
+    readonly version: number;
+    readonly palette: string;
+    readonly railColor: readonly number[];
+    readonly inrunBands: readonly (readonly number[])[];
+    readonly inrunDepth: number;
+    readonly platformLength: number;
+    readonly supportRadius: number;
+    readonly inrunWidth: number;
+    readonly landingWidth: number;
+    readonly landingFlare: number;
+    readonly cameraHeight: number;
+    readonly cameraYaw: number;
+    readonly cameraElevation: number;
+    readonly treeSeed: number;
+    readonly treeCount: number;
+    readonly evidence: Readonly<Record<'roster' | 'geometry' | 'palette' | 'scenery' | 'camera' | 'pixelParity', string>>;
+}
+export declare const HILL_VISUALS: readonly HillVisual[];
+export declare function getHillVisual(id: string): HillVisual;

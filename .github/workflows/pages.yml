@@ -42,7 +42,7 @@ jobs:
       - name: Install browser test tools
         run: |
           python3 -m venv "$RUNNER_TEMP/ski-playwright"
-          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0
+          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0 Pillow==11.3.0
           "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
       - name: Validate desktop, touch, cups, records and replay workflows
         run: |
@@ -58,6 +58,14 @@ jobs:
           CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
           export CHROMIUM
           "$PY" tests/browser_gpu.py --require-webgpu 2>&1 | tee artifacts/browser-webgpu.txt
+      - name: Require current all-hill all-camera cross-backend pixels
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          rm -rf artifacts/rendering
+          rm -f artifacts/browser-rendering.json
+          "$PY" tests/browser_rendering.py 2>&1 | tee artifacts/browser-rendering.txt
       - name: Write evidence and build downloadable release archives
         run: |
           node tools/write-validation.mjs
@@ -69,6 +77,8 @@ jobs:
           touch _site/.nojekyll
           cp SkiJumpWeb.html _site/SkiJumpWeb.html
           cp release/* _site/downloads/
+          cp -a artifacts/rendering _site/rendering
+          cp artifacts/browser-rendering.json _site/rendering/report.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -85,6 +95,7 @@ jobs:
             artifacts/package-install.txt
             artifacts/release.json
             artifacts/screenshots/
+            artifacts/rendering/
   deploy:
     needs: build
     runs-on: ubuntu-latest

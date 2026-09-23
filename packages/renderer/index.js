@@ -1,45 +1,12 @@
 import { clamp, lerp, Random, colorRGB } from '@wieslawsoltes/ski-core';
-import { HillProfile } from '@wieslawsoltes/ski-hills';
-const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const vmul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const norm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
-function multiply(a, b) { const r = new Float32Array(16); for (let c = 0; c < 4; c++)
-    for (let row = 0; row < 4; row++)
-        for (let k = 0; k < 4; k++)
-            r[c * 4 + row] += a[k * 4 + row] * b[c * 4 + k]; return r; }
-function lookAt(eye, center) { const z = norm(vsub(eye, center)), x = norm(cross([0, 1, 0], z)), y = cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]); }
-function ortho(l, r, b, t, n, f, gpu) { return new Float32Array([2 / (r - l), 0, 0, 0, 0, 2 / (t - b), 0, 0, 0, 0, (gpu ? 1 : 2) / (n - f), 0, (l + r) / (l - r), (t + b) / (b - t), gpu ? n / (n - f) : (f + n) / (n - f), 1]); }
-function projected(m, p, w, h) { const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]; return [(x * .5 + .5) * w, (-y * .5 + .5) * h, z]; }
-const shade = (c, f) => c.map(x => clamp(x * f, 0, 1));
+import { HillProfile, getHillVisual } from '@wieslawsoltes/ski-hills';
+import { MeshBuilder, vsub, vadd, vmul, norm, multiply, lookAt, ortho, perspective, projected, shade } from './mesh.js';
+export { MeshBuilder };
+import { createClassicHillScene, createProjectedShadow } from './scene.js';
+export { createClassicHillScene };
+import { SCENE_WGSL, SKY_WGSL, SCENE_GLSL, SKY_GLSL, SNOW_WGSL, SNOW_GLSL, SCENE_VERTEX_GLSL, SNAP_WGSL } from './shading.js';
+import { SoftwareRasterizer } from './raster.js';
 const SNOW = [.88, .9, .97], WOOD = [.50, .33, .075], DARKWOOD = [.29, .21, .06], STEEL = [.42, .44, .50];
-export class MeshBuilder {
-    constructor() { this.data = []; }
-    tri(a, b, c, color, lighting = true) { let f = 1; if (lighting) {
-        const n = norm(cross(vsub(b, a), vsub(c, a)));
-        f = .69 + .31 * Math.abs(dot(n, norm([-.35, .9, .3])));
-    } const col = shade(color, f); for (const p of [a, b, c])
-        this.data.push(...p, ...col); return this; }
-    quad(a, b, c, d, color, lighting = true) { this.tri(a, b, c, color, lighting); this.tri(a, c, d, color, lighting); return this; }
-    box(x, y, z, w, h, d, color) { const p = [[x, y, z], [x + w, y, z], [x + w, y + h, z], [x, y + h, z], [x, y, z + d], [x + w, y, z + d], [x + w, y + h, z + d], [x, y + h, z + d]]; for (const f of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]])
-        this.quad(...f.map(i => p[i]), color); return this; }
-    beam(a, b, r, color, sides = 5) { const n = norm(vsub(b, a)), u = norm(cross(n, Math.abs(n[1]) < .9 ? [0, 1, 0] : [1, 0, 0])), v = cross(n, u); for (let i = 0; i < sides; i++) {
-        const aa = i / sides * Math.PI * 2, bb = (i + 1) / sides * Math.PI * 2;
-        const off = t => vadd(vmul(u, Math.cos(t) * r), vmul(v, Math.sin(t) * r));
-        const x = off(aa), y = off(bb);
-        this.quad(vadd(a, x), vadd(a, y), vadd(b, y), vadd(b, x), color);
-        this.tri(b, vadd(b, x), vadd(b, y), color);
-    } return this; }
-    cone(x, y, z, r, h, color, sides = 6) { for (let i = 0; i < sides; i++) {
-        const a = i / sides * 6.2831853, b = (i + 1) / sides * 6.2831853;
-        this.tri([x + Math.cos(a) * r, y, z + Math.sin(a) * r], [x, y + h, z], [x + Math.cos(b) * r, y, z + Math.sin(b) * r], color);
-    } return this; }
-    sphere(x, y, z, r, color) { const a = [x - r, y, z], b = [x + r, y, z], c = [x, y - r, z], d = [x, y + r, z], e = [x, y, z - r], f = [x, y, z + r]; for (const v of [[a, d, e], [e, d, b], [b, d, f], [f, d, a], [a, e, c], [e, b, c], [b, f, c], [f, a, c]])
-        this.tri(...v, color); return this; }
-    finish() { return new Float32Array(this.data); }
-}
 function tree(m, x, y, z, h, r) { m.box(x - .15, y, z - .15, .3, h * .55, .3, [.25, .19, .13]); const greens = [[.12, .28, .21], [.16, .31, .25], [.11, .24, .19]]; for (let j = 0; j < 3; j++) {
     const base = y + h * (.16 + j * .21), radius = h * (.26 - j * .055);
     m.cone(x, base, z, radius, h * .48, greens[(j + r) % 3], 6);
@@ -223,49 +190,13 @@ function skierMesh(state, player = {}, ghost = false) {
     ball([head[0] + .18, head[1] - .025, .04], .13, [.12, .17, .24]);
     return m.finish();
 }
-const GPU_SHADER = `
-struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
-@group(0) @binding(0) var<uniform> scene:Scene;
-struct Out { @builtin(position) pos:vec4<f32>, @location(0) color:vec3<f32>, @location(1) world:vec3<f32> };
-@vertex fn vs(@location(0) p:vec3<f32>, @location(1) c:vec3<f32>)->Out { var o:Out;o.pos=scene.matrix*vec4<f32>(p,1);o.color=c;o.world=p;return o; }
-@fragment fn fs(o:Out)->@location(0) vec4<f32> {
- let dist=distance(o.world,scene.camera.xyz); let fog=smoothstep(135.0,360.0,dist)*0.72;
- var color=mix(o.color,scene.fog.rgb,fog);
- if(scene.params.x>2.5){color=color*vec3<f32>(0.35,0.43,0.65);}
- else if(scene.params.x>1.5){color=color*vec3<f32>(1.0,0.84,0.80);}
- let grain=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453)-0.5;
- color=floor(clamp(color+vec3<f32>(grain/115.0),vec3<f32>(0.0),vec3<f32>(1.0))*31.0)/31.0;
- return vec4<f32>(color,1.0);
-}`;
-const GPU_SKY = `
-struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
-@group(0) @binding(0) var<uniform> scene:Scene;
-struct Out { @builtin(position) pos:vec4<f32>, @location(0) uv:vec2<f32> };
-@vertex fn vs(@builtin(vertex_index) i:u32)->Out {let p=array<vec2<f32>,3>(vec2<f32>(-1,-1),vec2<f32>(3,-1),vec2<f32>(-1,3));var o:Out;o.pos=vec4<f32>(p[i],0.999,1);o.uv=(p[i]+vec2<f32>(1.0))*0.5;return o;}
-@fragment fn fs(o:Out)->@location(0) vec4<f32> {
- var top=vec3<f32>(0.40,0.39,0.78);var bottom=vec3<f32>(0.92,0.93,0.99);
- if(scene.params.x>2.5){top=vec3<f32>(.035,.045,.13);bottom=vec3<f32>(.22,.27,.41);}
- else if(scene.params.x>1.5){top=vec3<f32>(.30,.29,.51);bottom=vec3<f32>(.89,.68,.57);}
- var c=mix(bottom,top,smoothstep(.12,1.0,o.uv.y));
- let wave=.35+.03*sin(o.uv.x*18.0)+.018*sin(o.uv.x*49.0);
- c=mix(c,bottom,(1.0-smoothstep(wave,wave+.1,o.uv.y))*.6);
- let noise=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453);
- if(scene.params.x>2.5 && noise>.998 && o.uv.y>.5){c=vec3<f32>(.86,.87,.94);}
- c=floor(clamp(c+vec3<f32>((noise-.5)/90.0),vec3<f32>(0),vec3<f32>(1))*63.0)/63.0;
- return vec4<f32>(c,1);
-}`;
-const GPU_SNOW = `
-struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
-@group(0) @binding(0) var<storage,read_write> particles:array<vec4<f32>>;
-@group(0) @binding(1) var<uniform> weather:Weather;
-@compute @workgroup_size(64) fn update(@builtin(global_invocation_id) id:vec3<u32>){let i=id.x;if(i>=384u){return;}var p=particles[i];p.y-=weather.dt*(.12+p.z*.25);p.x+=weather.dt*(weather.wind*.024+.025);if(p.y< -1.03){p.y=1.03;}if(p.x>1.03){p.x=-1.03;}if(p.x< -1.03){p.x=1.03;}particles[i]=p;}
-`;
-const GPU_SNOW_DRAW = `
+const GPU_SHADER=SCENE_WGSL, GPU_SKY=SKY_WGSL, GPU_SNOW=SNOW_WGSL;
+const GPU_SNOW_DRAW = SNAP_WGSL+`
 struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
 @group(0) @binding(0) var<storage,read> particles:array<vec4<f32>>;
 @group(0) @binding(1) var<uniform> weather:Weather;
 @vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->@builtin(position) vec4<f32>{
- let q=array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(1,-1),vec2<f32>(1,1),vec2<f32>(-1,-1),vec2<f32>(1,1),vec2<f32>(-1,1));let p=particles[ii];return vec4<f32>(p.xy+q[vi]*vec2<f32>(1.0/weather.width,1.0/weather.height)*p.w,0,1);
+ let q=array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(1,-1),vec2<f32>(1,1),vec2<f32>(-1,-1),vec2<f32>(1,1),vec2<f32>(-1,1));let p=particles[ii];return snapClip(vec4<f32>(p.xy+q[vi]*vec2<f32>(1.0/weather.width,1.0/weather.height)*p.w,0,1),vec2<f32>(weather.width,weather.height));
 }
 @fragment fn fs()->@location(0) vec4<f32>{return vec4<f32>(.94,.96,1,.75);}
 `;
@@ -274,7 +205,9 @@ export class SkiRenderer {
         if (!host?.appendChild)
             throw new TypeError('A renderer host element is required');
         this.host = host;
-        this.options = { resolution: 'classic', renderer: 'auto', weather: 'clear', camera: 'classic', ...options };
+        this.options = { resolution: 'classic', renderer: 'auto', weather: 'clear', camera: 'classic', presentation: 'enhanced', ...options };
+        this.softwareRaster = new SoftwareRasterizer();
+        this.frameMilliseconds = 0;
         this.canvas = document.createElement('canvas');
         this.canvas.className = 'ski-scene';
         this.canvas.setAttribute('aria-hidden', 'true');
@@ -297,6 +230,7 @@ export class SkiRenderer {
         this.ready = this.initialize();
     }
     async initialize() {
+        if(this.disposed)return;
         const requested = this.options.renderer;
         if (requested === 'auto' && globalThis.isSecureContext && navigator.gpu) {
             try {
@@ -317,7 +251,7 @@ export class SkiRenderer {
                 this.device = null;
             }
         }
-        if (this.kind === 'webgpu')
+        if (this.disposed || this.kind === 'webgpu')
             return;
         this.newCanvas();
         if (requested !== 'software') {
@@ -337,7 +271,7 @@ export class SkiRenderer {
         if (this.profile)
             this.setHill(this.profile, this.record);
     }
-    newCanvas() { const c = document.createElement('canvas'); c.className = 'ski-scene'; c.setAttribute('aria-hidden', 'true'); this.canvas.replaceWith(c); this.canvas = c; }
+    newCanvas() { const c = document.createElement('canvas'); c.className = 'ski-scene'; c.setAttribute('aria-hidden', 'true'); this.canvas.replaceWith(c); this.canvas = c; this.gl=null; this.ctx=null; }
     async initGPU(device) {
         this.device = device;
         const ctx = this.canvas.getContext('webgpu');
@@ -405,31 +339,53 @@ export class SkiRenderer {
         if (!gl)
             throw new Error('WebGL2 unavailable');
         this.gl = gl;
+        // Render in a top-left logical framebuffer, matching WebGPU edge inclusion.
+        // The compositor reverses storage orientation without an extra readback/copy.
+        this.canvas.style.transform = 'scaleY(-1)';
+        gl.disable(gl.DITHER); // Our explicit ordered palette handles dithering.
         const compile = (type, code) => { const sh = gl.createShader(type); gl.shaderSource(sh, code); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
             throw new Error(gl.getShaderInfoLog(sh)); return sh; };
-        const vs = `#version 300 es\nprecision highp float;layout(location=0)in vec3 p;layout(location=1)in vec3 c;uniform mat4 matrix;out vec3 color;out vec3 world;void main(){gl_Position=matrix*vec4(p,1);color=c;world=p;}`;
-        const fs = `#version 300 es\nprecision highp float;in vec3 color;in vec3 world;uniform vec3 eye;uniform float weather;out vec4 outColor;void main(){float f=smoothstep(135.,360.,distance(world,eye))*.72;vec3 c=mix(color,vec3(.86,.88,.96),f);if(weather>2.5)c*=vec3(.35,.43,.65);else if(weather>1.5)c*=vec3(1.,.84,.80);float n=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;outColor=vec4(floor(clamp(c+n/115.,0.,1.)*31.)/31.,1);}`;
+        const vs = SCENE_VERTEX_GLSL;
+        const fs = SCENE_GLSL;
         const program = (v, f) => { const pr = gl.createProgram(); gl.attachShader(pr, compile(gl.VERTEX_SHADER, v)); gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, f)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS))
             throw new Error(gl.getProgramInfoLog(pr)); return pr; };
         this.glProgram = program(vs, fs);
         this.glMatrix = gl.getUniformLocation(this.glProgram, 'matrix');
         this.glEye = gl.getUniformLocation(this.glProgram, 'eye');
         this.glWeather = gl.getUniformLocation(this.glProgram, 'weather');
-        this.glSky = program(`#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 q=vec2((gl_VertexID==1)?3.:-1.,(gl_VertexID==2)?3.:-1.);uv=(q+1.)*.5;gl_Position=vec4(q,.999,1);}`, `#version 300 es\nprecision highp float;in vec2 uv;uniform float weather;out vec4 outColor;void main(){vec3 a=vec3(.40,.39,.78),b=vec3(.92,.93,.99);if(weather>2.5){a=vec3(.035,.045,.13);b=vec3(.22,.27,.41);}else if(weather>1.5){a=vec3(.3,.29,.51);b=vec3(.89,.68,.57);}vec3 c=mix(b,a,smoothstep(.12,1.,uv.y));float wave=.35+.03*sin(uv.x*18.)+.018*sin(uv.x*49.);c=mix(c,b,(1.-smoothstep(wave,wave+.1,uv.y))*.6);outColor=vec4(floor(c*63.)/63.,1);}`);
+        this.glViewport = gl.getUniformLocation(this.glProgram, 'viewport');
+        this.glSky = program(`#version 300 es\nprecision highp float;void main(){vec2 q=vec2((gl_VertexID==1)?3.:-1.,(gl_VertexID==2)?3.:-1.);gl_Position=vec4(q,.999,1);}`, SKY_GLSL);
         this.glSkyWeather = gl.getUniformLocation(this.glSky, 'weather');
+        this.glSkyViewport = gl.getUniformLocation(this.glSky, 'viewport');
+        this.glSkyOffset = gl.getUniformLocation(this.glSky, 'skyOffset');
+        this.glSnow = program(SNOW_GLSL, `#version 300 es\nprecision highp float;out vec4 color;void main(){color=vec4(.94,.96,1.,.75);}`);
+        this.glConditions = gl.getUniformLocation(this.glSnow, 'conditions');
         this.glStatic = gl.createBuffer();
         this.glDynamic = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
         gl.bufferData(gl.ARRAY_BUFFER, this.dynamicCapacity * 4, gl.DYNAMIC_DRAW);
-        this.canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.kind = 'lost'; });
-        this.canvas.addEventListener('webglcontextrestored', () => { this.initGL(); if (this.profile)
-            this.setHill(this.profile, this.record); });
+        if(this.glLifecycleCanvas!==this.canvas){
+            const canvas=this.canvas;this.glLifecycleCanvas=canvas;
+            canvas.addEventListener('webglcontextlost',e=>{
+                e.preventDefault();if(this.disposed||canvas!==this.canvas)return;
+                this.losses++;this.kind='lost';this.fallbackReason='WebGL context lost';
+            });
+            canvas.addEventListener('webglcontextrestored',()=>{
+                if(this.disposed||canvas!==this.canvas)return;
+                try{this.initGL();}catch(error){this.lastError=String(error.message||error);}
+            });
+        }
         this.kind = 'webgl2';
         this.resize();
         if (this.profile)
             this.setHill(this.profile, this.record);
     }
-    setOptions(options) { Object.assign(this.options, options); this.resize(); }
+    setOptions(options) {
+        const style=this.options.presentation;
+        Object.assign(this.options, options);
+        if(style!==this.options.presentation && this.profile) this.setHill(this.profile,this.record);
+        this.resize();
+    }
     resize() {
         const rect = this.host.getBoundingClientRect(), aspect = Math.max(.45, rect.width / Math.max(1, rect.height));
         let h = this.options.resolution === 'classic' ? 200 : this.options.resolution === 'sharp' ? 400 : Math.min(900, Math.round(rect.height * (globalThis.devicePixelRatio || 1)));
@@ -447,18 +403,21 @@ export class SkiRenderer {
         this.canvas.width = w;
         this.canvas.height = h;
         if (this.kind === 'webgpu') {
-            this.gpuContext.configure({ device: this.device, format: this.format, alphaMode: 'opaque' });
+            this.gpuContext.configure({ device: this.device, format: this.format, alphaMode: 'opaque', usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
             this.depth?.destroy();
             this.depth = this.device.createTexture({ size: [w, h], format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT });
         }
         if (this.gl)
             this.gl.viewport(0, 0, w, h);
+        if(this.kind==='software')this.softwareRaster.resize(w,h);
     }
     setHill(hill, record = 0) {
         this.profile = hill instanceof HillProfile ? hill : new HillProfile(hill);
         this.record = record;
         this.cameraReady = false;
-        const data = createHillMesh(this.profile, this.kind === 'software' ? .32 : 1, record);
+        this.scene = this.options.presentation==='classic' ? createClassicHillScene(this.profile,record) : null;
+        const data = this.scene ? this.scene.vertices : createHillMesh(this.profile, 1, record);
+        if(data.length%18!==0 || !data.every(Number.isFinite)) throw new RangeError('Invalid hill vertex stream');
         this.staticData = data;
         this.vertexCount = data.length / 6;
         if (this.kind === 'webgpu') {
@@ -474,9 +433,15 @@ export class SkiRenderer {
     cameraMatrix(state, dt, overview = false) {
         const p = this.profile, aspect = this.width / this.height, type = this.options.camera;
         let h = type === 'close' ? 37 : type === 'wide' ? 87 : 52 + p.k * .024;
-        if (aspect < 1)
-            h *= 1.4;
+        const classic=this.options.presentation==='classic';
+        if(classic && type==='classic')h=getHillVisual(p.hill.id).cameraHeight;
+        if (aspect < 1) h *= 1.4;
         let x = state.x + h * aspect * .16, y = state.y - h * .17, eyeOffset = [-11, 24, 90];
+        if(classic && type==='classic') {
+            const visual=getHillVisual(p.hill.id);
+            eyeOffset=[visual.cameraYaw*90,visual.cameraElevation*90,90];
+            x=state.x+h*aspect*.02;y=state.y-h*.10;
+        }
         if (type === 'chase') {
             eyeOffset = [-52, 22, 54];
             x = state.x + 15;
@@ -493,12 +458,15 @@ export class SkiRenderer {
             this.camera.y = y;
             this.cameraReady = true;
         }
-        const t = 1 - Math.exp(-Math.min(dt, .05) * (overview ? 3 : 9));
+        const t = this.options.presentation==='classic'&&!overview ? 1 : 1 - Math.exp(-Math.min(Math.max(0,dt), .05) * (overview ? 3 : 9));
         this.camera.x = lerp(this.camera.x, x, t);
         this.camera.y = lerp(this.camera.y, y, t);
+        const perspectiveView=classic&&!overview;
+        if(perspectiveView)eyeOffset=vmul(norm(eyeOffset),h/(2*Math.tan(Math.PI/15)));
         const center = [this.camera.x, this.camera.y, 0], eye = vadd(center, eyeOffset);
         this.eye = eye;
-        const matrix = multiply(ortho(-h * aspect / 2, h * aspect / 2, -h / 2, h / 2, .1, 700, this.kind === 'webgpu'), lookAt(eye, center));
+        const projection=perspectiveView ? perspective(Math.PI/7.5,aspect,.3,900,this.kind==='webgpu') : ortho(-h*aspect/2,h*aspect/2,-h/2,h/2,.1,700,this.kind==='webgpu');
+        const matrix=multiply(projection,lookAt(eye,center));
         this.matrix = matrix;
         return matrix;
     }
@@ -506,9 +474,10 @@ export class SkiRenderer {
     render(state, player = {}, dt = 1 / 60, overview = false, ghost = null) {
         if (!this.profile || !['webgpu', 'webgl2', 'software'].includes(this.kind))
             return;
+        const started=performance.now();
         this.resize();
         const matrix = this.cameraMatrix(state, dt, overview), skier = skierMesh(state, player), ghostData = ghost ? skierMesh(ghost, player, true) : null;
-        const shadow = overview ? null : shadowMesh(state, this.profile);
+        const shadow = overview ? null : this.options.presentation==='classic' ? createProjectedShadow(skier,this.profile,state) : shadowMesh(state, this.profile);
         const dynamicLength = (shadow?.length || 0) + (ghostData?.length || 0) + skier.length;
         if (dynamicLength > this.dynamicCapacity) throw new RangeError('Dynamic mesh capacity exceeded');
         // Reuse the same upload storage on every backend; only the populated range is submitted.
@@ -519,12 +488,14 @@ export class SkiRenderer {
                 dyn.set(data, off);
                 off += data.length;
             }
-        const weather = ['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather);
+        const weather = Math.max(0,['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather));
+        const time=Number.isFinite(state.time)?state.time:0, wind=Number.isFinite(state.wind)?state.wind:0;
+        const skyOffset=this.profile.hill.index*.37+this.camera.x*.001;
         if (this.kind === 'webgpu') {
             const u = this.uniformData;
             u.set(matrix);
-            u.set([.86, .88, .96, 0], 16);
-            u.set([weather, state.time || 0, this.width, this.height], 20);
+            u.set([.86, .88, .96, skyOffset], 16);
+            u.set([weather, time, this.width, this.height], 20);
             u.set([...this.eye, dt], 24);
             this.device.queue.writeBuffer(this.uniform, 0, u);
             if (dyn.length > this.dynamicCapacity)
@@ -532,7 +503,7 @@ export class SkiRenderer {
             this.device.queue.writeBuffer(this.dynamicBuffer, 0, dyn);
             const encoder = this.device.createCommandEncoder();
             if (weather === 1) {
-                this.weatherData.set([state.wind || 0, Math.min(dt, .05), this.width, this.height]);
+                this.weatherData.set([wind, time, this.width, this.height]);
                 this.device.queue.writeBuffer(this.weatherUniform, 0, this.weatherData);
                 const c = encoder.beginComputePass();
                 c.setPipeline(this.snowCompute);
@@ -540,7 +511,7 @@ export class SkiRenderer {
                 c.dispatchWorkgroups(6);
                 c.end();
             }
-            const pass = encoder.beginRenderPass({ colorAttachments: [{ view: this.gpuContext.getCurrentTexture().createView(), clearValue: { r: .65, g: .65, b: .85, a: 1 }, loadOp: 'clear', storeOp: 'store' }], depthStencilAttachment: { view: this.depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
+            const pass = encoder.beginRenderPass({ colorAttachments: [{ view: (this.lastTexture=this.gpuContext.getCurrentTexture()).createView(), clearValue: { r: .65, g: .65, b: .85, a: 1 }, loadOp: 'clear', storeOp: 'store' }], depthStencilAttachment: { view: this.depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
             pass.setPipeline(this.skyPipeline);
             pass.setBindGroup(0, this.skyBind);
             pass.draw(3);
@@ -565,6 +536,8 @@ export class SkiRenderer {
             gl.disable(gl.DEPTH_TEST);
             gl.useProgram(this.glSky);
             gl.uniform1f(this.glSkyWeather, weather);
+            gl.uniform2f(this.glSkyViewport,this.width,this.height);
+            gl.uniform1f(this.glSkyOffset,skyOffset);
             gl.drawArrays(gl.TRIANGLES, 0, 3);
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
@@ -572,46 +545,56 @@ export class SkiRenderer {
             gl.uniformMatrix4fv(this.glMatrix, false, matrix);
             gl.uniform3fv(this.glEye, this.eye);
             gl.uniform1f(this.glWeather, weather);
+            gl.uniform2f(this.glViewport,this.width,this.height);
             const draw = (buf, count) => { gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12); gl.drawArrays(gl.TRIANGLES, 0, count); };
             draw(this.glStatic, this.vertexCount);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, dyn);
             draw(this.glDynamic, dyn.length / 6);
+            if(weather===1){
+                gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);
+                gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+                gl.useProgram(this.glSnow);gl.uniform4f(this.glConditions,wind,time,this.width,this.height);
+                gl.drawArraysInstanced(gl.TRIANGLES,0,6,384);gl.disable(gl.BLEND);
+            }
         }
         else
-            this.renderSoftware(matrix, dyn, weather);
+            this.softwareRaster.render(this.ctx,matrix,[this.staticData,dyn],this.eye,weather,time,wind,skyOffset);
+        this.frameMilliseconds=performance.now()-started;
         this.frames++;
         this.fps = lerp(this.fps, 1 / Math.max(.001, dt), .04);
     }
-    renderSoftware(matrix, dynamic, weather) {
-        const ctx = this.ctx, w = this.width, h = this.height, g = ctx.createLinearGradient(0, 0, 0, h);
-        g.addColorStop(0, weather === 3 ? '#15182e' : '#7775bc');
-        g.addColorStop(1, weather === 3 ? '#3a425a' : '#eff0ff');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-        const triangles = [];
-        for (const data of [this.staticData, dynamic])
-            for (let i = 0; i < data.length; i += 18) {
-                const a = projected(matrix, data.subarray(i, i + 3), w, h), b = projected(matrix, data.subarray(i + 6, i + 9), w, h), c = projected(matrix, data.subarray(i + 12, i + 15), w, h);
-                if (Math.max(a[0], b[0], c[0]) < 0 || Math.min(a[0], b[0], c[0]) > w || Math.max(a[1], b[1], c[1]) < 0 || Math.min(a[1], b[1], c[1]) > h)
-                    continue;
-                const dim = weather === 3 ? .44 : 1;
-                triangles.push({ a, b, c, z: (a[2] + b[2] + c[2]) / 3, color: `rgb(${Math.round(data[i + 3] * 255 * dim)},${Math.round(data[i + 4] * 255 * dim)},${Math.round(data[i + 5] * 255 * dim)})` });
-            }
-        triangles.sort((a, b) => b.z - a.z);
-        for (const t of triangles) {
-            ctx.fillStyle = t.color;
-            ctx.beginPath();
-            ctx.moveTo(t.a[0], t.a[1]);
-            ctx.lineTo(t.b[0], t.b[1]);
-            ctx.lineTo(t.c[0], t.c[1]);
-            ctx.closePath();
-            ctx.fill();
+    /** Read the just-rendered frame as top-left RGBA8. Call immediately after render.
+     * GPU row pitch and BGRA conversion are handled here; the caller owns the copy.
+     */
+    async captureFrame() {
+        if(this.disposed)throw new Error('Renderer is disposed');
+        const width=this.width,height=this.height,pixels=new Uint8Array(width*height*4);
+        if(this.kind==='software'){
+            pixels.set(this.softwareRaster.image.data);return {width,height,pixels};
         }
+        if(this.kind==='webgl2'){
+            const data=new Uint8Array(pixels.length);
+            this.gl.readPixels(0,0,width,height,this.gl.RGBA,this.gl.UNSIGNED_BYTE,data);
+            pixels.set(data); // GL storage was rendered in top-left logical orientation.
+            return {width,height,pixels};
+        }
+        if(this.kind!=='webgpu'||!this.lastTexture)throw new Error('No rendered frame available');
+        const device=this.device,pitch=Math.ceil(width*4/256)*256;
+        const buffer=device.createBuffer({label:'Frame readback',size:pitch*height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+        try {
+            const encoder=device.createCommandEncoder();
+            encoder.copyTextureToBuffer({texture:this.lastTexture},{buffer,bytesPerRow:pitch,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
+            device.queue.submit([encoder.finish()]);await buffer.mapAsync(GPUMapMode.READ);
+            const data=new Uint8Array(buffer.getMappedRange());
+            for(let y=0;y<height;y++)pixels.set(data.subarray(y*pitch,y*pitch+width*4),y*width*4);
+            if(this.format.startsWith('bgra'))for(let i=0;i<pixels.length;i+=4){const red=pixels[i];pixels[i]=pixels[i+2];pixels[i+2]=red;}
+            buffer.unmap();return {width,height,pixels};
+        } finally {buffer.destroy();}
     }
-    diagnostics() { return { backend: this.kind, resolution: [this.width, this.height], triangles: Math.round((this.vertexCount || 0) / 3), fps: Math.round(this.fps), staticBytes: this.staticData?.byteLength || 0, deviceLosses: this.losses, fallbackReason: this.fallbackReason || null, lastError: this.lastError || null }; }
-    dispose() { this.disposed = true; this.depth?.destroy(); this.staticBuffer?.destroy(); this.dynamicBuffer?.destroy(); this.uniform?.destroy(); this.snowBuffer?.destroy(); this.weatherUniform?.destroy(); this.device?.destroy(); if (this.gl) {
-        for (const p of [this.glProgram, this.glSky])
+    diagnostics() { return { backend: this.kind, renderProfile: this.options.presentation, hillId:this.profile?.hill.id || null, visualParity:this.profile?getHillVisual(this.profile.hill.id).evidence.pixelParity:'unverified', frameMilliseconds:this.frameMilliseconds, sections:this.scene?.sections || [], resolution: [this.width, this.height], triangles: Math.round((this.vertexCount || 0) / 3), fps: Math.round(this.fps), staticBytes: this.staticData?.byteLength || 0, deviceLosses: this.losses, fallbackReason: this.fallbackReason || null, lastError: this.lastError || null }; }
+    dispose() { this.disposed = true; this.depth?.destroy(); this.staticBuffer?.destroy(); this.dynamicBuffer?.destroy(); this.uniform?.destroy(); this.snowBuffer?.destroy(); this.weatherUniform?.destroy(); this.gpuContext?.unconfigure(); this.device?.destroy(); if (this.gl) {
+        for (const p of [this.glProgram, this.glSky, this.glSnow])
             this.gl.deleteProgram(p);
         for (const b of [this.glStatic, this.glDynamic])
             this.gl.deleteBuffer(b);

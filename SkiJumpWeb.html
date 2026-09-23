@@ -68,7 +68,7 @@
 </div>
 <input id="file-import" type="file" accept=".json,.sjr.json,application/json" hidden>
 <noscript>This game requires JavaScript. Enable it and reload this page.</noscript>
-<script>/*! SkiJumpWeb 0.3.0 - independent recreation, MIT. See README for scope. */
+<script>/*! SkiJumpWeb 0.4.0 - independent recreation, MIT. See README for scope. */
 (function(){'use strict';
 const modules=new Map(),cache=new Map();
 function define(id,factory){modules.set(id,factory)}
@@ -269,7 +269,49 @@ class HillProfile {
 }
 function hillPreview(hill) { const p = new HillProfile(hill); return [...Array(90)].map((_, i) => { const x = lerp(p.startX - 8, p.kPoint.x * 1.6, i / 89); return { x, y: x <= 0 ? p.inrunY(x) : p.atX(x).y }; }); }
 
-return {HILLS,getHill,TOUR_PRESETS,HillProfile,hillPreview};
+/** Visual specification, intentionally separate from simulation parameters.
+ * Roster/K-points are verified; layout/color/camera remain visual reconstructions.
+ * Explicit per-hill records let future measurements replace a value without
+ * changing random-number consumption, collision geometry or saved jump scores.
+ */
+const visualRows = [
+    ['fin','ochre'],['sui','brown'],['cze','gray'],['blr','teal'],
+    ['aut','ochre'],['usa','teal'],['lat','ochre'],['pol','teal'],
+    ['jpn','ochre'],['bel','teal'],['isl','ochre'],['eng','teal'],
+    ['ger','ochre'],['est','teal'],['nor','ochre'],['aus','teal'],
+    ['irl','ochre'],['ukr','teal'],['hun','ochre'],['swe','teal'],
+    ['ita','ochre'],['den','teal'],['svk','ochre'],['can','teal'],
+    ['ltu','ochre'],['kaz','teal'],['chn','ochre'],['fra','teal'],
+    ['ned','ochre'],['rus','teal'],['kor','ochre'],['slo','teal']
+];
+// Flat fascia colors observed in the unmodified publisher demo, 2026-09-23.
+// These are color measurements, not imported game palettes or bitmap assets.
+const fascia = {
+    ochre:[[117,85,12],[93,69,12],[69,48,8],[44,32,8],[20,16,8]],
+    brown:[[117,60,32],[93,48,24],[69,36,20],[44,24,16],[20,12,12]],
+    gray:[[109,109,113],[97,97,101],[85,85,89],[73,73,77],[60,60,65]],
+    teal:[[24,97,101],[16,73,77],[12,48,52],[4,24,28],[0,0,8]]
+};
+const HILL_VISUALS = Object.freeze(visualRows.map(([id,palette]) => {
+    const hill=getHill(id);
+    return Object.freeze({id,k:hill.k,version:1,palette,
+        railColor:Object.freeze(fascia[palette][0].map(v=>v/255)),
+        inrunBands:Object.freeze(fascia[palette].map(c=>Object.freeze(c.map(v=>v/255)))),
+        inrunDepth:4.8,platformLength:18,supportRadius:3.6,
+        inrunWidth:3.6,landingWidth:8,landingFlare:.027,
+        cameraHeight:28,cameraYaw:-.16,cameraElevation:.17,
+        treeSeed:hill.seed,treeCount:180,
+        evidence:Object.freeze({roster:'publisher',geometry:'reconstructed',
+            palette:['fin','sui','cze','blr'].includes(id)?'observed-inrun-colors':'unverified',scenery:'reconstructed',camera:'reconstructed',pixelParity:'unverified'})
+    });
+}));
+function getHillVisual(id) {
+    const hill=getHill(id),visual=HILL_VISUALS.find(v=>v.id===hill.id);
+    if(!visual)throw new Error(`Missing visual definition for ${hill.id}`);
+    return visual;
+}
+
+return {HILLS,getHill,TOUR_PRESETS,HillProfile,hillPreview,HILL_VISUALS,getHillVisual};
 });
 define("@wieslawsoltes/ski-physics",function(require){
 const { clamp, lerp, smoothstep, round, Random, Events, wrapAngle }=require("@wieslawsoltes/ski-core");
@@ -955,47 +997,14 @@ return {REPLAY_VERSION,REPLAY_PHASES,FRAME_FIELDS,ReplayRecorder,validateReplay,
 });
 define("@wieslawsoltes/ski-renderer",function(require){
 const { clamp, lerp, Random, colorRGB }=require("@wieslawsoltes/ski-core");
-const { HillProfile }=require("@wieslawsoltes/ski-hills");
-const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const vmul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const norm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
-function multiply(a, b) { const r = new Float32Array(16); for (let c = 0; c < 4; c++)
-    for (let row = 0; row < 4; row++)
-        for (let k = 0; k < 4; k++)
-            r[c * 4 + row] += a[k * 4 + row] * b[c * 4 + k]; return r; }
-function lookAt(eye, center) { const z = norm(vsub(eye, center)), x = norm(cross([0, 1, 0], z)), y = cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]); }
-function ortho(l, r, b, t, n, f, gpu) { return new Float32Array([2 / (r - l), 0, 0, 0, 0, 2 / (t - b), 0, 0, 0, 0, (gpu ? 1 : 2) / (n - f), 0, (l + r) / (l - r), (t + b) / (b - t), gpu ? n / (n - f) : (f + n) / (n - f), 1]); }
-function projected(m, p, w, h) { const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]; return [(x * .5 + .5) * w, (-y * .5 + .5) * h, z]; }
-const shade = (c, f) => c.map(x => clamp(x * f, 0, 1));
+const { HillProfile, getHillVisual }=require("@wieslawsoltes/ski-hills");
+const { MeshBuilder, vsub, vadd, vmul, norm, multiply, lookAt, ortho, perspective, projected, shade }=require("@wieslawsoltes/ski-renderer/mesh.js");
+
+const { createClassicHillScene, createProjectedShadow }=require("@wieslawsoltes/ski-renderer/scene.js");
+
+const { SCENE_WGSL, SKY_WGSL, SCENE_GLSL, SKY_GLSL, SNOW_WGSL, SNOW_GLSL, SCENE_VERTEX_GLSL, SNAP_WGSL }=require("@wieslawsoltes/ski-renderer/shading.js");
+const { SoftwareRasterizer }=require("@wieslawsoltes/ski-renderer/raster.js");
 const SNOW = [.88, .9, .97], WOOD = [.50, .33, .075], DARKWOOD = [.29, .21, .06], STEEL = [.42, .44, .50];
-class MeshBuilder {
-    constructor() { this.data = []; }
-    tri(a, b, c, color, lighting = true) { let f = 1; if (lighting) {
-        const n = norm(cross(vsub(b, a), vsub(c, a)));
-        f = .69 + .31 * Math.abs(dot(n, norm([-.35, .9, .3])));
-    } const col = shade(color, f); for (const p of [a, b, c])
-        this.data.push(...p, ...col); return this; }
-    quad(a, b, c, d, color, lighting = true) { this.tri(a, b, c, color, lighting); this.tri(a, c, d, color, lighting); return this; }
-    box(x, y, z, w, h, d, color) { const p = [[x, y, z], [x + w, y, z], [x + w, y + h, z], [x, y + h, z], [x, y, z + d], [x + w, y, z + d], [x + w, y + h, z + d], [x, y + h, z + d]]; for (const f of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]])
-        this.quad(...f.map(i => p[i]), color); return this; }
-    beam(a, b, r, color, sides = 5) { const n = norm(vsub(b, a)), u = norm(cross(n, Math.abs(n[1]) < .9 ? [0, 1, 0] : [1, 0, 0])), v = cross(n, u); for (let i = 0; i < sides; i++) {
-        const aa = i / sides * Math.PI * 2, bb = (i + 1) / sides * Math.PI * 2;
-        const off = t => vadd(vmul(u, Math.cos(t) * r), vmul(v, Math.sin(t) * r));
-        const x = off(aa), y = off(bb);
-        this.quad(vadd(a, x), vadd(a, y), vadd(b, y), vadd(b, x), color);
-        this.tri(b, vadd(b, x), vadd(b, y), color);
-    } return this; }
-    cone(x, y, z, r, h, color, sides = 6) { for (let i = 0; i < sides; i++) {
-        const a = i / sides * 6.2831853, b = (i + 1) / sides * 6.2831853;
-        this.tri([x + Math.cos(a) * r, y, z + Math.sin(a) * r], [x, y + h, z], [x + Math.cos(b) * r, y, z + Math.sin(b) * r], color);
-    } return this; }
-    sphere(x, y, z, r, color) { const a = [x - r, y, z], b = [x + r, y, z], c = [x, y - r, z], d = [x, y + r, z], e = [x, y, z - r], f = [x, y, z + r]; for (const v of [[a, d, e], [e, d, b], [b, d, f], [f, d, a], [a, e, c], [e, b, c], [b, f, c], [f, a, c]])
-        this.tri(...v, color); return this; }
-    finish() { return new Float32Array(this.data); }
-}
 function tree(m, x, y, z, h, r) { m.box(x - .15, y, z - .15, .3, h * .55, .3, [.25, .19, .13]); const greens = [[.12, .28, .21], [.16, .31, .25], [.11, .24, .19]]; for (let j = 0; j < 3; j++) {
     const base = y + h * (.16 + j * .21), radius = h * (.26 - j * .055);
     m.cone(x, base, z, radius, h * .48, greens[(j + r) % 3], 6);
@@ -1179,49 +1188,13 @@ function skierMesh(state, player = {}, ghost = false) {
     ball([head[0] + .18, head[1] - .025, .04], .13, [.12, .17, .24]);
     return m.finish();
 }
-const GPU_SHADER = `
-struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
-@group(0) @binding(0) var<uniform> scene:Scene;
-struct Out { @builtin(position) pos:vec4<f32>, @location(0) color:vec3<f32>, @location(1) world:vec3<f32> };
-@vertex fn vs(@location(0) p:vec3<f32>, @location(1) c:vec3<f32>)->Out { var o:Out;o.pos=scene.matrix*vec4<f32>(p,1);o.color=c;o.world=p;return o; }
-@fragment fn fs(o:Out)->@location(0) vec4<f32> {
- let dist=distance(o.world,scene.camera.xyz); let fog=smoothstep(135.0,360.0,dist)*0.72;
- var color=mix(o.color,scene.fog.rgb,fog);
- if(scene.params.x>2.5){color=color*vec3<f32>(0.35,0.43,0.65);}
- else if(scene.params.x>1.5){color=color*vec3<f32>(1.0,0.84,0.80);}
- let grain=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453)-0.5;
- color=floor(clamp(color+vec3<f32>(grain/115.0),vec3<f32>(0.0),vec3<f32>(1.0))*31.0)/31.0;
- return vec4<f32>(color,1.0);
-}`;
-const GPU_SKY = `
-struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
-@group(0) @binding(0) var<uniform> scene:Scene;
-struct Out { @builtin(position) pos:vec4<f32>, @location(0) uv:vec2<f32> };
-@vertex fn vs(@builtin(vertex_index) i:u32)->Out {let p=array<vec2<f32>,3>(vec2<f32>(-1,-1),vec2<f32>(3,-1),vec2<f32>(-1,3));var o:Out;o.pos=vec4<f32>(p[i],0.999,1);o.uv=(p[i]+vec2<f32>(1.0))*0.5;return o;}
-@fragment fn fs(o:Out)->@location(0) vec4<f32> {
- var top=vec3<f32>(0.40,0.39,0.78);var bottom=vec3<f32>(0.92,0.93,0.99);
- if(scene.params.x>2.5){top=vec3<f32>(.035,.045,.13);bottom=vec3<f32>(.22,.27,.41);}
- else if(scene.params.x>1.5){top=vec3<f32>(.30,.29,.51);bottom=vec3<f32>(.89,.68,.57);}
- var c=mix(bottom,top,smoothstep(.12,1.0,o.uv.y));
- let wave=.35+.03*sin(o.uv.x*18.0)+.018*sin(o.uv.x*49.0);
- c=mix(c,bottom,(1.0-smoothstep(wave,wave+.1,o.uv.y))*.6);
- let noise=fract(sin(dot(floor(o.pos.xy),vec2<f32>(12.9898,78.233)))*43758.5453);
- if(scene.params.x>2.5 && noise>.998 && o.uv.y>.5){c=vec3<f32>(.86,.87,.94);}
- c=floor(clamp(c+vec3<f32>((noise-.5)/90.0),vec3<f32>(0),vec3<f32>(1))*63.0)/63.0;
- return vec4<f32>(c,1);
-}`;
-const GPU_SNOW = `
-struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
-@group(0) @binding(0) var<storage,read_write> particles:array<vec4<f32>>;
-@group(0) @binding(1) var<uniform> weather:Weather;
-@compute @workgroup_size(64) fn update(@builtin(global_invocation_id) id:vec3<u32>){let i=id.x;if(i>=384u){return;}var p=particles[i];p.y-=weather.dt*(.12+p.z*.25);p.x+=weather.dt*(weather.wind*.024+.025);if(p.y< -1.03){p.y=1.03;}if(p.x>1.03){p.x=-1.03;}if(p.x< -1.03){p.x=1.03;}particles[i]=p;}
-`;
-const GPU_SNOW_DRAW = `
+const GPU_SHADER=SCENE_WGSL, GPU_SKY=SKY_WGSL, GPU_SNOW=SNOW_WGSL;
+const GPU_SNOW_DRAW = SNAP_WGSL+`
 struct Weather { wind:f32, dt:f32, width:f32, height:f32 };
 @group(0) @binding(0) var<storage,read> particles:array<vec4<f32>>;
 @group(0) @binding(1) var<uniform> weather:Weather;
 @vertex fn vs(@builtin(vertex_index) vi:u32,@builtin(instance_index) ii:u32)->@builtin(position) vec4<f32>{
- let q=array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(1,-1),vec2<f32>(1,1),vec2<f32>(-1,-1),vec2<f32>(1,1),vec2<f32>(-1,1));let p=particles[ii];return vec4<f32>(p.xy+q[vi]*vec2<f32>(1.0/weather.width,1.0/weather.height)*p.w,0,1);
+ let q=array<vec2<f32>,6>(vec2<f32>(-1,-1),vec2<f32>(1,-1),vec2<f32>(1,1),vec2<f32>(-1,-1),vec2<f32>(1,1),vec2<f32>(-1,1));let p=particles[ii];return snapClip(vec4<f32>(p.xy+q[vi]*vec2<f32>(1.0/weather.width,1.0/weather.height)*p.w,0,1),vec2<f32>(weather.width,weather.height));
 }
 @fragment fn fs()->@location(0) vec4<f32>{return vec4<f32>(.94,.96,1,.75);}
 `;
@@ -1230,7 +1203,9 @@ class SkiRenderer {
         if (!host?.appendChild)
             throw new TypeError('A renderer host element is required');
         this.host = host;
-        this.options = { resolution: 'classic', renderer: 'auto', weather: 'clear', camera: 'classic', ...options };
+        this.options = { resolution: 'classic', renderer: 'auto', weather: 'clear', camera: 'classic', presentation: 'enhanced', ...options };
+        this.softwareRaster = new SoftwareRasterizer();
+        this.frameMilliseconds = 0;
         this.canvas = document.createElement('canvas');
         this.canvas.className = 'ski-scene';
         this.canvas.setAttribute('aria-hidden', 'true');
@@ -1253,6 +1228,7 @@ class SkiRenderer {
         this.ready = this.initialize();
     }
     async initialize() {
+        if(this.disposed)return;
         const requested = this.options.renderer;
         if (requested === 'auto' && globalThis.isSecureContext && navigator.gpu) {
             try {
@@ -1273,7 +1249,7 @@ class SkiRenderer {
                 this.device = null;
             }
         }
-        if (this.kind === 'webgpu')
+        if (this.disposed || this.kind === 'webgpu')
             return;
         this.newCanvas();
         if (requested !== 'software') {
@@ -1293,7 +1269,7 @@ class SkiRenderer {
         if (this.profile)
             this.setHill(this.profile, this.record);
     }
-    newCanvas() { const c = document.createElement('canvas'); c.className = 'ski-scene'; c.setAttribute('aria-hidden', 'true'); this.canvas.replaceWith(c); this.canvas = c; }
+    newCanvas() { const c = document.createElement('canvas'); c.className = 'ski-scene'; c.setAttribute('aria-hidden', 'true'); this.canvas.replaceWith(c); this.canvas = c; this.gl=null; this.ctx=null; }
     async initGPU(device) {
         this.device = device;
         const ctx = this.canvas.getContext('webgpu');
@@ -1361,31 +1337,53 @@ class SkiRenderer {
         if (!gl)
             throw new Error('WebGL2 unavailable');
         this.gl = gl;
+        // Render in a top-left logical framebuffer, matching WebGPU edge inclusion.
+        // The compositor reverses storage orientation without an extra readback/copy.
+        this.canvas.style.transform = 'scaleY(-1)';
+        gl.disable(gl.DITHER); // Our explicit ordered palette handles dithering.
         const compile = (type, code) => { const sh = gl.createShader(type); gl.shaderSource(sh, code); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
             throw new Error(gl.getShaderInfoLog(sh)); return sh; };
-        const vs = `#version 300 es\nprecision highp float;layout(location=0)in vec3 p;layout(location=1)in vec3 c;uniform mat4 matrix;out vec3 color;out vec3 world;void main(){gl_Position=matrix*vec4(p,1);color=c;world=p;}`;
-        const fs = `#version 300 es\nprecision highp float;in vec3 color;in vec3 world;uniform vec3 eye;uniform float weather;out vec4 outColor;void main(){float f=smoothstep(135.,360.,distance(world,eye))*.72;vec3 c=mix(color,vec3(.86,.88,.96),f);if(weather>2.5)c*=vec3(.35,.43,.65);else if(weather>1.5)c*=vec3(1.,.84,.80);float n=fract(sin(dot(floor(gl_FragCoord.xy),vec2(12.9898,78.233)))*43758.5453)-.5;outColor=vec4(floor(clamp(c+n/115.,0.,1.)*31.)/31.,1);}`;
+        const vs = SCENE_VERTEX_GLSL;
+        const fs = SCENE_GLSL;
         const program = (v, f) => { const pr = gl.createProgram(); gl.attachShader(pr, compile(gl.VERTEX_SHADER, v)); gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, f)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS))
             throw new Error(gl.getProgramInfoLog(pr)); return pr; };
         this.glProgram = program(vs, fs);
         this.glMatrix = gl.getUniformLocation(this.glProgram, 'matrix');
         this.glEye = gl.getUniformLocation(this.glProgram, 'eye');
         this.glWeather = gl.getUniformLocation(this.glProgram, 'weather');
-        this.glSky = program(`#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 q=vec2((gl_VertexID==1)?3.:-1.,(gl_VertexID==2)?3.:-1.);uv=(q+1.)*.5;gl_Position=vec4(q,.999,1);}`, `#version 300 es\nprecision highp float;in vec2 uv;uniform float weather;out vec4 outColor;void main(){vec3 a=vec3(.40,.39,.78),b=vec3(.92,.93,.99);if(weather>2.5){a=vec3(.035,.045,.13);b=vec3(.22,.27,.41);}else if(weather>1.5){a=vec3(.3,.29,.51);b=vec3(.89,.68,.57);}vec3 c=mix(b,a,smoothstep(.12,1.,uv.y));float wave=.35+.03*sin(uv.x*18.)+.018*sin(uv.x*49.);c=mix(c,b,(1.-smoothstep(wave,wave+.1,uv.y))*.6);outColor=vec4(floor(c*63.)/63.,1);}`);
+        this.glViewport = gl.getUniformLocation(this.glProgram, 'viewport');
+        this.glSky = program(`#version 300 es\nprecision highp float;void main(){vec2 q=vec2((gl_VertexID==1)?3.:-1.,(gl_VertexID==2)?3.:-1.);gl_Position=vec4(q,.999,1);}`, SKY_GLSL);
         this.glSkyWeather = gl.getUniformLocation(this.glSky, 'weather');
+        this.glSkyViewport = gl.getUniformLocation(this.glSky, 'viewport');
+        this.glSkyOffset = gl.getUniformLocation(this.glSky, 'skyOffset');
+        this.glSnow = program(SNOW_GLSL, `#version 300 es\nprecision highp float;out vec4 color;void main(){color=vec4(.94,.96,1.,.75);}`);
+        this.glConditions = gl.getUniformLocation(this.glSnow, 'conditions');
         this.glStatic = gl.createBuffer();
         this.glDynamic = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
         gl.bufferData(gl.ARRAY_BUFFER, this.dynamicCapacity * 4, gl.DYNAMIC_DRAW);
-        this.canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.kind = 'lost'; });
-        this.canvas.addEventListener('webglcontextrestored', () => { this.initGL(); if (this.profile)
-            this.setHill(this.profile, this.record); });
+        if(this.glLifecycleCanvas!==this.canvas){
+            const canvas=this.canvas;this.glLifecycleCanvas=canvas;
+            canvas.addEventListener('webglcontextlost',e=>{
+                e.preventDefault();if(this.disposed||canvas!==this.canvas)return;
+                this.losses++;this.kind='lost';this.fallbackReason='WebGL context lost';
+            });
+            canvas.addEventListener('webglcontextrestored',()=>{
+                if(this.disposed||canvas!==this.canvas)return;
+                try{this.initGL();}catch(error){this.lastError=String(error.message||error);}
+            });
+        }
         this.kind = 'webgl2';
         this.resize();
         if (this.profile)
             this.setHill(this.profile, this.record);
     }
-    setOptions(options) { Object.assign(this.options, options); this.resize(); }
+    setOptions(options) {
+        const style=this.options.presentation;
+        Object.assign(this.options, options);
+        if(style!==this.options.presentation && this.profile) this.setHill(this.profile,this.record);
+        this.resize();
+    }
     resize() {
         const rect = this.host.getBoundingClientRect(), aspect = Math.max(.45, rect.width / Math.max(1, rect.height));
         let h = this.options.resolution === 'classic' ? 200 : this.options.resolution === 'sharp' ? 400 : Math.min(900, Math.round(rect.height * (globalThis.devicePixelRatio || 1)));
@@ -1403,18 +1401,21 @@ class SkiRenderer {
         this.canvas.width = w;
         this.canvas.height = h;
         if (this.kind === 'webgpu') {
-            this.gpuContext.configure({ device: this.device, format: this.format, alphaMode: 'opaque' });
+            this.gpuContext.configure({ device: this.device, format: this.format, alphaMode: 'opaque', usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
             this.depth?.destroy();
             this.depth = this.device.createTexture({ size: [w, h], format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT });
         }
         if (this.gl)
             this.gl.viewport(0, 0, w, h);
+        if(this.kind==='software')this.softwareRaster.resize(w,h);
     }
     setHill(hill, record = 0) {
         this.profile = hill instanceof HillProfile ? hill : new HillProfile(hill);
         this.record = record;
         this.cameraReady = false;
-        const data = createHillMesh(this.profile, this.kind === 'software' ? .32 : 1, record);
+        this.scene = this.options.presentation==='classic' ? createClassicHillScene(this.profile,record) : null;
+        const data = this.scene ? this.scene.vertices : createHillMesh(this.profile, 1, record);
+        if(data.length%18!==0 || !data.every(Number.isFinite)) throw new RangeError('Invalid hill vertex stream');
         this.staticData = data;
         this.vertexCount = data.length / 6;
         if (this.kind === 'webgpu') {
@@ -1430,9 +1431,15 @@ class SkiRenderer {
     cameraMatrix(state, dt, overview = false) {
         const p = this.profile, aspect = this.width / this.height, type = this.options.camera;
         let h = type === 'close' ? 37 : type === 'wide' ? 87 : 52 + p.k * .024;
-        if (aspect < 1)
-            h *= 1.4;
+        const classic=this.options.presentation==='classic';
+        if(classic && type==='classic')h=getHillVisual(p.hill.id).cameraHeight;
+        if (aspect < 1) h *= 1.4;
         let x = state.x + h * aspect * .16, y = state.y - h * .17, eyeOffset = [-11, 24, 90];
+        if(classic && type==='classic') {
+            const visual=getHillVisual(p.hill.id);
+            eyeOffset=[visual.cameraYaw*90,visual.cameraElevation*90,90];
+            x=state.x+h*aspect*.02;y=state.y-h*.10;
+        }
         if (type === 'chase') {
             eyeOffset = [-52, 22, 54];
             x = state.x + 15;
@@ -1449,12 +1456,15 @@ class SkiRenderer {
             this.camera.y = y;
             this.cameraReady = true;
         }
-        const t = 1 - Math.exp(-Math.min(dt, .05) * (overview ? 3 : 9));
+        const t = this.options.presentation==='classic'&&!overview ? 1 : 1 - Math.exp(-Math.min(Math.max(0,dt), .05) * (overview ? 3 : 9));
         this.camera.x = lerp(this.camera.x, x, t);
         this.camera.y = lerp(this.camera.y, y, t);
+        const perspectiveView=classic&&!overview;
+        if(perspectiveView)eyeOffset=vmul(norm(eyeOffset),h/(2*Math.tan(Math.PI/15)));
         const center = [this.camera.x, this.camera.y, 0], eye = vadd(center, eyeOffset);
         this.eye = eye;
-        const matrix = multiply(ortho(-h * aspect / 2, h * aspect / 2, -h / 2, h / 2, .1, 700, this.kind === 'webgpu'), lookAt(eye, center));
+        const projection=perspectiveView ? perspective(Math.PI/7.5,aspect,.3,900,this.kind==='webgpu') : ortho(-h*aspect/2,h*aspect/2,-h/2,h/2,.1,700,this.kind==='webgpu');
+        const matrix=multiply(projection,lookAt(eye,center));
         this.matrix = matrix;
         return matrix;
     }
@@ -1462,9 +1472,10 @@ class SkiRenderer {
     render(state, player = {}, dt = 1 / 60, overview = false, ghost = null) {
         if (!this.profile || !['webgpu', 'webgl2', 'software'].includes(this.kind))
             return;
+        const started=performance.now();
         this.resize();
         const matrix = this.cameraMatrix(state, dt, overview), skier = skierMesh(state, player), ghostData = ghost ? skierMesh(ghost, player, true) : null;
-        const shadow = overview ? null : shadowMesh(state, this.profile);
+        const shadow = overview ? null : this.options.presentation==='classic' ? createProjectedShadow(skier,this.profile,state) : shadowMesh(state, this.profile);
         const dynamicLength = (shadow?.length || 0) + (ghostData?.length || 0) + skier.length;
         if (dynamicLength > this.dynamicCapacity) throw new RangeError('Dynamic mesh capacity exceeded');
         // Reuse the same upload storage on every backend; only the populated range is submitted.
@@ -1475,12 +1486,14 @@ class SkiRenderer {
                 dyn.set(data, off);
                 off += data.length;
             }
-        const weather = ['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather);
+        const weather = Math.max(0,['clear', 'snow', 'dusk', 'night'].indexOf(this.options.weather));
+        const time=Number.isFinite(state.time)?state.time:0, wind=Number.isFinite(state.wind)?state.wind:0;
+        const skyOffset=this.profile.hill.index*.37+this.camera.x*.001;
         if (this.kind === 'webgpu') {
             const u = this.uniformData;
             u.set(matrix);
-            u.set([.86, .88, .96, 0], 16);
-            u.set([weather, state.time || 0, this.width, this.height], 20);
+            u.set([.86, .88, .96, skyOffset], 16);
+            u.set([weather, time, this.width, this.height], 20);
             u.set([...this.eye, dt], 24);
             this.device.queue.writeBuffer(this.uniform, 0, u);
             if (dyn.length > this.dynamicCapacity)
@@ -1488,7 +1501,7 @@ class SkiRenderer {
             this.device.queue.writeBuffer(this.dynamicBuffer, 0, dyn);
             const encoder = this.device.createCommandEncoder();
             if (weather === 1) {
-                this.weatherData.set([state.wind || 0, Math.min(dt, .05), this.width, this.height]);
+                this.weatherData.set([wind, time, this.width, this.height]);
                 this.device.queue.writeBuffer(this.weatherUniform, 0, this.weatherData);
                 const c = encoder.beginComputePass();
                 c.setPipeline(this.snowCompute);
@@ -1496,7 +1509,7 @@ class SkiRenderer {
                 c.dispatchWorkgroups(6);
                 c.end();
             }
-            const pass = encoder.beginRenderPass({ colorAttachments: [{ view: this.gpuContext.getCurrentTexture().createView(), clearValue: { r: .65, g: .65, b: .85, a: 1 }, loadOp: 'clear', storeOp: 'store' }], depthStencilAttachment: { view: this.depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
+            const pass = encoder.beginRenderPass({ colorAttachments: [{ view: (this.lastTexture=this.gpuContext.getCurrentTexture()).createView(), clearValue: { r: .65, g: .65, b: .85, a: 1 }, loadOp: 'clear', storeOp: 'store' }], depthStencilAttachment: { view: this.depth.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' } });
             pass.setPipeline(this.skyPipeline);
             pass.setBindGroup(0, this.skyBind);
             pass.draw(3);
@@ -1521,6 +1534,8 @@ class SkiRenderer {
             gl.disable(gl.DEPTH_TEST);
             gl.useProgram(this.glSky);
             gl.uniform1f(this.glSkyWeather, weather);
+            gl.uniform2f(this.glSkyViewport,this.width,this.height);
+            gl.uniform1f(this.glSkyOffset,skyOffset);
             gl.drawArrays(gl.TRIANGLES, 0, 3);
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
@@ -1528,53 +1543,512 @@ class SkiRenderer {
             gl.uniformMatrix4fv(this.glMatrix, false, matrix);
             gl.uniform3fv(this.glEye, this.eye);
             gl.uniform1f(this.glWeather, weather);
+            gl.uniform2f(this.glViewport,this.width,this.height);
             const draw = (buf, count) => { gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12); gl.drawArrays(gl.TRIANGLES, 0, count); };
             draw(this.glStatic, this.vertexCount);
             gl.bindBuffer(gl.ARRAY_BUFFER, this.glDynamic);
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, dyn);
             draw(this.glDynamic, dyn.length / 6);
+            if(weather===1){
+                gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);
+                gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+                gl.useProgram(this.glSnow);gl.uniform4f(this.glConditions,wind,time,this.width,this.height);
+                gl.drawArraysInstanced(gl.TRIANGLES,0,6,384);gl.disable(gl.BLEND);
+            }
         }
         else
-            this.renderSoftware(matrix, dyn, weather);
+            this.softwareRaster.render(this.ctx,matrix,[this.staticData,dyn],this.eye,weather,time,wind,skyOffset);
+        this.frameMilliseconds=performance.now()-started;
         this.frames++;
         this.fps = lerp(this.fps, 1 / Math.max(.001, dt), .04);
     }
-    renderSoftware(matrix, dynamic, weather) {
-        const ctx = this.ctx, w = this.width, h = this.height, g = ctx.createLinearGradient(0, 0, 0, h);
-        g.addColorStop(0, weather === 3 ? '#15182e' : '#7775bc');
-        g.addColorStop(1, weather === 3 ? '#3a425a' : '#eff0ff');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-        const triangles = [];
-        for (const data of [this.staticData, dynamic])
-            for (let i = 0; i < data.length; i += 18) {
-                const a = projected(matrix, data.subarray(i, i + 3), w, h), b = projected(matrix, data.subarray(i + 6, i + 9), w, h), c = projected(matrix, data.subarray(i + 12, i + 15), w, h);
-                if (Math.max(a[0], b[0], c[0]) < 0 || Math.min(a[0], b[0], c[0]) > w || Math.max(a[1], b[1], c[1]) < 0 || Math.min(a[1], b[1], c[1]) > h)
-                    continue;
-                const dim = weather === 3 ? .44 : 1;
-                triangles.push({ a, b, c, z: (a[2] + b[2] + c[2]) / 3, color: `rgb(${Math.round(data[i + 3] * 255 * dim)},${Math.round(data[i + 4] * 255 * dim)},${Math.round(data[i + 5] * 255 * dim)})` });
-            }
-        triangles.sort((a, b) => b.z - a.z);
-        for (const t of triangles) {
-            ctx.fillStyle = t.color;
-            ctx.beginPath();
-            ctx.moveTo(t.a[0], t.a[1]);
-            ctx.lineTo(t.b[0], t.b[1]);
-            ctx.lineTo(t.c[0], t.c[1]);
-            ctx.closePath();
-            ctx.fill();
+    /** Read the just-rendered frame as top-left RGBA8. Call immediately after render.
+     * GPU row pitch and BGRA conversion are handled here; the caller owns the copy.
+     */
+    async captureFrame() {
+        if(this.disposed)throw new Error('Renderer is disposed');
+        const width=this.width,height=this.height,pixels=new Uint8Array(width*height*4);
+        if(this.kind==='software'){
+            pixels.set(this.softwareRaster.image.data);return {width,height,pixels};
         }
+        if(this.kind==='webgl2'){
+            const data=new Uint8Array(pixels.length);
+            this.gl.readPixels(0,0,width,height,this.gl.RGBA,this.gl.UNSIGNED_BYTE,data);
+            pixels.set(data); // GL storage was rendered in top-left logical orientation.
+            return {width,height,pixels};
+        }
+        if(this.kind!=='webgpu'||!this.lastTexture)throw new Error('No rendered frame available');
+        const device=this.device,pitch=Math.ceil(width*4/256)*256;
+        const buffer=device.createBuffer({label:'Frame readback',size:pitch*height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+        try {
+            const encoder=device.createCommandEncoder();
+            encoder.copyTextureToBuffer({texture:this.lastTexture},{buffer,bytesPerRow:pitch,rowsPerImage:height},{width,height,depthOrArrayLayers:1});
+            device.queue.submit([encoder.finish()]);await buffer.mapAsync(GPUMapMode.READ);
+            const data=new Uint8Array(buffer.getMappedRange());
+            for(let y=0;y<height;y++)pixels.set(data.subarray(y*pitch,y*pitch+width*4),y*width*4);
+            if(this.format.startsWith('bgra'))for(let i=0;i<pixels.length;i+=4){const red=pixels[i];pixels[i]=pixels[i+2];pixels[i+2]=red;}
+            buffer.unmap();return {width,height,pixels};
+        } finally {buffer.destroy();}
     }
-    diagnostics() { return { backend: this.kind, resolution: [this.width, this.height], triangles: Math.round((this.vertexCount || 0) / 3), fps: Math.round(this.fps), staticBytes: this.staticData?.byteLength || 0, deviceLosses: this.losses, fallbackReason: this.fallbackReason || null, lastError: this.lastError || null }; }
-    dispose() { this.disposed = true; this.depth?.destroy(); this.staticBuffer?.destroy(); this.dynamicBuffer?.destroy(); this.uniform?.destroy(); this.snowBuffer?.destroy(); this.weatherUniform?.destroy(); this.device?.destroy(); if (this.gl) {
-        for (const p of [this.glProgram, this.glSky])
+    diagnostics() { return { backend: this.kind, renderProfile: this.options.presentation, hillId:this.profile?.hill.id || null, visualParity:this.profile?getHillVisual(this.profile.hill.id).evidence.pixelParity:'unverified', frameMilliseconds:this.frameMilliseconds, sections:this.scene?.sections || [], resolution: [this.width, this.height], triangles: Math.round((this.vertexCount || 0) / 3), fps: Math.round(this.fps), staticBytes: this.staticData?.byteLength || 0, deviceLosses: this.losses, fallbackReason: this.fallbackReason || null, lastError: this.lastError || null }; }
+    dispose() { this.disposed = true; this.depth?.destroy(); this.staticBuffer?.destroy(); this.dynamicBuffer?.destroy(); this.uniform?.destroy(); this.snowBuffer?.destroy(); this.weatherUniform?.destroy(); this.gpuContext?.unconfigure(); this.device?.destroy(); if (this.gl) {
+        for (const p of [this.glProgram, this.glSky, this.glSnow])
             this.gl.deleteProgram(p);
         for (const b of [this.glStatic, this.glDynamic])
             this.gl.deleteBuffer(b);
     } this.canvas.remove(); }
 }
 
-return {MeshBuilder,createHillMesh,SkiRenderer};
+return {createHillMesh,SkiRenderer,MeshBuilder,createClassicHillScene};
+});
+define("@wieslawsoltes/ski-renderer/mesh.js",function(require){
+const { clamp }=require("@wieslawsoltes/ski-core");
+const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const vmul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const norm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
+function multiply(a, b) { const r = new Float32Array(16); for (let c = 0; c < 4; c++)
+    for (let row = 0; row < 4; row++)
+        for (let k = 0; k < 4; k++)
+            r[c * 4 + row] += a[k * 4 + row] * b[c * 4 + k]; return r; }
+function lookAt(eye, center) { const z = norm(vsub(eye, center)), x = norm(cross([0, 1, 0], z)), y = cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]); }
+function ortho(l, r, b, t, n, f, gpu) { return new Float32Array([2 / (r - l), 0, 0, 0, 0, 2 / (t - b), 0, 0, 0, 0, (gpu ? 1 : 2) / (n - f), 0, (l + r) / (l - r), (t + b) / (b - t), gpu ? n / (n - f) : (f + n) / (n - f), 1]); }
+function perspective(fov, aspect, near, far, gpu) {
+    const y=1/Math.tan(fov/2), z=(gpu?far:far+near)/(near-far), t=(gpu?1:2)*far*near/(near-far);
+    return new Float32Array([y/aspect,0,0,0,0,y,0,0,0,0,z,-1,0,0,t,0]);
+}
+function projected(m, p, w, h) { const x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]; const divisor=m[3]*p[0]+m[7]*p[1]+m[11]*p[2]+m[15]; return [(x/divisor*.5+.5)*w,(-y/divisor*.5+.5)*h,z/divisor]; }
+const shade = (c, f) => c.map(x => clamp(x * f, 0, 1));
+class MeshBuilder {
+    constructor() { this.data = []; }
+    tri(a, b, c, color, lighting = true) { let f = 1; if (lighting) {
+        const n = norm(cross(vsub(b, a), vsub(c, a)));
+        f = .69 + .31 * Math.abs(dot(n, norm([-.35, .9, .3])));
+    } const col = shade(color, f); for (const p of [a, b, c])
+        this.data.push(...p, ...col); return this; }
+    quad(a, b, c, d, color, lighting = true) { this.tri(a, b, c, color, lighting); this.tri(a, c, d, color, lighting); return this; }
+    box(x, y, z, w, h, d, color) { const p = [[x, y, z], [x + w, y, z], [x + w, y + h, z], [x, y + h, z], [x, y, z + d], [x + w, y, z + d], [x + w, y + h, z + d], [x, y + h, z + d]]; for (const f of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]])
+        this.quad(...f.map(i => p[i]), color); return this; }
+    beam(a, b, r, color, sides = 5) { const n = norm(vsub(b, a)), u = norm(cross(n, Math.abs(n[1]) < .9 ? [0, 1, 0] : [1, 0, 0])), v = cross(n, u); for (let i = 0; i < sides; i++) {
+        const aa = i / sides * Math.PI * 2, bb = (i + 1) / sides * Math.PI * 2;
+        const off = t => vadd(vmul(u, Math.cos(t) * r), vmul(v, Math.sin(t) * r));
+        const x = off(aa), y = off(bb);
+        this.quad(vadd(a, x), vadd(a, y), vadd(b, y), vadd(b, x), color);
+        this.tri(b, vadd(b, x), vadd(b, y), color);
+    } return this; }
+    cone(x, y, z, r, h, color, sides = 6) { for (let i = 0; i < sides; i++) {
+        const a = i / sides * 6.2831853, b = (i + 1) / sides * 6.2831853;
+        this.tri([x + Math.cos(a) * r, y, z + Math.sin(a) * r], [x, y + h, z], [x + Math.cos(b) * r, y, z + Math.sin(b) * r], color);
+    } return this; }
+    sphere(x, y, z, r, color) { const a = [x - r, y, z], b = [x + r, y, z], c = [x, y - r, z], d = [x, y + r, z], e = [x, y, z - r], f = [x, y, z + r]; for (const v of [[a, d, e], [e, d, b], [b, d, f], [f, d, a], [a, e, c], [e, b, c], [b, f, c], [f, a, c]])
+        this.tri(...v, color); return this; }
+    finish() { return new Float32Array(this.data); }
+}
+
+return {vsub,vadd,vmul,dot,cross,norm,multiply,lookAt,ortho,perspective,projected,shade,MeshBuilder};
+});
+define("@wieslawsoltes/ski-renderer/scene.js",function(require){
+/** DSJ2 screenshot-informed scene construction. No original meshes or textures.
+ * The sampled HillProfile remains the single source of surface/contact geometry.
+ * Scene parameters are reconstructions unless a field's provenance says otherwise.
+ */
+const { clamp, lerp, Random }=require("@wieslawsoltes/ski-core");
+const { HillProfile, getHillVisual }=require("@wieslawsoltes/ski-hills");
+const { MeshBuilder, shade }=require("@wieslawsoltes/ski-renderer/mesh.js");
+
+function surface(m, a, b, wa, wb, color, height = 0) {
+    m.quad([a.x,a.y+height,-wa],[b.x,b.y+height,-wb],[b.x,b.y+height,wb],[a.x,a.y+height,wa],color,false);
+}
+function wall(m, a, b, za, zb, width, height, color) {
+    // Broad flat side panels, a light cap and dark reverse, as seen in the reference.
+    m.quad([a.x,a.y,za],[b.x,b.y,zb],[b.x,b.y+height,zb],[a.x,a.y+height,za],shade(color,.68),false);
+    m.quad([a.x,a.y+height,za],[b.x,b.y+height,zb],[b.x,b.y+height,zb+width],[a.x,a.y+height,za+width],shade(color,1.13),false);
+    m.quad([a.x,a.y,za+width],[a.x,a.y+height,za+width],[b.x,b.y+height,zb+width],[b.x,b.y,zb+width],shade(color,.9),false);
+}
+function rampFascia(m,a,b,z,side,spec){
+    const depth=spec.inrunDepth, bands=spec.inrunBands;
+    for(let i=0;i<bands.length;i++){
+        const top=-depth*i/bands.length,bottom=-depth*(i+1)/bands.length,zz=z+side*i*.055;
+        m.quad([a.x,a.y+bottom,zz],[b.x,b.y+bottom,zz],[b.x,b.y+top,zz],[a.x,a.y+top,zz],bands[i],false);
+    }
+    wall(m,a,b,z,z,side*.22,.38,shade(spec.railColor,.48));
+}
+function support(m,x,y,z,height,radius){
+    for(let i=0;i<12;i++){
+        const a=i*Math.PI/6,b=(i+1)*Math.PI/6;
+        const ax=x+Math.cos(a)*radius,az=z+Math.sin(a)*radius*.8,bx=x+Math.cos(b)*radius,bz=z+Math.sin(b)*radius*.8;
+        m.quad([ax,y,az],[bx,y,bz],[bx,y+height,bz],[ax,y+height,az],shade([.35,.37,.39],.58+.42*Math.abs(Math.cos((a+b)*.5))),false);
+    }
+}
+function pine(m,x,y,z,height,seed) {
+    const rng=new Random(seed), trunk=[.26,.20,.12];
+    m.box(x-.08,y,z-.08,.16,height*.89,.16,trunk);
+    // Sparse individual branch fans, rather than the previous three snow cones.
+    // All branch endpoints are generated at the same seed at every resolution.
+    for(let layer=0;layer<11;layer++) {
+        const t=layer/11, yy=y+height*(.20+.72*t), span=height*(1-t)*.29;
+        const rot=rng.range(0,Math.PI*2);
+        for(let branch=0;branch<5;branch++) {
+            const angle=rot+branch*Math.PI*.4, len=span*rng.range(.60,1), dx=Math.cos(angle), dz=Math.sin(angle);
+            const a=[x+dx*len,yy-height*.045,z+dz*len], b=[x,yy+height*.07,z], w=len*.19;
+            const c=[x+dx*len*.46-dz*w,yy-height*.025,z+dz*len*.46+dx*w];
+            const d=[x+dx*len*.46+dz*w,yy-height*.025,z+dz*len*.46-dx*w];
+            const green=[.035,.19+.04*rng.next(),.105];
+            if(branch%2===0){
+                // Partition the facet instead of overlaying an intersecting snow
+                // triangle. Opaque coverage is shared without coplanar depth races.
+                const ab=b.map((v,i)=>v+(a[i]-v)*.36),cb=b.map((v,i)=>v+(c[i]-v)*.36);
+                m.quad(a,ab,cb,c,green,false);
+                m.tri(b,cb,ab,[.75,.77,.77],false);
+            }else m.tri(a,b,c,green,false);
+            m.tri(a,d,b,[.025,.15,.08],false);
+        }
+    }
+}
+
+/** Full-detail independent scene, identical topology on WebGPU/WebGL/software. */
+function createClassicHillScene(profile, record=0) {
+    const p=profile instanceof HillProfile?profile:new HillProfile(profile);
+    const spec=getHillVisual(p.hill.id), m=new MeshBuilder(), sections=[];
+    const section=(name,fn)=>{const first=m.data.length/6;fn();sections.push({name,first,count:m.data.length/6-first});};
+    const halfWidth=s=>spec.landingWidth/2+Math.max(0,s)*spec.landingFlare;
+    const x0=p.startX-80,x1=p.end.x+100;
+    // Narrow cells along the actual profile prevent the terrain penetrating a finer
+    // landing mesh. Corridor and surrounding snow share exactly the same samples.
+    const rings=[{x:x0,y:p.atX(x0).y,s:0},...Array.from({length:Math.ceil((p.startX-x0)/4)+1},(_,i)=>{
+        const x=Math.min(0,x0+i*4);return {x,y:p.atX(x).y,s:0};
+    }),...Array.from({length:Math.ceil(-p.startX/2)},(_,i)=>{
+        const x=p.startX+i*2;return {x,y:p.atX(x).y,s:0};
+    }),...p.points.filter((_,i)=>i%4===0),p.end,{x:x1,y:p.end.y,s:p.end.s+x1-p.end.x}]
+    .sort((a,b)=>a.x-b.x).filter((q,i,a)=>i===0||q.x>a[i-1].x+.001);
+    section('snow',()=>{
+        for(let i=0;i<rings.length-1;i++) {
+            const a=rings[i],b=rings[i+1],wa=halfWidth(a.s),wb=halfWidth(b.s);
+            // Suppress the random per-quad checkerboard of the previous renderer.
+            const brightness=.64+.14*clamp((a.angle||.4)/.7,0,1);
+            const c=[brightness,brightness,brightness+.022];
+            surface(m,a,b,wa,wb,c,.015);
+            for(const side of [-1,1]) {
+                const zbands=[0,6,20,48,100,220,420];
+                for(let j=0;j<zbands.length-1;j++) {
+                    const z0=zbands[j],z1=zbands[j+1];
+                    const point=(q,w,z)=>[q.x,q.y+(side<0?Math.min(12,z*.08):-Math.min(28,z*.12))+Math.sin(q.x*.011+z*.018)*Math.min(2,z*.025),side*(w+z)];
+                    const color=shade([.73,.74,.77],1+Math.min(.14,z0*.001));
+                    m.quad(point(a,wa,z0),point(b,wb,z0),point(b,wb,z1),point(a,wa,z1),color,false);
+                }
+            }
+        }
+    });
+    section('landing-walls',()=>{
+        const end=p.end.s;
+        for(let s=0;s<end;s+=2) {
+            const a=p.atDistance(s),b=p.atDistance(Math.min(end,s+2));
+            for(const side of [-1,1]) wall(m,a,b,side*halfWidth(s),side*halfWidth(b.s),side*.27,.72,spec.railColor);
+        }
+        for(let s=4;s<end;s+=10) {
+            const q=p.atDistance(s);
+            for(const side of [-1,1]) m.box(q.x-.13,q.y-.04,side*halfWidth(s)-.16,.26,.85,.32,shade(spec.railColor,.38));
+        }
+    });
+    section('distance-lines',()=>{
+        // Narrow green reference lines; K line remains red. No invented blue HS line.
+        const distances=[];
+        for(let s=Math.ceil(p.k*.65/10)*10;s<=p.k*1.25;s+=10) distances.push(s);
+        if(!distances.includes(p.k))distances.push(p.k);
+        for(const s of distances) {
+            const a=p.atDistance(s-.045),b=p.atDistance(s+.045);
+            surface(m,a,b,halfWidth(a.s),halfWidth(b.s),s===p.k?[.72,.10,.12]:[.10,.32,.13],.032);
+        }
+        if(Number.isFinite(record)&&record>0&&record<=p.end.s) surface(m,p.atDistance(record-.035),p.atDistance(record+.035),halfWidth(record),halfWidth(record),[.8,.55,.12],.04);
+    });
+    section('inrun',()=>{
+        const points=[];
+        for(let x=p.startX;x<0;x+=.8)points.push({x,y:p.inrunY(x)});
+        points.push({x:0,y:p.inrunY(0)});
+        const width=spec.inrunWidth/2;
+        for(let i=0;i<points.length-1;i++) {
+            const a=points[i],b=points[i+1];
+            surface(m,a,b,width,width,[.73,.76,.79]);
+            for(const z of [-.26,.26]) m.quad([a.x,a.y+.008,z-.045],[b.x,b.y+.008,z-.045],[b.x,b.y+.008,z+.045],[a.x,a.y+.008,z+.045],[.34,.38,.39],false);
+            for(const side of [-1,1])rampFascia(m,a,b,side*(width+.22),side,spec);
+        }
+        const length=spec.platformLength,depth=spec.inrunDepth;
+        const a={x:p.startX-length,y:p.startY},b={x:p.startX,y:p.startY};
+        surface(m,a,b,width,width,[.73,.76,.79]);
+        for(const side of [-1,1])rampFascia(m,a,b,side*(width+.22),side,spec);
+        for(let x=p.startX-5;x<-.5;x+=Math.max(12,p.inrunLength*.32)){
+            const top=x<p.startX?p.startY:p.inrunY(x),bottom=p.atX(x).y;
+            support(m,x,bottom,0,Math.max(.1,top-bottom-depth),spec.supportRadius);
+        }
+        // Visible board end and dark underside.
+        m.box(-.12,-depth,-width-.3,.12,depth,2*width+.6,spec.inrunBands[3]);
+    });
+    const trees=[];
+    section('trees',()=>{
+        const rng=new Random(spec.treeSeed);
+        for(let i=0;i<spec.treeCount;i++) {
+            const x=rng.range(x0,x1), q=p.atX(x), side=rng.next()<.94?-1:1;
+            const offset=rng.range(4,140), z=side*(halfWidth(q.s)+offset);
+            // Match the snow mesh's linear interpolation instead of floating trees.
+            let lo=0,hi=rings.length-1;
+            while(hi-lo>1){const mid=(lo+hi)>>1;if(rings[mid].x<x)lo=mid;else hi=mid;}
+            const a=rings[lo],b=rings[hi],f=(x-a.x)/(b.x-a.x);
+            const zs=[0,6,20,48,100,220,420];let zi=0;while(zs[zi+1]<offset)zi++;
+            const lift=z=>(side<0?Math.min(12,z*.08):-Math.min(28,z*.12))+Math.sin(x*.011+z*.018)*Math.min(2,z*.025);
+            const y=lerp(a.y,b.y,f)+lerp(lift(zs[zi]),lift(zs[zi+1]),(offset-zs[zi])/(zs[zi+1]-zs[zi]));
+            const height=rng.range(2.5,14),seed=(spec.treeSeed+i*7919)>>>0;
+            trees.push({x,y,z,height,seed}); pine(m,x,y,z,height,seed);
+        }
+    });
+    return {vertices:m.finish(),sections,trees,visual:spec,surface:'HillProfile',version:1};
+}
+
+/** Project the real articulated mesh on the landing surface, not an oval blob.
+ * Bisection solves the light-ray/sampled-surface contact for every mesh vertex.
+ */
+function createProjectedShadow(vertices, profile, state) {
+    if(['gate','inrun'].includes(state.phase)) return new Float32Array(0);
+    const data=new Float32Array(vertices.length),light=[.48,-1,.30];
+    for(let i=0;i<vertices.length;i+=6) {
+        const x=vertices[i],y=vertices[i+1],z=vertices[i+2];let lo=0,hi=Math.max(1,(y-profile.atX(x).y)*2+8);
+        const gap=t=>y+light[1]*t-profile.atX(x+light[0]*t).y;
+        for(let n=0;n<5&&gap(hi)>0;n++)hi*=2;
+        for(let n=0;n<18;n++){const t=(lo+hi)*.5;if(gap(t)>0)lo=t;else hi=t;}
+        const xx=x+light[0]*hi;
+        data.set([xx,profile.atX(xx).y+.023,z+light[2]*hi,.38,.39,.42],i);
+    }
+    return data;
+}
+
+return {createClassicHillScene,createProjectedShadow};
+});
+define("@wieslawsoltes/ski-renderer/shading.js",function(require){
+/** One shading source emitted to WGSL and GLSL. Pixel coordinates are top-left.
+ * The software rasterizer below uses the identical documented scalar equations.
+ * Quantization is a reconstructed six-bit DAC look, not the original 256-color table.
+ */
+const COMMON = `
+vec4 snapClip(vec4 p,vec2 size){
+ if(abs(p.w)<0.000001){return p;}
+ vec2 pixel=vec2((p.x/p.w*0.5+0.5)*size.x,(0.5-p.y/p.w*0.5)*size.y);
+ pixel=floor(pixel*16.0+vec2(0.5))/16.0;
+ return vec4((pixel.x/size.x*2.0-1.0)*p.w,(1.0-pixel.y/size.y*2.0)*p.w,p.z,p.w);
+}
+float wrap(float x,float period){return x-floor(x/period)*period;}
+float ordered(float x,float y){
+ float a=wrap(floor(x),2.0);float b=wrap(floor(y),2.0);
+ float c=wrap(floor(x/2.0),2.0);float d=wrap(floor(y/2.0),2.0);
+ return (8.0*abs(a-b)+4.0*b+2.0*abs(c-d)+d+0.5)/16.0-0.5;
+}
+vec3 palette(vec3 color,float x,float y){
+ return floor(clamp(color+vec3(ordered(x,y)/63.0),vec3(0.0),vec3(1.0))*63.0+vec3(0.5))/63.0;
+}
+vec3 shadeScene(vec3 color,vec3 world,vec3 eye,float weather,float x,float y){
+ float fog=smoothstep(180.0,500.0,distance(world,eye))*0.32;
+ vec3 c=mix(color,vec3(0.80,0.81,0.86),fog);
+ if(weather>2.5){c=c*vec3(0.35,0.43,0.65);}
+ else if(weather>1.5){c=c*vec3(1.0,0.84,0.80);}
+ return palette(c,x,y);
+}
+vec3 shadeSky(float x,float y,float width,float height,float weather,float offset){
+ float u=(x+0.5)/width;float v=(y+0.5)/height;
+ vec3 top=vec3(0.35,0.34,0.76);vec3 bottom=vec3(0.88,0.86,0.92);
+ if(weather>2.5){top=vec3(0.035,0.045,0.13);bottom=vec3(0.22,0.27,0.41);}
+ else if(weather>1.5){top=vec3(0.30,0.29,0.51);bottom=vec3(0.89,0.68,0.57);}
+ vec3 c=mix(top,bottom,smoothstep(0.0,0.18,v));
+ float ridge=0.115+0.025*sin(u*9.0+offset)+0.01*sin(u*29.0+offset*0.3);
+ if(v>ridge){c=bottom*0.98;}
+ if(v>ridge+0.055){c=bottom*0.955;}
+ if(v>ridge+0.12){c=bottom*0.93;}
+ if(weather>2.5 && v<ridge && wrap(floor(x)*13.0+floor(y)*127.0,997.0)>995.0){c=vec3(0.82,0.85,0.93);}
+ return palette(c,x,y);
+}
+vec4 snowAt(float index,float time,float wind){
+ float bx=wrap(index*73.0+17.0,389.0)/389.0*2.06;
+ float by=wrap(index*151.0+31.0,397.0)/397.0*2.06;
+ float speed=0.12+wrap(index*19.0+7.0,101.0)/101.0*0.25;
+ float size=0.65+wrap(index*37.0+3.0,103.0)/103.0*0.95;
+ return vec4(wrap(bx+time*(wind*0.024+0.025),2.06)-1.03,wrap(by-time*speed,2.06)-1.03,speed,size);
+}
+`;
+function wgsl(source) {
+    const type=t=>t==='float'?'f32':t+'<f32>';
+    return source.replace(/\b(float|vec[234])\s+(\w+)\(([^)]*)\)\s*\{/g,(_,t,name,args)=>
+        `fn ${name}(${args.split(',').filter(Boolean).map(a=>{const [t,n]=a.trim().split(/\s+/);return n+':'+type(t);}).join(',')})->${type(t)}{`)
+        .replace(/\b(float|vec[234])\s+(\w+)\s*=/g,(_,t,n)=>`var ${n}:${type(t)}=`)
+        .replace(/\b(vec[234])\(/g,'$1<f32>(');
+}
+const UNIFORM=`struct Scene { matrix:mat4x4<f32>, fog:vec4<f32>, params:vec4<f32>, camera:vec4<f32> };
+@group(0) @binding(0) var<uniform> scene:Scene;`;
+const SCENE_WGSL=UNIFORM+wgsl(COMMON)+`
+struct Out { @builtin(position) pos:vec4<f32>, @location(0) color:vec3<f32>, @location(1) world:vec3<f32> };
+@vertex fn vs(@location(0) p:vec3<f32>,@location(1) c:vec3<f32>)->Out{
+ var o:Out;o.pos=snapClip(scene.matrix*vec4<f32>(p,1.0),scene.params.zw);o.color=c;o.world=p;return o;
+}
+@fragment fn fs(o:Out)->@location(0) vec4<f32>{return vec4<f32>(shadeScene(o.color,o.world,scene.camera.xyz,scene.params.x,floor(o.pos.x),floor(o.pos.y)),1.0);}`;
+const SKY_WGSL=UNIFORM+wgsl(COMMON)+`
+@vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) vec4<f32>{
+ let p=array<vec2<f32>,3>(vec2<f32>(-1,-1),vec2<f32>(3,-1),vec2<f32>(-1,3));return vec4<f32>(p[i],0.999,1.0);
+}
+@fragment fn fs(@builtin(position) p:vec4<f32>)->@location(0) vec4<f32>{return vec4<f32>(shadeSky(floor(p.x),floor(p.y),scene.params.z,scene.params.w,scene.params.x,scene.fog.w),1.0);}`;
+const SCENE_VERTEX_GLSL=`#version 300 es\nprecision highp float;\n${COMMON}
+layout(location=0)in vec3 p;layout(location=1)in vec3 c;uniform mat4 matrix;uniform vec2 viewport;out vec3 color;out vec3 world;
+void main(){gl_Position=snapClip(matrix*vec4(p,1.0),viewport);gl_Position.y=-gl_Position.y;color=c;world=p;}`;
+const SNAP_WGSL=wgsl(COMMON);
+const SCENE_GLSL=`#version 300 es\nprecision highp float;\n${COMMON}
+in vec3 color;in vec3 world;uniform vec3 eye;uniform float weather;uniform vec2 viewport;out vec4 outColor;
+void main(){outColor=vec4(shadeScene(color,world,eye,weather,floor(gl_FragCoord.x),floor(gl_FragCoord.y)),1.0);}`;
+const SKY_GLSL=`#version 300 es\nprecision highp float;\n${COMMON}
+uniform float weather;uniform vec2 viewport;uniform float skyOffset;out vec4 outColor;
+void main(){outColor=vec4(shadeSky(floor(gl_FragCoord.x),floor(gl_FragCoord.y),viewport.x,viewport.y,weather,skyOffset),1.0);}`;
+const SNOW_WGSL=wgsl(COMMON)+`
+struct Weather {wind:f32,time:f32,width:f32,height:f32};
+@group(0) @binding(0) var<storage,read_write> particles:array<vec4<f32>>;
+@group(0) @binding(1) var<uniform> weather:Weather;
+@compute @workgroup_size(64) fn update(@builtin(global_invocation_id) id:vec3<u32>){if(id.x<384u){particles[id.x]=snowAt(f32(id.x),weather.time,weather.wind);}}`;
+const SNOW_GLSL=`#version 300 es\nprecision highp float;\n${COMMON}
+uniform vec4 conditions;
+void main(){
+ vec4 p=snowAt(float(gl_InstanceID),conditions.y,conditions.x);
+ int i=gl_VertexID;vec2 q=vec2((i==1||i==2||i==4)?1.0:-1.0,(i==2||i==4||i==5)?1.0:-1.0);
+ gl_Position=snapClip(vec4(p.xy+q/conditions.zw*p.w,0.0,1.0),conditions.zw);gl_Position.y=-gl_Position.y;
+}`;
+const wrap=(x,p)=>x-Math.floor(x/p)*p;
+const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+function orderedDither(x,y) {
+    const a=wrap(Math.floor(x),2),b=wrap(Math.floor(y),2),c=wrap(Math.floor(x/2),2),d=wrap(Math.floor(y/2),2);
+    return (8*Math.abs(a-b)+4*b+2*Math.abs(c-d)+d+.5)/16-.5;
+}
+function paletteChannel(c,n) {return Math.round(Math.floor(Math.max(0,Math.min(1,c+n/63))*63+.5)/63*255);}
+function sceneRGB(r,g,b,x,y,z,eye,weather,px,py,out,offset) {
+    const f=smooth(180,500,Math.hypot(x-eye[0],y-eye[1],z-eye[2]))*.32,n=orderedDither(px,py);
+    r=r+(0.80-r)*f;g=g+(0.81-g)*f;b=b+(0.86-b)*f;
+    if(weather===3){r*=.35;g*=.43;b*=.65;}else if(weather===2){g*=.84;b*=.8;}
+    out[offset]=paletteChannel(r,n);out[offset+1]=paletteChannel(g,n);out[offset+2]=paletteChannel(b,n);out[offset+3]=255;
+}
+function skyRGB(x,y,w,h,weather,offset,out,pos) {
+    const u=(x+.5)/w,v=(y+.5)/h,n=orderedDither(x,y),t=smooth(0,.18,v);
+    const top=weather===3?[.035,.045,.13]:weather===2?[.30,.29,.51]:[.35,.34,.76];
+    const bottom=weather===3?[.22,.27,.41]:weather===2?[.89,.68,.57]:[.88,.86,.92];
+    const ridge=.115+.025*Math.sin(u*9+offset)+.01*Math.sin(u*29+offset*.3);
+    const factor=v>ridge+.12?.93:v>ridge+.055?.955:v>ridge?.98:0;
+    const star=weather===3&&v<ridge&&wrap(Math.floor(x)*13+Math.floor(y)*127,997)>995;
+    for(let j=0;j<3;j++)out[pos+j]=paletteChannel(star?[.82,.85,.93][j]:factor?bottom[j]*factor:top[j]+(bottom[j]-top[j])*t,n);
+    out[pos+3]=255;
+}
+function snowParticle(index,time,wind) {
+    const bx=wrap(index*73+17,389)/389*2.06,by=wrap(index*151+31,397)/397*2.06;
+    return [wrap(bx+time*(wind*.024+.025),2.06)-1.03,wrap(by-time*(.12+wrap(index*19+7,101)/101*.25),2.06)-1.03,.12+wrap(index*19+7,101)/101*.25,.65+wrap(index*37+3,103)/103*.95];
+}
+
+return {SCENE_WGSL,SKY_WGSL,SCENE_VERTEX_GLSL,SNAP_WGSL,SCENE_GLSL,SKY_GLSL,SNOW_WGSL,SNOW_GLSL,orderedDither,paletteChannel,sceneRGB,skyRGB,snowParticle};
+});
+define("@wieslawsoltes/ski-renderer/raster.js",function(require){
+const { sceneRGB, skyRGB, snowParticle }=require("@wieslawsoltes/ski-renderer/shading.js");
+const topLeft=(x0,y0,x1,y1)=>y1<y0||(y1===y0&&x1>x0);
+const clipDistance=(v,i,plane)=>v[i+3]+(plane%2===0?1:-1)*v[i+(plane>>1)];
+
+/** Shared-topology correctness fallback: homogeneous frustum clipping, perspective
+ * interpolation, top-left fill, per-fragment depth/fog and deterministic weather.
+ * Buffers and clipping scratch are reused. No painter sort or reduced-detail mesh.
+ */
+class SoftwareRasterizer {
+    constructor(){
+        this.width=0;this.height=0;this.depth=null;this.image=null;this.vertices=new Float64Array(0);
+        this.clipA=new Float64Array(120);this.clipB=new Float64Array(120);
+    }
+    resize(width,height){
+        if(width===this.width&&height===this.height)return;
+        if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>4000000)throw new RangeError('Invalid raster surface');
+        this.width=width;this.height=height;this.depth=new Float32Array(width*height);this.image=new ImageData(width,height);
+    }
+    triangle(v,ai,bi,ci,eye,weather){
+        const w=this.width,h=this.height,pixels=this.image.data,depth=this.depth;
+        const aw=1/v[ai+3];let bw=1/v[bi+3],cw=1/v[ci+3];
+        const screenX=(i,inv)=>Math.round((v[i]*inv*.5+.5)*w*256)/256;
+        const screenY=(i,inv)=>Math.round((.5-v[i+1]*inv*.5)*h*256)/256;
+        const ax=screenX(ai,aw),ay=screenY(ai,aw),az=v[ai+2]*aw*.5+.5;
+        let bx=screenX(bi,bw),by=screenY(bi,bw),bz=v[bi+2]*bw*.5+.5,cx=screenX(ci,cw),cy=screenY(ci,cw),cz=v[ci+2]*cw*.5+.5;
+        let area=(bx-ax)*(cy-ay)-(by-ay)*(cx-ax);
+        if(!Number.isFinite(area)||Math.abs(area)<1e-9)return;
+        if(area<0){[bx,cx]=[cx,bx];[by,cy]=[cy,by];[bz,cz]=[cz,bz];[bw,cw]=[cw,bw];[bi,ci]=[ci,bi];area=-area;}
+        const xmin=Math.max(0,Math.ceil(Math.min(ax,bx,cx)-.5)),xmax=Math.min(w-1,Math.floor(Math.max(ax,bx,cx)-.5));
+        const ymin=Math.max(0,Math.ceil(Math.min(ay,by,cy)-.5)),ymax=Math.min(h-1,Math.floor(Math.max(ay,by,cy)-.5));
+        if(xmin>xmax||ymin>ymax)return;
+        const ta=topLeft(bx,by,cx,cy),tb=topLeft(cx,cy,ax,ay),tc=topLeft(ax,ay,bx,by),inv=1/area;
+        for(let y=ymin;y<=ymax;y++){
+            const py=y+.5;
+            let ea=(cx-bx)*(py-by)-(cy-by)*(xmin+.5-bx),eb=(ax-cx)*(py-cy)-(ay-cy)*(xmin+.5-cx),ec=(bx-ax)*(py-ay)-(by-ay)*(xmin+.5-ax);
+            for(let x=xmin;x<=xmax;x++,ea-=cy-by,eb-=ay-cy,ec-=by-ay){
+                if(ea<0||eb<0||ec<0||(ea===0&&!ta)||(eb===0&&!tb)||(ec===0&&!tc))continue;
+                let a=ea*inv,b=eb*inv,c=ec*inv;const z=Math.fround(a*az+b*bz+c*cz),index=y*w+x;
+                if(z<0||z>1||z>depth[index])continue;depth[index]=z;
+                const denominator=a*aw+b*bw+c*cw;a=a*aw/denominator;b=b*bw/denominator;c=c*cw/denominator;
+                const wx=a*v[ai+4]+b*v[bi+4]+c*v[ci+4],wy=a*v[ai+5]+b*v[bi+5]+c*v[ci+5],wz=a*v[ai+6]+b*v[bi+6]+c*v[ci+6];
+                const r=a*v[ai+7]+b*v[bi+7]+c*v[ci+7],g=a*v[ai+8]+b*v[bi+8]+c*v[ci+8],blue=a*v[ai+9]+b*v[bi+9]+c*v[ci+9];
+                sceneRGB(r,g,blue,wx,wy,wz,eye,weather,x,y,pixels,index*4);
+            }
+        }
+    }
+    render(ctx,matrix,streams,eye,weather,time,wind,skyOffset=0){
+        const w=this.width,h=this.height,pixels=this.image.data;this.depth.fill(Infinity);
+        for(let y=0;y<h;y++)for(let x=0;x<w;x++)skyRGB(x,y,w,h,weather,skyOffset,pixels,(y*w+x)*4);
+        for(const data of streams){
+            if(!data)continue;
+            const length=data.length/6*4;if(this.vertices.length<length)this.vertices=new Float64Array(length);
+            const v=this.vertices;
+            for(let i=0,j=0;i<data.length;i+=6,j+=4){
+                const x=data[i],y=data[i+1],z=data[i+2];
+                for(let k=0;k<4;k++)v[j+k]=matrix[k]*x+matrix[4+k]*y+matrix[8+k]*z+matrix[12+k];
+                // Match both native vertex stages on a deliberate 1/16-pixel grid.
+                const cw=v[j+3];if(Math.abs(cw)>=.000001){
+                    const px=Math.floor((v[j]/cw*.5+.5)*w*16+.5)/16;
+                    const py=Math.floor((.5-v[j+1]/cw*.5)*h*16+.5)/16;
+                    v[j]=(px/w*2-1)*cw;v[j+1]=(1-py/h*2)*cw;
+                }
+            }
+            for(let i=0,j=0;i<data.length;i+=18,j+=12){
+                let a=this.clipA,b=this.clipB,n=3,mask=0,rejected=false;
+                for(let vertex=0;vertex<3;vertex++){
+                    const offset=vertex*10,clip=j+vertex*4,raw=i+vertex*6;
+                    for(let k=0;k<4;k++)a[offset+k]=v[clip+k];
+                    for(let k=0;k<6;k++)a[offset+4+k]=data[raw+k];
+                }
+                for(let plane=0;plane<6;plane++){
+                    let outside=0;for(let k=0;k<3;k++)if(clipDistance(a,k*10,plane)<0)outside++;
+                    if(outside===3){rejected=true;break;}if(outside)mask|=1<<plane;
+                }
+                if(rejected)continue;
+                for(let plane=0;plane<6&&n;plane++)if(mask&(1<<plane)){
+                    let count=0,previous=(n-1)*10,dp=clipDistance(a,previous,plane);
+                    for(let k=0;k<n;k++){
+                        const current=k*10,dc=clipDistance(a,current,plane);
+                        if((dp<0)!==(dc<0)){
+                            const t=dp/(dp-dc);for(let c=0;c<10;c++)b[count*10+c]=a[previous+c]+(a[current+c]-a[previous+c])*t;count++;
+                        }
+                        if(dc>=0){for(let c=0;c<10;c++)b[count*10+c]=a[current+c];count++;}
+                        previous=current;dp=dc;
+                    }
+                    [a,b]=[b,a];n=count;
+                }
+                for(let k=1;k+1<n;k++)this.triangle(a,0,k*10,(k+1)*10,eye,weather);
+            }
+        }
+        if(weather===1)for(let i=0;i<384;i++){
+            const p=snowParticle(i,time,wind),cx=(p[0]*.5+.5)*w,cy=(.5-p[1]*.5)*h,half=p[3]*.5;
+            const snap=n=>Math.floor(n*16+.5)/16;
+            for(let y=Math.max(0,Math.ceil(snap(cy-half)-.5));y<Math.min(h,Math.ceil(snap(cy+half)-.5));y++)
+                for(let x=Math.max(0,Math.ceil(snap(cx-half)-.5));x<Math.min(w,Math.ceil(snap(cx+half)-.5));x++){
+                    const at=(y*w+x)*4;pixels[at]=Math.round(.94*255*.75+pixels[at]*.25);pixels[at+1]=Math.round(.96*255*.75+pixels[at+1]*.25);pixels[at+2]=Math.round(255*.75+pixels[at+2]*.25);
+                }
+        }
+        ctx.putImageData(this.image,0,0);
+    }
+}
+
+return {SoftwareRasterizer};
 });
 define("@wieslawsoltes/ski-audio",function(require){
 const { clamp, Random }=require("@wieslawsoltes/ski-core");
@@ -2708,7 +3182,7 @@ class SkiJumpApp {
     }
     applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
     showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Click the left button or press <kbd>SPACE</kbd> to start. In the DSJ 2.10 rules profile you have 15 seconds; the green light blinks with 10 seconds remaining. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. The optional enhanced HUD provides a balance indicator; the compact HUD does not. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Classic mouse: press left and right together for two feet, or one then the other for telemark. Either order works; the interval changes stance width. Release both buttons after takeoff. An unfinished one-foot landing can fall. <kbd>Z</kbd>/<kbd>X</kbd> remain accessible one-action shortcuts in either profile.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. The separate LEFT / RIGHT pads reproduce the original mouse sequence, including two-thumb takeoff and timed telemark.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
-    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.3.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
+    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.4.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
     change(e) {
         if (e.target.id === 'cup-ai') { this.setupAI = Number(e.target.value); return; }
         if (e.target.id === 'tour-name') { this.tour.name = e.target.value.slice(0, 40); return; }

@@ -111,3 +111,45 @@ export class HillProfile {
     }
 }
 export function hillPreview(hill) { const p = new HillProfile(hill); return [...Array(90)].map((_, i) => { const x = lerp(p.startX - 8, p.kPoint.x * 1.6, i / 89); return { x, y: x <= 0 ? p.inrunY(x) : p.atX(x).y }; }); }
+
+/** Visual specification, intentionally separate from simulation parameters.
+ * Roster/K-points are verified; layout/color/camera remain visual reconstructions.
+ * Explicit per-hill records let future measurements replace a value without
+ * changing random-number consumption, collision geometry or saved jump scores.
+ */
+const visualRows = [
+    ['fin','ochre'],['sui','brown'],['cze','gray'],['blr','teal'],
+    ['aut','ochre'],['usa','teal'],['lat','ochre'],['pol','teal'],
+    ['jpn','ochre'],['bel','teal'],['isl','ochre'],['eng','teal'],
+    ['ger','ochre'],['est','teal'],['nor','ochre'],['aus','teal'],
+    ['irl','ochre'],['ukr','teal'],['hun','ochre'],['swe','teal'],
+    ['ita','ochre'],['den','teal'],['svk','ochre'],['can','teal'],
+    ['ltu','ochre'],['kaz','teal'],['chn','ochre'],['fra','teal'],
+    ['ned','ochre'],['rus','teal'],['kor','ochre'],['slo','teal']
+];
+// Flat fascia colors observed in the unmodified publisher demo, 2026-09-23.
+// These are color measurements, not imported game palettes or bitmap assets.
+const fascia = {
+    ochre:[[117,85,12],[93,69,12],[69,48,8],[44,32,8],[20,16,8]],
+    brown:[[117,60,32],[93,48,24],[69,36,20],[44,24,16],[20,12,12]],
+    gray:[[109,109,113],[97,97,101],[85,85,89],[73,73,77],[60,60,65]],
+    teal:[[24,97,101],[16,73,77],[12,48,52],[4,24,28],[0,0,8]]
+};
+export const HILL_VISUALS = Object.freeze(visualRows.map(([id,palette]) => {
+    const hill=getHill(id);
+    return Object.freeze({id,k:hill.k,version:1,palette,
+        railColor:Object.freeze(fascia[palette][0].map(v=>v/255)),
+        inrunBands:Object.freeze(fascia[palette].map(c=>Object.freeze(c.map(v=>v/255)))),
+        inrunDepth:4.8,platformLength:18,supportRadius:3.6,
+        inrunWidth:3.6,landingWidth:8,landingFlare:.027,
+        cameraHeight:28,cameraYaw:-.16,cameraElevation:.17,
+        treeSeed:hill.seed,treeCount:180,
+        evidence:Object.freeze({roster:'publisher',geometry:'reconstructed',
+            palette:['fin','sui','cze','blr'].includes(id)?'observed-inrun-colors':'unverified',scenery:'reconstructed',camera:'reconstructed',pixelParity:'unverified'})
+    });
+}));
+export function getHillVisual(id) {
+    const hill=getHill(id),visual=HILL_VISUALS.find(v=>v.id===hill.id);
+    if(!visual)throw new Error(`Missing visual definition for ${hill.id}`);
+    return visual;
+}

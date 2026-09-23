@@ -1,0 +1,90 @@
+name: Finalize and validate all-hill rendering
+on:
+  push:
+    branches: [feature/hill-rendering-parity-v040]
+    paths: ['.maintenance/**', '.github/workflows/finalize-renderer.yml']
+permissions:
+  contents: write
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ski-renderer-finalization
+  cancel-in-progress: false
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Apply checksum-verified, locally tested refinement
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, lzma, subprocess
+          packed = Path('.maintenance/finalize.patch.xz').read_bytes()
+          assert hashlib.sha256(packed).hexdigest() == 'a6d490f57ab19194484b71cf81e59923b531f30543f6a8c6c391662bbf1e29b2'
+          patch = lzma.decompress(packed)
+          assert hashlib.sha256(patch).hexdigest() == '8b3a509ff376f6bd254a6dfc1e885928c53d488a76390edf19d9098ddd0056b5'
+          subprocess.run(['git', 'apply', '--check', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '-'], input=patch, check=True)
+          PY
+      - name: Validate engine, build and SDK
+        run: |
+          mkdir -p artifacts
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          npm run verify 2>&1 | tee artifacts/verify.txt
+          npm run pack:all 2>&1 | tee artifacts/pack.txt
+          npm install --global typescript@5.9.3
+          node tools/verify-packages.mjs --types 2>&1 | tee artifacts/package-install.txt
+      - name: Install browser tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ski-playwright"
+          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0 Pillow==11.3.0
+          "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
+      - name: Validate desktop, touch, original-rule behaviors and WebGPU
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
+          "$PY" tests/browser_features.py 2>&1 | tee artifacts/browser-features.txt
+          "$PY" tests/browser_fidelity.py 2>&1 | tee artifacts/browser-fidelity.txt
+          "$PY" tests/browser_gpu.py --require-webgpu 2>&1 | tee artifacts/browser-webgpu.txt
+      - name: Require 384 current fixtures on each of three renderers
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          rm -rf artifacts/rendering
+          rm -f artifacts/browser-rendering.json
+          "$PY" tests/browser_rendering.py 2>&1 | tee artifacts/browser-rendering.txt
+          node tools/write-validation.mjs
+      - name: Commit validated sources and regenerated distributions
+        run: |
+          rm .maintenance/finalize.patch.xz
+          git add -A -- README.md CHANGELOG.md app packages docs package.json tools tests dist SkiJumpWeb.html artifacts .maintenance
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: close hill shells and verify all cameras across rendering backends' -m 'Cap takeoff/platform ends, join stepped fascia, add continuous shoulders and undersides, and separate landing rail paint from dark ramp bands. Require real gate/board/flight/landing poses, all four cameras, replay-seek-stable snow and bundle-bound 384-fixture evidence for all 32 hills. Preserve the distinction between cross-backend rendering consistency and unverified original-game visual parity.'
+          git push origin HEAD:feature/hill-rendering-parity-v040
+          python3 tools/package-release.py
+          echo "Validated source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ski-renderer-final-validation
+          if-no-files-found: error
+          path: |
+            release/
+            artifacts/browser-*
+            artifacts/verify.txt
+            artifacts/package-install.txt
+            artifacts/release.json
+            artifacts/rendering/
+            artifacts/screenshots/

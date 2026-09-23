@@ -42,3 +42,8 @@ manual line references, measured HUD/menu layouts, and all authored thresholds.
 New rules have independent scores/ghosts and serialized cup state. Replay v2
 retains start/stance state without dropping v1 compatibility. This release does
 not establish original hill/aerodynamic/bitmap/audio/binary-format equivalence.
+
+
+## 0.4.0 renderer scope
+
+See [RENDERING-FIDELITY.md](RENDERING-FIDELITY.md). A shared renderer and all-32-hill backend tests do not establish original all-level visual identity. Four inrun color families were observed; original geometry/cameras and the other 28 color assignments remain unverified.

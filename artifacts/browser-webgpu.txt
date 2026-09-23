@@ -56,26 +56,88 @@
   },
   "webgpu": {
     "backend": "webgpu",
+    "renderProfile": "classic",
+    "hillId": "fin",
+    "visualParity": "unverified",
+    "frameMilliseconds": 1.7999999999883585,
+    "sections": [
+      {
+        "name": "snow",
+        "first": 0,
+        "count": 17706
+      },
+      {
+        "name": "landing-walls",
+        "first": 17706,
+        "count": 6336
+      },
+      {
+        "name": "distance-lines",
+        "first": 24042,
+        "count": 48
+      },
+      {
+        "name": "inrun",
+        "first": 24090,
+        "count": 7608
+      },
+      {
+        "name": "trees",
+        "first": 31698,
+        "count": 101520
+      }
+    ],
     "resolution": [
       866,
       400
     ],
-    "triangles": 18072,
+    "triangles": 44406,
     "fps": 60,
-    "staticBytes": 1301184,
+    "staticBytes": 3197232,
     "deviceLosses": 0,
     "fallbackReason": null,
     "lastError": null
   },
   "fallback": {
     "backend": "webgl2",
+    "renderProfile": "classic",
+    "hillId": "fin",
+    "visualParity": "unverified",
+    "frameMilliseconds": 4.2000000000116415,
+    "sections": [
+      {
+        "name": "snow",
+        "first": 0,
+        "count": 17706
+      },
+      {
+        "name": "landing-walls",
+        "first": 17706,
+        "count": 6336
+      },
+      {
+        "name": "distance-lines",
+        "first": 24042,
+        "count": 48
+      },
+      {
+        "name": "inrun",
+        "first": 24090,
+        "count": 7608
+      },
+      {
+        "name": "trees",
+        "first": 31698,
+        "count": 101520
+      }
+    ],
     "resolution": [
       866,
       400
     ],
-    "triangles": 18072,
+    "triangles": 44406,
     "fps": 60,
-    "staticBytes": 1301184,
+    "staticBytes": 3197232,
     "deviceLosses": 1,
     "fallbackReason": "GPU device lost: destroyed",
     "lastError": null
