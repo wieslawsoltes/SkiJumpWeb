@@ -1,0 +1,77 @@
+name: Finalize classic UI touch navigation
+on:
+  push:
+    branches: [feature/classic-ui-v050]
+    paths: ['.maintenance/**', '.github/workflows/finalize-ui.yml']
+permissions:
+  contents: write
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ski-classic-ui-finalization
+  cancel-in-progress: false
+jobs:
+  finalize:
+    if: github.ref == 'refs/heads/feature/classic-ui-v050'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Apply locally validated touch-navigation refinement
+        run: python3 .maintenance/refine-ui.py
+      - name: Verify sources, build and isolated SDK consumption
+        run: |
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          npm run verify 2>&1 | tee artifacts/verify.txt
+          npm run pack:all 2>&1 | tee artifacts/pack.txt
+          npm install --global typescript@5.9.3
+          node tools/verify-packages.mjs --types 2>&1 | tee artifacts/package-install.txt
+      - name: Install browser tooling
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ski-playwright"
+          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0 Pillow==11.3.0
+          "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
+      - name: Test UI, touch, gameplay, WebGPU and all-hill rendering
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
+          "$PY" tests/browser_features.py 2>&1 | tee artifacts/browser-features.txt
+          "$PY" tests/browser_fidelity.py 2>&1 | tee artifacts/browser-fidelity.txt
+          "$PY" tests/browser_ui.py 2>&1 | tee artifacts/browser-ui.txt
+          "$PY" tests/browser_gpu.py --require-webgpu 2>&1 | tee artifacts/browser-webgpu.txt
+          rm -rf artifacts/rendering
+          rm -f artifacts/browser-rendering.json
+          "$PY" tests/browser_rendering.py 2>&1 | tee artifacts/browser-rendering.txt
+          node tools/write-validation.mjs
+      - name: Commit validated refinement and regenerated distributions
+        run: |
+          rm .maintenance/refine-ui.py
+          git add -A -- packages/ui/classic.js tests/browser_ui.py artifacts dist SkiJumpWeb.html .maintenance
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix: make classic touch OK and Back respect active selector state' -m 'Open native-select pixel popups through the external OK control, close the popup before leaving its screen, and preserve popup state during host pointerdown. Ignore inactive/disposed host commands. Add three actual-touch regressions and regenerate current UI, SDK and renderer evidence.'
+          git push origin HEAD:feature/classic-ui-v050
+          python3 tools/package-release.py
+          echo "Validated source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ski-classic-ui-final-validation
+          if-no-files-found: error
+          path: |
+            release/
+            artifacts/browser-*
+            artifacts/verify.txt
+            artifacts/package-install.txt
+            artifacts/release.json
+            artifacts/ui/
+            artifacts/screenshots/
+            artifacts/rendering/
