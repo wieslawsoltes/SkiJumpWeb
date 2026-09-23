@@ -1,13 +1,15 @@
 {
   "name": "SkiJumpWeb",
-  "version": "0.2.0",
-  "date": "2026-09-23T04:54:55.575Z",
+  "version": "0.3.0",
+  "date": "2026-09-23T06:42:48.086Z",
   "packages": 10,
   "hill_roster_entries": 32,
   "tests": {
-    "node_passed": 100,
+    "node_passed": 159,
     "browser_baseline": 33,
     "browser_features": 36,
+    "browser_fidelity": 35,
+    "webgpu_checks": 43,
     "browser_errors": [],
     "webgpu_status": "passed",
     "strict_types": "passed in isolated package consumer",
@@ -31,5 +33,5 @@
     "Original replay/save format compatibility"
   ],
   "published_to_npm": false,
-  "standalone_sha256": "c109773cc39cccb060a8decda32fdce06fb5f91cbbec5b92e0e721bbf91846ab"
+  "standalone_sha256": "48561c01db49540a6154ee5baac94f0ef0300e791dee564fb900db97e040e932"
 }

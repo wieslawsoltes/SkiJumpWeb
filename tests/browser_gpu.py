@@ -34,7 +34,7 @@ try {
   const device=renderer.device;device.pushErrorScope('validation');
   const staging=renderer.dynamicData, uniforms=renderer.uniformData;
   for(const hill of HILLS){
-   const sim=new JumpSimulation(hill,{seed:42});const cpu=new CPUController(42,.98);
+   const sim=new JumpSimulation(hill,{seed:42,rules:'dsj210'});const cpu=new CPUController(42,.98);
    renderer.setHill(hill);
    for(let i=0;i<1800 && sim.state.phase!=='flight';i++){cpu.update(sim);sim.step();}
    for(const weather of ['clear','snow','dusk','night']){
@@ -44,7 +44,7 @@ try {
    check(renderer.vertexCount>0&&renderer.vertexCount%3===0,'render hill '+hill.id+' in four weather modes');
   }
   check(renderer.dynamicData===staging&&renderer.uniformData===uniforms,'reused dynamic/uniform staging storage');
-  const sim=new JumpSimulation('fin',{seed:42}); const cpu=new CPUController(42,.98);
+  const sim=new JumpSimulation('fin',{seed:42,rules:'dsj210'}); const cpu=new CPUController(42,.98);
   renderer.setHill('fin');
   for(let i=0;i<14400&&sim.state.phase!=='finished';i++){
    cpu.update(sim);sim.step();if(i%24===0)renderer.render(sim.state,{},1/60);

@@ -2,7 +2,10 @@ import { Events } from '@wieslawsoltes/ski-core';
 import { Hill, HillProfile } from '@wieslawsoltes/ski-hills';
 export type JumpPhase = 'gate' | 'inrun' | 'flight' | 'runout' | 'finished';
 export type Landing = 'none' | 'telemark' | 'parallel';
+export type JumpRules = 'legacy' | 'dsj210';
+export type HillClass = 'small' | 'large' | 'flying';
 export interface JumpOptions {
+    rules?: JumpRules;
     seed?: number;
     gate?: number;
     windStrength?: number;
@@ -32,6 +35,13 @@ export interface JumpState {
     landingTime: number;
     runoutTime: number;
     flightError: number;
+    gateElapsed: number;
+    startRemaining: number;
+    disqualified: boolean;
+    leftLandingTime: number;
+    rightLandingTime: number;
+    telemarkWidth: number;
+    windAngle: number;
 }
 export interface JumpScore {
     distancePoints: number;
@@ -41,6 +51,11 @@ export interface JumpScore {
     crashed: boolean;
 }
 export interface JumpResult extends JumpScore {
+    rules?: JumpRules;
+    disqualified?: boolean;
+    reason?: 'start-time-exceeded';
+    gateElapsed?: number;
+    telemarkWidth?: number;
     hillId: string;
     k: number;
     distance: number;
@@ -59,6 +74,13 @@ export interface JumpResult extends JumpScore {
 }
 export declare const PHYSICS_VERSION: string;
 export declare const FIXED_DT: number;
+export declare const CLASSIC_PHYSICS_VERSION: string;
+export declare const START_WINDOW_SECONDS: 15;
+export declare const START_BLINK_SECONDS: 10;
+export declare const LANDING_CHORD_SECONDS: number;
+export declare function validateRules(rules?: JumpRules): JumpRules;
+export declare function classicHillClass(k: number): HillClass;
+export declare function startSignal(elapsed: number, active?: boolean): { remaining: number; expired: boolean; blinking: boolean; green: boolean; red: boolean };
 export declare class WindField {
     base: number;
     strength: number;
@@ -67,12 +89,14 @@ export declare class WindField {
     constructor(seed?: number, strength?: number, base?: number | null);
     sample(time: number, x?: number): number;
 }
-export declare function pointsPerMetre(k: number): number;
+export declare function pointsPerMetre(k: number, rules?: JumpRules, hillClass?: HillClass): number;
 export declare function scoreJump(input: {
     distance: number;
     k: number;
     judges: number[];
     crashed?: boolean;
+    rules?: JumpRules;
+    hillClass?: HillClass;
 }): JumpScore;
 export declare class JumpSimulation {
     profile: HillProfile;
@@ -83,6 +107,9 @@ export declare class JumpSimulation {
     windField: WindField;
     result: JumpResult | null;
     takeoffX: number | null;
+    physicsVersion: string;
+    landingFoot(side: 'left' | 'right'): boolean;
+    disqualify(): boolean;
     constructor(hill: Hill | HillProfile | string, options?: JumpOptions);
     reset(): void;
     start(): boolean;

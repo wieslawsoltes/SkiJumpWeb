@@ -4,9 +4,29 @@
 
 [![Build, test and package](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml/badge.svg)](https://github.com/wieslawsoltes/SkiJumpWeb/actions/workflows/pages.yml)
 
-A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.2.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
+A playable, independent Deluxe Ski Jump 2–style recreation, implemented in HTML, JavaScript and WebGPU. Version **0.3.0**. Ten reusable MIT-licensed npm packages, with no external runtime assets or downloads.
 
 **This is not a verified full-fidelity clone.** The 32 country/K-point roster entries match the publisher's public list. Hill geometry, physics, scenery, glyphs and sounds are newly authored approximations. Menus follow the original yellow-on-gray/pixel presentation, not a pixel-perfect reconstruction of every original screen. Original `.rpl` files, original saves and Mediamond online records are not supported. See [the fidelity matrix](docs/FIDELITY.md).
+
+## New in 0.3.0 — documented original behavior
+
+The publisher's 2.10 manual was checked directly. The new profile implements the
+15-second start window (blinking at ten seconds remaining), disqualification,
+two-button timed landing gestures, documented distance coefficients and the first
+four team-cup awards. A compact gameplay HUD, observed main-menu order and
+four-page/eight-row records view replace enhanced overlays in the classic view.
+Separate LEFT/RIGHT touch pads expose the same two-input sequence on mobile.
+
+New installations use the new rules, compact presentation and two-button controls.
+Existing settings/cups and low-level SDK callers keep legacy rules. Select
+**Options → DSJ 2.10 Profile** to switch an existing installation. Records and
+ghosts are partitioned by rules/assistance; old scores are not relabelled.
+
+The original numerical input tolerance, stance/impact model, hill-class boundaries,
+aerodynamics, geometry and assets are **not recovered**. See the
+[primary-source and reconstruction register](docs/REFERENCE-DSJ210.md) for the
+precise distinction between documented rules and authored parameters. New v2
+replays store the start clock and per-foot state; old v1 replays remain supported.
 
 ## New in 0.2.0
 
@@ -40,7 +60,7 @@ The build also emits a service worker and manifest. After a successful hosted vi
 | Start | Space or click | START |
 | Take off at the lip | Space; modern left click; classic both mouse buttons | JUMP; classic two-thumb chord |
 | Balance | Gently move mouse down to lean forward, up to raise the nose; arrow keys | Drag vertically; optional permission-gated tilt |
-| Telemark landing | Z or left click shortly before touchdown | TELEMARK |
+| Telemark landing | Classic: one mouse button then the other (either order); Z shortcut | LEFT then RIGHT or reverse; TELEMARK shortcut |
 | Safer parallel landing | X; modern right click; classic both buttons | TWO FEET |
 | Pause / camera / practice retry | P or Escape / C / R | Toolbar / pause menu |
 | Mute / fullscreen | M / F | Options / toolbar |
@@ -74,10 +94,10 @@ Replays can be stored locally, imported/exported as `.sjr.json`, scrubbed, loope
 | `@wieslawsoltes/ski-storage` | Local persistence, records, tours, ghosts and backups |
 | `@wieslawsoltes/ski-ui` | Authored bitmap lettering and HUD |
 
-Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.2.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
+Every package has an ESM entry point, TypeScript declarations, a README/example, license and explicit dependency metadata. All ten packages and their internal dependencies use **0.3.0**. The ten **`.tgz` tarballs are included under `artifacts/`**. They are **not already published to npm**.
 
 ```sh
-npm test                          # 100 deterministic Node tests; links workspace packages locally
+npm test                          # 159 deterministic Node tests; links workspace packages locally
 npm run verify                    # publication-file checks, syntax checks, tests and build
 npm run pack:all                   # regenerate ten npm tarballs, removing stale versions
 node tools/verify-packages.mjs     # install/import tarballs in an isolated offline consumer
@@ -116,7 +136,7 @@ These architectural choices reduce work; they are **not a guarantee of a particu
 
 ## Validation and limitations
 
-**100 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline and 36 additional Chromium workflow checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
+**159 Node tests pass**, including every hill, deterministic inputs, extreme winds, scoring, team/individual qualification, complete 32- and 64-event cups, replay validation and storage failures. **33 baseline, 36 feature-workflow and 35 fidelity-focused Chromium checks pass** using desktop and mobile touch emulation. The additional suite exercises ordered tours, cup state transitions, CPU skipping, event/team drilldowns, practice statistics, record ghosts and replay frame controls. All ten packed SDKs install and import in an isolated offline consumer, with strict TypeScript declarations checked against that consumer.
 
 **Hosted WebGPU validation passed on Chromium using Google's SwiftShader adapter.** The suite executed actual WebGPU rendering and compute across all 32 hills in four weather modes, rendered a complete jump through landing, resized portrait/landscape surfaces, checked validation error scopes, deliberately destroyed the device, and recovered to WebGL2. The Pages workflow now requires this suite to pass rather than accepting an unavailable adapter as a successful GPU test. See [the recorded GPU report](artifacts/browser-webgpu.json), [release evidence](artifacts/release.json) and [testing notes](docs/TESTING.md). Subsequent Pages runs place fresh reports in downloadable source and workflow artifacts without committing generated captures on every build.
 

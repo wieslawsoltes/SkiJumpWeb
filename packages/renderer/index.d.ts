@@ -13,6 +13,7 @@ export interface RenderState {
     pitch?: number;
     lean?: number;
     landing?: string;
+    telemarkWidth?: number;
     crashed?: boolean;
     runoutTime?: number;
     height?: number;

@@ -21,6 +21,56 @@ export function paintLabels(root = document) { root.querySelectorAll('[data-pixe
 export function drawLogo(canvas) { canvas.width = 314; canvas.height = 58; const c = canvas.getContext('2d'); drawText(c, 'DELUXE', 64, 2, '#c2c547', 2); drawText(c, 'SKI JUMP', 5, 22, '#eeee43', 4); drawText(c, '2', 188, 22, '#eeee43', 4); c.fillStyle = '#9fa546'; c.fillRect(62, 17, 138, 2); }
 export function escapeHTML(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 export function downloadText(filename, text, mime = 'application/json') { const blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+/** Reference-space layout measured from the publisher's DSJ2.10 gallery (not copied bitmap assets). */
+export const CLASSIC_HUD_LAYOUT = Object.freeze({ width: 320, height: 200, statusHeight: 13,
+    windWidth: 29, windHeight: 27, right: 4, top: 3, judgeTop: 58, judgeStep: 12 });
+export function drawClassicHUD(ctx, W, H, state, hill, player, options = {}, meta = {}) {
+    const fit = (s, width) => { s = String(s); while (s.length && textWidth(s) > width) s = s.slice(0, -1); return s; };
+    const text = (s, x, y, color = '#eeee43') => drawText(ctx, s, Math.round(x), Math.round(y), color, 1);
+    // Snow belongs behind instruments, never on top of their labels.
+    if (options.weather === 'snow' && meta.backend !== 'webgpu') {
+        ctx.fillStyle = '#f5f8ffbb';
+        for (let i = 0; i < 110; i++) ctx.fillRect(Math.floor(((i * 47.317 + state.time * (4 + state.wind * 2)) % W + W) % W), Math.floor((i * 37.317 + state.time * (5 + i % 7)) % H), 1, 1);
+    }
+    const L = CLASSIC_HUD_LAYOUT, wx = W - L.right - L.windWidth;
+    ctx.fillStyle = '#24242c'; ctx.fillRect(0, H - L.statusHeight, W, L.statusHeight);
+    const landed = state.phase === 'runout' || state.phase === 'finished';
+    const mode = meta.replay ? 'REPLAY' : String(meta.mode || 'PRACTICE');
+    text(fit(mode, W * .49), 3, H - 10);
+    if (state.disqualified) text('DISQUALIFIED', Math.max(W * .51, W - 77), H - 10);
+    else if (landed) text((meta.result?.distance ?? state.distance).toFixed(1) + 'M', W * .53, H - 10);
+    else if (mode !== 'PRACTICE') text(fit(player.name || 'PLAYER', W * .44), W * .53, H - 10);
+    ctx.fillStyle = '#101017'; ctx.fillRect(wx, L.top, L.windWidth, L.windHeight);
+    const wind = Number.isFinite(state.wind) ? state.wind : 0;
+    const angle = Number.isFinite(state.windAngle) ? state.windAngle : wind >= 0 ? Math.PI : 0;
+    // Arrow rotates within the wind box; gust direction is authored because original 2D wind physics is not recovered.
+    const cx = wx + 14, cy = 12, dx = Math.cos(angle), dy = Math.sin(angle), px = -dy, py = dx;
+    ctx.fillStyle = '#ef3030'; ctx.beginPath();
+    ctx.moveTo(cx + dx * 9, cy + dy * 9);
+    ctx.lineTo(cx - dx * 1 + px * 4, cy - dy * 1 + py * 4);
+    ctx.lineTo(cx - dx * 1 + px, cy - dy * 1 + py);
+    ctx.lineTo(cx - dx * 8 + px, cy - dy * 8 + py);
+    ctx.lineTo(cx - dx * 8 - px, cy - dy * 8 - py);
+    ctx.lineTo(cx - dx * 1 - px, cy - dy * 1 - py);
+    ctx.lineTo(cx - dx * 1 - px * 4, cy - dy * 1 - py * 4); ctx.closePath(); ctx.fill();
+    const speed = Math.abs(wind).toFixed(1); text(speed, wx + (L.windWidth - textWidth(speed)) / 2, 21);
+    if (state.phase === 'gate' && !meta.replay) {
+        const elapsed = state.gateElapsed || 0, remaining = state.startRemaining ?? 15;
+        const on = remaining > 10 || Math.floor(elapsed * 4) % 2 === 0;
+        ctx.fillStyle = '#15151a'; ctx.fillRect(wx - 19, 3, 15, 27);
+        ctx.fillStyle = remaining > 0 ? '#651717' : '#ff3830'; ctx.fillRect(wx - 16, 6, 9, 8);
+        ctx.fillStyle = remaining > 0 && on ? '#39e02b' : '#163d14'; ctx.fillRect(wx - 16, 18, 9, 8);
+    }
+    const result = meta.result;
+    if (landed && result && !result.disqualified) {
+        result.judges.forEach((mark, i) => {
+            const x = W - 29, y = L.judgeTop + i * L.judgeStep;
+            ctx.fillStyle = '#20202a'; ctx.fillRect(x, y, 25, 11);
+            text(mark.toFixed(1), x + 1, y + 2, result.counted.includes(i) ? '#eeee43' : '#98954e');
+        });
+    }
+    if (options.showFPS) text(fit(`${meta.backend || ''} ${meta.fps || 0} FPS`, W - 60), 3, 3, '#c9c9d6');
+}
 export class JumpHUD {
     constructor(canvas) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.fps = 0; }
     render(state, hill, player, options = {}, meta = {}) {
@@ -28,6 +78,7 @@ export class JumpHUD {
         ctx.clearRect(0, 0, w, h);
         ctx.save();
         ctx.scale(scale, scale);
+        if (options.presentation === 'classic') { drawClassicHUD(ctx, W, H, state, hill, player, options, meta); ctx.restore(); return; }
         const fit = (s, width) => { s = String(s); while (s.length && textWidth(s) > width)
             s = s.slice(0, -1); return s; };
         const text = (s, x, y, color = '#eeee43', shadow = true) => drawText(ctx, s, x, y, color, 1, shadow), center = (s, y, color) => text(s, (W - textWidth(s)) / 2, y, color);

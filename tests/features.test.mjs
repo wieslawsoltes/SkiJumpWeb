@@ -176,9 +176,9 @@ test('classic takeoff requires a rising two-button chord',()=>{
     const {i,events,setPhase}=input();setPhase('inrun');i.handleMouseButtons(1);assert.deepEqual(events,[]);
     i.handleMouseButtons(3);i.handleMouseButtons(3);assert.deepEqual(events,['takeoff']);
 });
-test('classic landing upgrades a one-button telemark to a two-button parallel landing',()=>{
+test('classic mouse emits independent foot presses; simulation resolves their timing',()=>{
     const {i,events,setPhase}=input();setPhase('flight');i.handleMouseButtons(1);i.handleMouseButtons(3);i.handleMouseButtons(2);i.handleMouseButtons(0);
-    assert.deepEqual(events,['telemark','parallel']);
+    assert.deepEqual(events,['left-foot','right-foot']);
 });
 test('middle mouse button and movement with no buttons never issue jump commands',()=>{
     const {i,events}=input('modern');i.handleMouseButtons(4);i.handleMouseButtons(0);assert.deepEqual(events,[]);

@@ -1,5 +1,5 @@
 import { Hill } from '@wieslawsoltes/ski-hills';
-import { JumpResult, JumpOptions } from '@wieslawsoltes/ski-physics';
+import { JumpResult, JumpOptions, JumpRules } from '@wieslawsoltes/ski-physics';
 export interface Player {
     id: string;
     name: string;
@@ -37,6 +37,7 @@ export interface EventHistory {
     }>;
 }
 export declare const CUP_POINTS: readonly number[];
+export declare const TEAM_CUP_POINTS: readonly number[];
 export declare function normalizePlayer(player?: Partial<Player>, index?: number): Player;
 export declare function createField(humans: Partial<Player>[], aiCount?: number, difficulty?: number): Player[];
 export declare function createTeams(humans: Partial<Player>[], aiTeamCount?: number, difficulty?: number): Team[];
@@ -44,6 +45,7 @@ export declare function ranked<T extends {
     id: string;
 }>(items: T[], value?: (item: T) => number): Ranked<T>[];
 export interface CompetitionOptions {
+    rules?: JumpRules;
     mode?: 'world' | 'team';
     hills?: string[];
     players: Player[];
@@ -52,6 +54,7 @@ export interface CompetitionOptions {
     windStrength?: number;
 }
 export declare class Competition {
+    rules: JumpRules;
     mode: 'world' | 'team';
     hills: string[];
     players: Player[];

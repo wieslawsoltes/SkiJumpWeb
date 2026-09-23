@@ -6,7 +6,7 @@ export interface ReplayPlayerInfo {
     helmet?: string;
     skis?: string;
 }
-export type ReplayFrame = [
+export type LegacyReplayFrame = [
     number,
     number,
     number,
@@ -20,9 +20,10 @@ export type ReplayFrame = [
     number,
     number
 ];
+export type ReplayFrame = LegacyReplayFrame | [...LegacyReplayFrame, number, number, number, number, number, number];
 export interface Replay {
     format: 'ski-jump-web-replay';
-    version: 1;
+    version: 1 | 2;
     physics: string;
     hillId: string;
     player: ReplayPlayerInfo;
@@ -31,8 +32,8 @@ export interface Replay {
     createdAt: string;
     frames: ReplayFrame[];
 }
-export type ReplayState = Pick<JumpState, 'time' | 'x' | 'y' | 'pitch' | 'lean' | 'speed' | 'distance' | 'wind' | 'phase' | 'landing' | 'crashed' | 'quality' | 'z' | 'height' | 'flightTime' | 'runoutTime'>;
-export declare const REPLAY_VERSION: 1;
+export type ReplayState = Pick<JumpState, 'time' | 'x' | 'y' | 'pitch' | 'lean' | 'speed' | 'distance' | 'wind' | 'phase' | 'landing' | 'crashed' | 'quality' | 'z' | 'height' | 'flightTime' | 'runoutTime' | 'gateElapsed' | 'startRemaining' | 'disqualified' | 'leftLandingTime' | 'rightLandingTime' | 'telemarkWidth' | 'windAngle'>;
+export declare const REPLAY_VERSION: 2;
 export declare const REPLAY_PHASES: string[];
 export declare const FRAME_FIELDS: string[];
 export declare class ReplayRecorder {

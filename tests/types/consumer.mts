@@ -28,3 +28,12 @@ const audio = new SkiAudio({volume:.5}); audio.setVolume(.2); audio.dispose();
 const inputClass: typeof SkiInput = SkiInput;
 const random: number = new Random(1).next();
 void [bib,target,exported,time,inputClass,random,UI];
+
+const original = new JumpSimulation('fin', {rules:'dsj210'});
+const footAccepted: boolean = original.landingFoot('left');
+const originalCup = new Competition({players, rules:'dsj210'});
+store.recordKey('fin',false,'dsj210'); store.resetRecords(false,'dsj210');
+const input = new SkiInput(document.body, {}, {rules:'dsj210',control:'classic'});
+input.virtualButton('right',true); input.dispose();
+const classicSize: number = UI.CLASSIC_HUD_LAYOUT.statusHeight;
+void [footAccepted, originalCup, classicSize];

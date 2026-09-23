@@ -25,3 +25,10 @@ Browser packages require their respective platform APIs only when instantiated. 
 This is an independent implementation, not original DSJ2 code, an official port, or a verified 1:1 replica. Geometry, physics, glyphs and audio are newly authored. Original `.rpl`/save files and Mediamond online services are not supported. No original copyrighted assets are included. See the workspace README and `docs/FIDELITY.md` for the exact implementation boundary.
 
 API signatures are in `index.d.ts`; implementation and lifecycle behavior are in `index.js`.
+
+## 0.3.0 reference profile
+
+See [`docs/REFERENCE-DSJ210.md`](../../docs/REFERENCE-DSJ210.md) in the repository
+for documented behavior versus authored reconstruction parameters. New profile
+APIs are declared in `index.d.ts`; old low-level defaults and replay v1 remain
+compatible. Application defaults are separate from the SDK defaults.

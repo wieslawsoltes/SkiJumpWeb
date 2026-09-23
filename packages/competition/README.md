@@ -41,3 +41,10 @@ const csv = competitionCSV(cup);
 ```
 
 Schedules preserve repeats; insert/move/remove validate indices and the 64-event limit. `teamDetails(id)` returns athlete result copies. CSV cells are quoted and formula-prefix escaped.
+
+## 0.3.0 reference profile
+
+See [`docs/REFERENCE-DSJ210.md`](../../docs/REFERENCE-DSJ210.md) in the repository
+for documented behavior versus authored reconstruction parameters. New profile
+APIs are declared in `index.d.ts`; old low-level defaults and replay v1 remain
+compatible. Application defaults are separate from the SDK defaults.

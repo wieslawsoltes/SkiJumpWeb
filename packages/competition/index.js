@@ -1,7 +1,8 @@
 import { clamp, Random, round } from '@wieslawsoltes/ski-core';
 import { getHill } from '@wieslawsoltes/ski-hills';
-import { simulateCPU, pointsPerMetre } from '@wieslawsoltes/ski-physics';
+import { simulateCPU, validateRules, pointsPerMetre } from '@wieslawsoltes/ski-physics';
 export const CUP_POINTS = Object.freeze([100, 80, 60, 50, 45, 40, 36, 32, 29, 26, 24, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+export const TEAM_CUP_POINTS = Object.freeze([200, 160, 120, 100]);
 const aiNames = ['A. KORHONEN', 'M. WEBER', 'J. NOWICKI', 'T. BERG', 'S. YAMAMOTO', 'P. NOVAK', 'L. ROSSI', 'E. ANDERSEN', 'D. MILLER', 'R. KOVAC', 'O. LIND', 'N. MARTIN', 'K. LEE', 'V. PETROV', 'B. FISCHER', 'A. KOVAL'];
 const countries = ['FIN', 'GER', 'POL', 'NOR', 'JPN', 'CZE', 'ITA', 'AUT', 'USA', 'SLO', 'SWE', 'FRA', 'KOR', 'RUS', 'SUI', 'UKR'];
 const suits = ['#225be7', '#dc303b', '#cf3c37', '#14689e', '#8c38b8', '#2a9d66', '#238ed0', '#e95321', '#943db9', '#258753', '#1d7296', '#e7c329'];
@@ -46,7 +47,7 @@ export function ranked(items, value = x => x.total) {
 }
 /** Serializable two-round individual / four-athlete team competition state machine. */
 export class Competition {
-    constructor({ mode = 'world', hills = ['fin'], players, teams = null, seed = 1, windStrength = 1 } = {}) {
+    constructor({ mode = 'world', hills = ['fin'], players, teams = null, seed = 1, windStrength = 1, rules = 'legacy' } = {}) {
         if (!['world', 'team'].includes(mode))
             throw new RangeError('Invalid competition mode');
         if (!hills.length || hills.length > 64)
@@ -58,6 +59,7 @@ export class Competition {
             throw new Error('Player IDs must be unique');
         if (mode === 'team' && (!teams?.length || teams.some(t => t.members.length !== 4)))
             throw new Error('Team cup requires four jumpers per team');
+        this.rules = validateRules(rules);
         this.version = 1;
         this.mode = mode;
         this.hills = [...hills];
@@ -89,7 +91,7 @@ export class Competition {
     buildQueue(order) { return this.mode === 'team' ? [0, 1, 2, 3].flatMap(slot => order.map(t => t.members[slot].id)) : order.map(p => p.id); }
     current() { if (this.status !== 'running')
         return null; return this.players.find(p => p.id === this.queue[this.turn]) || null; }
-    options() { return { seed: this.seed + this.eventIndex * 7919 + this.round * 101, windStrength: this.windStrength, assist: false, gate: 0 }; }
+    options() { return { rules: this.rules, seed: this.seed + this.eventIndex * 7919 + this.round * 101, windStrength: this.windStrength, assist: false, gate: 0 }; }
     rows() {
         if (this.mode === 'world')
             return ranked(this.players.map(p => { const jumps = this.scores[p.id] || []; return { ...p, jumps, total: round(jumps.reduce((n, r) => n + (r?.total || 0), 0), 1) }; }));
@@ -101,6 +103,7 @@ export class Competition {
             throw new Error('No active turn');
         if (!result || result.hillId !== this.hill.id || !Number.isFinite(result.total))
             throw new Error('Result does not match current event');
+        if (result.rules !== undefined && result.rules !== this.rules) throw new Error('Result rules do not match cup');
         if (this.scores[p.id][this.round - 1])
             throw new Error('Result already submitted');
         this.scores[p.id][this.round - 1] = { ...result };
@@ -119,7 +122,7 @@ export class Competition {
             this.status = 'event-complete';
             const rows = this.rows();
             for (const row of rows)
-                this.cup[row.id] = (this.cup[row.id] || 0) + (CUP_POINTS[row.rank - 1] || 0);
+                this.cup[row.id] = (this.cup[row.id] || 0) + ((this.rules === 'dsj210' && this.mode === 'team' ? TEAM_CUP_POINTS : CUP_POINTS)[row.rank - 1] || 0);
             this.history.push({ hillId: this.hill.id, rows: rows.map(r => ({ id: r.id, name: r.name, rank: r.rank, total: r.total, jumps: r.jumps })) });
             return 'event';
         }
@@ -156,7 +159,7 @@ export class Competition {
         const needed = round(leader.total - self.total + .1, 1);
         const k = this.hill.k, base = k >= 165 ? 120 : 60;
         return { leader: leader.name, points: needed, assumedStyle: clamp(stylePoints, 0, 60),
-            distance: Math.max(0, Math.ceil((k + (needed - clamp(stylePoints, 0, 60) - base) / pointsPerMetre(k)) * 2) / 2) };
+            distance: Math.max(0, Math.ceil((k + (needed - clamp(stylePoints, 0, 60) - base) / pointsPerMetre(k, this.rules)) * 2) / 2) };
     }
     teamDetails(teamId) {
         if (this.mode !== 'team') throw new Error('Team details require a team cup');
@@ -194,6 +197,7 @@ export class Competition {
         if (d.mode === 'team' && (!Array.isArray(d.teams) || d.teams.length > 16 || d.teams.some(t => !Array.isArray(t.members) || t.members.length !== 4 || t.members.some(p => !d.players.some(q => q.id === p.id)))))
             throw new Error('Invalid team data');
         const obj = Object.create(Competition.prototype);
+        obj.rules = validateRules(d.rules ?? 'legacy');
         for (const key of ['version', 'mode', 'hills', 'players', 'teams', 'seed', 'windStrength', 'eventIndex', 'round', 'status', 'history', 'cup', 'scores', 'turn', 'queue'])
             obj[key] = d[key];
         return obj;

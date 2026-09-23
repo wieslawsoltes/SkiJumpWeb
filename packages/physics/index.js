@@ -2,6 +2,29 @@ import { clamp, lerp, smoothstep, round, Random, Events, wrapAngle } from '@wies
 import { HillProfile } from '@wieslawsoltes/ski-hills';
 export const PHYSICS_VERSION = 'sjw-1';
 export const FIXED_DT = 1 / 120;
+export const CLASSIC_PHYSICS_VERSION = 'sjw-dsj210-1';
+export const START_WINDOW_SECONDS = 15;
+export const START_BLINK_SECONDS = 10;
+// Input tolerance and stance response are authored, not recovered original constants.
+export const LANDING_CHORD_SECONDS = 1 / 20;
+export function validateRules(rules = 'legacy') {
+    if (rules !== 'legacy' && rules !== 'dsj210') throw new RangeError('Unknown jumping rules');
+    return rules;
+}
+/** Category boundaries are a reconstruction; the three coefficients are documented in READ-ENG.TXT. */
+export function classicHillClass(k) {
+    if (!Number.isFinite(k) || k < 1) throw new RangeError('Invalid K point');
+    return k < 110 ? 'small' : k < 165 ? 'large' : 'flying';
+}
+export function startSignal(elapsed, active = true) {
+    if (!Number.isFinite(elapsed) || elapsed < 0) throw new RangeError('Invalid gate clock');
+    const remaining = Math.max(0, START_WINDOW_SECONDS - elapsed);
+    const blinking = active && remaining > 0 && remaining <= START_BLINK_SECONDS;
+    // Two flashes/second is our presentation choice; the documented onset is exactly ten seconds remaining.
+    return { remaining, expired: remaining === 0, blinking,
+        green: active && remaining > 0 && (!blinking || Math.floor(elapsed * 4) % 2 === 0),
+        red: active && remaining === 0 };
+}
 /** Positive wind is a headwind. Absolute-time noise makes wind independent of input calls. */
 export class WindField {
     constructor(seed = 1, strength = 1, base = null) {
@@ -13,15 +36,20 @@ export class WindField {
     }
     sample(t, x = 0) { return clamp(this.base + (Math.sin(t * .57 + this.phase + x * .008) * .46 + Math.sin(t * 1.23 + this.secondary) * .18) * this.strength, -4.5, 4.5); }
 }
-export function pointsPerMetre(k) { return k < 60 ? 4.8 : k < 70 ? 4.4 : k < 80 ? 4 : k < 90 ? 3.6 : k < 100 ? 2.8 : k < 110 ? 2.4 : k < 165 ? 1.8 : 1.2; }
-export function scoreJump({ distance, k, judges, crashed = false }) {
+export function pointsPerMetre(k, rules = 'legacy', hillClass = classicHillClass(k)) {
+    validateRules(rules);
+    if (!['small', 'large', 'flying'].includes(hillClass)) throw new RangeError('Invalid hill class');
+    if (rules === 'dsj210') return { small: 2, large: 1.8, flying: 1.2 }[hillClass];
+    return k < 60 ? 4.8 : k < 70 ? 4.4 : k < 80 ? 4 : k < 90 ? 3.6 : k < 100 ? 2.8 : k < 110 ? 2.4 : k < 165 ? 1.8 : 1.2; }
+export function scoreJump({ distance, k, judges, crashed = false, rules = 'legacy', hillClass = classicHillClass(k) }) {
     if (!Number.isFinite(distance) || distance < 0 || !Number.isFinite(k) || k < 1)
         throw new TypeError('Invalid jump distance or hill');
     if (!Array.isArray(judges) || judges.length !== 5 || judges.some(n => !Number.isFinite(n) || n < 0 || n > 20))
         throw new TypeError('Exactly five valid judge marks are required');
     const sorted = judges.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v || a.i - b.i);
     const counted = sorted.slice(1, 4).map(j => j.i);
-    const distancePoints = round((k >= 165 ? 120 : 60) + (distance - k) * pointsPerMetre(k), 1);
+    const flying = rules === 'dsj210' ? hillClass === 'flying' : k >= 165;
+    const distancePoints = round((flying ? 120 : 60) + (distance - k) * pointsPerMetre(k, rules, hillClass), 1);
     const stylePoints = round(sorted.slice(1, 4).reduce((n, j) => n + j.v, 0), 1);
     return { distancePoints, stylePoints, total: round(Math.max(0, distancePoints + stylePoints), 1), counted, crashed };
 }
@@ -29,7 +57,9 @@ export class JumpSimulation {
     constructor(hill, options = {}) {
         this.profile = hill instanceof HillProfile ? hill : new HillProfile(hill);
         this.hill = this.profile.hill;
-        this.options = { seed: 1, gate: 0, windStrength: 1, windBase: null, assist: false, ...options };
+        this.options = { rules: 'legacy', seed: 1, gate: 0, windStrength: 1, windBase: null, assist: false, ...options };
+        this.options.rules = validateRules(this.options.rules);
+        this.physicsVersion = this.options.rules === 'dsj210' ? CLASSIC_PHYSICS_VERSION : PHYSICS_VERSION;
         this.options.gate = clamp(Number(this.options.gate) || 0, -5, 8);
         this.events = new Events();
         this.windField = new WindField(this.options.seed, this.options.windStrength, this.options.windBase);
@@ -40,6 +70,8 @@ export class JumpSimulation {
         this.state = { phase: 'gate', time: 0, flightTime: 0, x: p.startX + 2 + this.options.gate * .8, y: 0, z: 0, vx: 0, vy: 0, speed: 0,
             lean: 0, pitch: -Math.atan(p.steepSlope), angularVelocity: 0, wind: 0, height: 0, distance: 0, quality: 0,
             takeoff: false, landing: 'none', crashed: false, landingTime: 0, runoutTime: 0, flightError: 0 };
+        Object.assign(this.state, { gateElapsed: 0, startRemaining: START_WINDOW_SECONDS, disqualified: false,
+            leftLandingTime: -1, rightLandingTime: -1, telemarkWidth: 0, windAngle: 0 });
         this.state.y = p.inrunY(this.state.x);
         this.state.wind = this.windField.sample(0, this.state.x);
         this.result = null;
@@ -59,13 +91,38 @@ export class JumpSimulation {
         this.events.emit('takeoff', { quality: s.quality, x: s.x });
         return true;
     }
+    /** Deploy one ski independently. Either order works; repeated presses on the same ski are inert. */
+    landingFoot(side) {
+        const s = this.state;
+        if (side !== 'left' && side !== 'right') return false;
+        if (this.options.rules === 'legacy') return this.land(s.landing === 'none' ? 'telemark' : 'parallel');
+        if (s.phase !== 'flight' || s.flightTime < .28 || s[side + 'LandingTime'] >= 0) return false;
+        s[side + 'LandingTime'] = s.flightTime;
+        if (s.landing === 'none') { s.landingTime = s.flightTime; s.landing = 'telemark'; }
+        const both = s.leftLandingTime >= 0 && s.rightLandingTime >= 0;
+        if (both) {
+            const delay = Math.abs(s.leftLandingTime - s.rightLandingTime);
+            s.landing = delay <= LANDING_CHORD_SECONDS + 1e-9 ? 'parallel' : 'telemark';
+            s.telemarkWidth = s.landing === 'parallel' ? 0 : clamp(delay * 2.5, 0, 1.5);
+        }
+        this.events.emit('landing-foot', { side, time: s.flightTime, complete: both });
+        return true;
+    }
+    /** Accessible one-action preparation, also used by CPU control. Not an original mouse gesture. */
     land(kind = 'telemark') {
         const s = this.state;
         if (s.phase !== 'flight' || s.flightTime < .28)
             return false;
         if (kind !== 'telemark' && kind !== 'parallel')
             return false;
-        // A second simultaneous button upgrades telemark to a safer two-foot landing.
+        if (this.options.rules === 'dsj210') {
+            // Explicit accessibility actions complete both feet; raw mouse input uses landingFoot instead.
+            if (s.landing !== 'none' && kind !== 'parallel') return false;
+            s.leftLandingTime = s.rightLandingTime = s.flightTime;
+            s.telemarkWidth = kind === 'telemark' ? .5 : 0;
+        }
+        // Legacy one-action preparation retains its pre-profile visual stance.
+        if (this.options.rules === 'legacy' && (s.landing === 'none' || kind === 'parallel')) s.telemarkWidth = kind === 'telemark' ? .5 : 0;
         if (s.landing === 'none') {
             s.landingTime = s.flightTime;
             s.landing = kind;
@@ -75,10 +132,23 @@ export class JumpSimulation {
             s.landing = 'parallel';
         return true;
     }
-    command(kind) { if (kind === 'start')
+    command(kind) { if (kind === 'left-foot' || kind === 'right-foot') return this.landingFoot(kind.split('-')[0]); if (kind === 'start')
         return this.start(); if (kind === 'takeoff')
         return this.takeoff(); if (kind === 'telemark' || kind === 'parallel')
         return this.land(kind); return false; }
+    disqualify() {
+        const s = this.state;
+        if (s.phase !== 'gate') return false;
+        s.disqualified = true; s.startRemaining = 0; s.phase = 'finished';
+        this.result = { hillId: this.hill.id, k: this.hill.k, distance: 0, judges: [0, 0, 0, 0, 0],
+            landing: 'none', crashed: false, disqualified: true, reason: 'start-time-exceeded',
+            takeoffQuality: 0, takeoffX: null, flightTime: 0, speed: 0, wind: round(s.wind, 2), impact: 0,
+            seed: this.options.seed, assisted: !!this.options.assist, gate: this.options.gate,
+            physics: this.physicsVersion, rules: this.options.rules, distancePoints: 0, stylePoints: 0,
+            total: 0, counted: [], gateElapsed: s.gateElapsed, telemarkWidth: 0 };
+        this.events.emit('disqualified', this.result); this.events.emit('finish', this.result);
+        return true;
+    }
     control(delta) { if (this.state.phase === 'flight' && Number.isFinite(delta))
         this.state.lean = clamp(this.state.lean + delta, -1.25, 1.25); }
     snapshot() { return { ...this.state }; }
@@ -89,11 +159,21 @@ export class JumpSimulation {
         if (s.phase === 'finished')
             return;
         if (s.phase === 'gate') {
-            s.wind = this.windField.sample(0, s.x);
+            if (this.options.rules === 'dsj210') {
+                const step = Math.min(dt, START_WINDOW_SECONDS - s.gateElapsed);
+                s.gateElapsed = Math.min(START_WINDOW_SECONDS, s.gateElapsed + step);
+                // Avoid a one-tick grace period caused by accumulated floating point error.
+                if (START_WINDOW_SECONDS - s.gateElapsed < 1e-9) s.gateElapsed = START_WINDOW_SECONDS;
+                s.time = s.gateElapsed; s.startRemaining = START_WINDOW_SECONDS - s.gateElapsed;
+                s.wind = this.windField.sample(s.time, s.x);
+                s.windAngle = Math.atan2(.25 * Math.sin(s.time * .31 + this.options.seed), -s.wind);
+                if (s.startRemaining === 0) this.disqualify();
+            } else s.wind = this.windField.sample(0, s.x);
             return;
         }
         s.time += dt;
         s.wind = this.windField.sample(s.time, s.x);
+        s.windAngle = Math.atan2(.25 * Math.sin(s.time * .31 + this.options.seed), -s.wind);
         if (s.phase === 'inrun') {
             const d = p.inrunDerivative(s.x), cos = 1 / Math.sqrt(1 + d * d), sin = -d * cos;
             s.speed = Math.max(0, s.speed + (9.81 * (sin - .022 * cos) - .00105 * s.speed * s.speed) * dt);
@@ -193,17 +273,21 @@ export class JumpSimulation {
         const prep = s.landing === 'none' ? 0 : s.flightTime - s.landingTime;
         const over = s.distance / this.hill.k;
         const safe = (s.landing === 'parallel' ? 1.95 : 1.48) * Math.sqrt(this.hill.k);
-        s.crashed = s.crashed || s.landing === 'none' || prep < .075 || normalSpeed > safe || Math.abs(s.lean) > 1.07 || (over > 1.32 && s.landing === 'telemark');
+        const incomplete = this.options.rules === 'dsj210' && (s.leftLandingTime < 0 || s.rightLandingTime < 0);
+        const overWide = this.options.rules === 'dsj210' && s.telemarkWidth > 1.25;
+        s.crashed = s.crashed || incomplete || overWide || s.landing === 'none' || prep < .075 || normalSpeed > safe || Math.abs(s.lean) > 1.07 || (over > 1.32 && s.landing === 'telemark');
         const avgError = s.flightError / Math.max(.1, s.flightTime);
         let style = s.crashed ? 7.8 : 20 - (s.landing === 'parallel' ? 2.1 : 0) - clamp(avgError * .75, 0, 2.5) - Math.max(0, normalSpeed / Math.sqrt(this.hill.k) - .55) * .8 - Math.max(0, prep - .8) * .9;
+        if (this.options.rules === 'dsj210' && s.landing === 'telemark' && !s.crashed)
+            style -= Math.abs(s.telemarkWidth - .55) * 1.5;
         const r = new Random(this.options.seed + Math.round(s.distance * 100));
         const judges = Array.from({ length: 5 }, () => clamp(Math.round((style + r.range(-.55, .35)) * 2) / 2, 0, 20));
         const distance = Math.floor(Math.max(0, s.distance) * 100) / 100;
         this.result = { hillId: this.hill.id, k: this.hill.k, distance, judges, landing: s.landing, crashed: s.crashed,
             takeoffQuality: round(s.quality, 3), takeoffX: this.takeoffX, flightTime: round(s.flightTime, 3),
             speed: round(s.speed * 3.6, 1), wind: round(s.wind, 2), impact: round(normalSpeed, 2), seed: this.options.seed,
-            assisted: !!this.options.assist, gate: this.options.gate, physics: PHYSICS_VERSION,
-            ...scoreJump({ distance, k: this.hill.k, judges, crashed: s.crashed }) };
+            assisted: !!this.options.assist, gate: this.options.gate, physics: this.physicsVersion, rules: this.options.rules, gateElapsed: s.gateElapsed, telemarkWidth: s.telemarkWidth, disqualified: false,
+            ...scoreJump({ distance, k: this.hill.k, judges, crashed: s.crashed, rules: this.options.rules }) };
         s.phase = 'runout';
         s.runoutTime = 0;
         this.events.emit(s.crashed ? 'crash' : 'land', this.result);

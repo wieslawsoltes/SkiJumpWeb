@@ -50,7 +50,7 @@ export class SkiInput {
             return;
         const p = this.phase(), both = (buttons & 3) === 3;
         if (p === 'gate') {
-            this.action('start');
+            if ((buttons & ~previous & 1) !== 0) this.action('start');
             return;
         }
         if (p === 'inrun') {
@@ -59,20 +59,35 @@ export class SkiInput {
             return;
         }
         if (p === 'flight') {
+            if (this.options.control === 'classic') {
+                if (buttons & ~previous & 1) this.action('left-foot');
+                if (buttons & ~previous & 2) this.action('right-foot');
+                return;
+            }
             if (both || (this.options.control === 'modern' && (buttons & 2)))
                 this.action('parallel');
             else if (buttons & 3)
                 this.action('telemark');
         }
     }
+    virtualButton(side, down) {
+        if (!this.enabled || !['left', 'right'].includes(side)) return;
+        const mask = side === 'left' ? 1 : 2;
+        if (down) this.handleMouseButtons(this.lastButtons | mask);
+        else this.lastButtons &= ~mask;
+    }
     pointerDown(e) {
         if (!this.enabled || this.interactive(e.target))
             return;
-        e.preventDefault();
         this.handlers.unlock?.();
         this.lastMouse = { x: e.clientX, y: e.clientY };
-        if (e.pointerType === 'mouse')
+        if (e.pointerType === 'mouse') {
+            // Canceling mouse pointerdown suppresses compatibility mousedown, including the chord.
+            // Handle the first edge here; the mousedown listener handles additional buttons, deduplicated.
+            this.handleMouseButtons(e.buttons);
             return;
+        }
+        e.preventDefault();
         this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, startY: e.clientY });
         try {
             this.element.setPointerCapture(e.pointerId);
@@ -80,7 +95,7 @@ export class SkiInput {
         catch { }
         if (this.phase() === 'gate')
             this.action('start');
-        else if (this.options.control === 'classic' && this.pointers.size >= 2)
+        else if (this.options.control === 'classic' && this.options.rules !== 'dsj210' && this.pointers.size >= 2)
             this.primary(true);
     }
     pointerMove(e) {

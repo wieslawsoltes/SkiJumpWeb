@@ -49,7 +49,7 @@ with sync_playwright() as p:
  page.evaluate("__SKI_DEBUG__.showSetup('team')");screenshot(page,'team-cup-setup');check(page.evaluate("__SKI_DEBUG__.setupMode==='team'"),'team cup setup opens')
  page.evaluate("()=>{const a=__SKI_DEBUG__;a.settings.resolution='classic';a.settings.weather='snow';a.applySettings();}")
  prepare(page,'slo');page.keyboard.press('Space');advance(page,"s.phase==='flight'&&s.x>80",True);render(page);screenshot(page,'slovenia-snow')
- check(page.evaluate("!__SKI_DEBUG__.renderer.gl||__SKI_DEBUG__.renderer.gl.getError()===0"),'WebGL2 renders without GL errors')
+ check(page.evaluate("!__SKI_DEBUG__.renderer.gl||__SKI_DEBUG__.renderer.gl.getError()===0"),'active rendering backend reports no GL errors')
  check(page.evaluate('__SKI_DEBUG__.audio.ready'),'procedural audio unlocks after interaction');page.evaluate("()=>{const a=__SKI_DEBUG__.audio;for(let i=0;i<100;i++)a.play('menu');a.setVolume(.5,true)}");check(page.evaluate('__SKI_DEBUG__.audio.voices.size<=20&&__SKI_DEBUG__.audio.muted'),'audio voice budget and mute')
  # Exercise portrait touch, then rotate the same live flight into landscape.
  ctx=browser.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,device_scale_factor=1)

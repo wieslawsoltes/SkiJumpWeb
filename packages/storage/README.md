@@ -30,3 +30,10 @@ API signatures are in `index.d.ts`; implementation and lifecycle behavior are in
 ## Local records and tours (0.2)
 
 `hillLeaderboard(hillId, assisted, limit)` defaults to ten visible bests; up to 64 player-name bests are retained separately per hill and assisted mode. `personalBests(name)` returns that player's retained hill results. `saveTour({name,hills})`, `tours()` and `deleteTour(name)` manage up to 20 named ordered/repeated tours. `renameReplay(id,label)` changes the library display name, not recording identity. Backup import/export includes boards/tours and validates saved cups before writing. Local records are not server-verified rankings.
+
+## 0.3.0 reference profile
+
+See [`docs/REFERENCE-DSJ210.md`](../../docs/REFERENCE-DSJ210.md) in the repository
+for documented behavior versus authored reconstruction parameters. New profile
+APIs are declared in `index.d.ts`; old low-level defaults and replay v1 remain
+compatible. Application defaults are separate from the SDK defaults.

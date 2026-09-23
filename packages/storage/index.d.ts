@@ -1,6 +1,8 @@
-import { JumpResult } from '@wieslawsoltes/ski-physics';
+import { JumpResult, JumpRules } from '@wieslawsoltes/ski-physics';
 import { Replay, ReplayPlayerInfo } from '@wieslawsoltes/ski-replay';
 export interface Settings {
+    rules: JumpRules;
+    presentation: 'classic' | 'enhanced';
     resolution: 'classic' | 'sharp' | 'native';
     renderer: 'auto' | 'webgl' | 'software';
     weather: 'clear' | 'snow' | 'dusk' | 'night';
@@ -68,16 +70,17 @@ export declare class GameStore {
     settings(): Settings;
     saveSettings(settings: Partial<Settings>): boolean;
     records(): Record<string, HillRecord>;
-    recordKey(hillId: string, assisted?: boolean): string;
+    resetRecords(assisted?: boolean, rules?: 'legacy' | 'dsj210'): void;
+    recordKey(hillId: string, assisted?: boolean, rules?: JumpRules): string;
     leaderboards(): Record<string, HillRecord[]>;
-    hillLeaderboard(hillId: string, assisted?: boolean, limit?: number): HillRecord[];
-    personalBests(name: string, assisted?: boolean): Record<string, HillRecord>;
+    hillLeaderboard(hillId: string, assisted?: boolean, limit?: number, rules?: JumpRules): HillRecord[];
+    personalBests(name: string, assisted?: boolean, rules?: JumpRules): Record<string, HillRecord>;
     tours(): Array<{ name: string; hills: string[] }>;
     saveTour(tour: { name: string; hills: string[] }): string;
     deleteTour(name: string): void;
     renameReplay(id: string, name: string): void;
     updateRecord(result: JumpResult, player: ReplayPlayerInfo, replay?: Replay | null): boolean;
-    ghost(hillId: string, assisted?: boolean): Replay | null;
+    ghost(hillId: string, assisted?: boolean, rules?: JumpRules): Replay | null;
     replays(): ReplayEntry[];
     saveReplay(replay: Replay): string;
     loadReplay(id: string): Replay | null;

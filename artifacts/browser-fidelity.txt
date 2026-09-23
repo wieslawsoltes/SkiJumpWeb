@@ -1,0 +1,91 @@
+PASS fresh game selects documented rules and compact presentation
+PASS observed main-menu order is retained with browser extensions separate
+PASS sound setup changes the actual procedural mixer volume
+PASS original record screen shows eight hills per page
+PASS fourth record page reaches the final original hill
+PASS record paging wraps without losing roster order
+PASS record reset is guarded by an explicit cancelable confirmation
+PASS quit saves the local session instead of attempting an unauthorized tab close
+PASS practice actually uses selected rules
+PASS right mouse button alone does not start original-profile jump
+PASS green start signal reaches ten seconds remaining
+PASS pausing preserves the running start clock
+PASS gate timeout shows an explicit disqualification result
+PASS disqualified jump scores zero and never becomes a hill record
+PASS disqualification is not counted as a successful landing
+PASS new replay schema records the gate and timed stance
+PASS replay retains disqualification at its terminal frame
+PASS left mouse click starts sliding
+PASS one mouse button does not take off in classic mode
+PASS two-button chord performs takeoff
+PASS first landing press deploys only the selected foot
+PASS sequential right/left presses produce timed telemark instead of parallel landing
+PASS same-tick two-button landing is parallel
+PASS judge plaques are drawn at the original reference-space location
+PASS classic HUD is sparse with a thirteen-pixel bottom band
+PASS new records are stored in the DSJ 2.10 rules partition
+PASS original-profile preset restores two-button controls and disables enhanced guides
+PASS portrait provides separate virtual left and right mouse buttons
+PASS virtual right button alone cannot start
+PASS virtual left button starts in portrait
+PASS actual two-contact touch chord takes off
+PASS touch pads reproduce left-then-right telemark timing
+PASS rotation preserves simulation and timed landing state
+PASS landscape keeps virtual mouse controls reachable
+PASS original-profile desktop and touch paths produce no JavaScript exceptions
+{
+  "version": "0.3.0",
+  "checks": 35,
+  "passed": [
+    "fresh game selects documented rules and compact presentation",
+    "observed main-menu order is retained with browser extensions separate",
+    "sound setup changes the actual procedural mixer volume",
+    "original record screen shows eight hills per page",
+    "fourth record page reaches the final original hill",
+    "record paging wraps without losing roster order",
+    "record reset is guarded by an explicit cancelable confirmation",
+    "quit saves the local session instead of attempting an unauthorized tab close",
+    "practice actually uses selected rules",
+    "right mouse button alone does not start original-profile jump",
+    "green start signal reaches ten seconds remaining",
+    "pausing preserves the running start clock",
+    "gate timeout shows an explicit disqualification result",
+    "disqualified jump scores zero and never becomes a hill record",
+    "disqualification is not counted as a successful landing",
+    "new replay schema records the gate and timed stance",
+    "replay retains disqualification at its terminal frame",
+    "left mouse click starts sliding",
+    "one mouse button does not take off in classic mode",
+    "two-button chord performs takeoff",
+    "first landing press deploys only the selected foot",
+    "sequential right/left presses produce timed telemark instead of parallel landing",
+    "same-tick two-button landing is parallel",
+    "judge plaques are drawn at the original reference-space location",
+    "classic HUD is sparse with a thirteen-pixel bottom band",
+    "new records are stored in the DSJ 2.10 rules partition",
+    "original-profile preset restores two-button controls and disables enhanced guides",
+    "portrait provides separate virtual left and right mouse buttons",
+    "virtual right button alone cannot start",
+    "virtual left button starts in portrait",
+    "actual two-contact touch chord takes off",
+    "touch pads reproduce left-then-right telemark timing",
+    "rotation preserves simulation and timed landing state",
+    "landscape keeps virtual mouse controls reachable",
+    "original-profile desktop and touch paths produce no JavaScript exceptions"
+  ],
+  "errors": [],
+  "renderer": {
+    "backend": "webgl2",
+    "resolution": [
+      320,
+      200
+    ],
+    "triangles": 18072,
+    "fps": 9,
+    "staticBytes": 1301184,
+    "deviceLosses": 0,
+    "fallbackReason": null,
+    "lastError": null
+  },
+  "scope": "Behavioral reference tests and Chromium touch emulation, not pixel/physics equivalence or physical-device certification."
+}

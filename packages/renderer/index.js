@@ -202,7 +202,7 @@ function skierMesh(state, player = {}, ghost = false) {
         foot = [-.05, .1, 0];
     }
     for (const side of [-1, 1]) {
-        const vstyle = flight && s.landing === 'none', tele = standing && s.landing === 'telemark', shift = tele ? side * .45 : 0;
+        const vstyle = flight && s.landing === 'none', tele = (standing || flight) && s.landing === 'telemark', width = s.telemarkWidth ?? .5, shift = tele ? side * width * .9 : 0;
         const z = side * .19;
         const back = [-1.55 + shift, .02, vstyle ? side * .055 : z], tip = [1.55 + shift, .02, vstyle ? side * .65 : z];
         limb(back, tip, .067, skis);

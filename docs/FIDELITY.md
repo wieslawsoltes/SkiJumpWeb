@@ -5,10 +5,10 @@ The request targets a full-fidelity DSJ2 recreation. **This release does not est
 | Area | Implemented | Not established / not included |
 |---|---|---|
 | Hill roster | All 32 publisher-listed country/K-point entries, in listed order | Original per-hill meshes, exact curvature, dimensions and scenery placement |
-| Visuals | Pixelated 3D, yellow bitmap labels, gray menus, wood ramps, forest/snow/mountains, low-poly skier | Per-pixel match, original fonts, original backgrounds/textures or identical animations |
-| Input | Classic button chords plus keyboard/touch/tilt/gamepad adapters | Exact original sensitivity transfer function or device-specific parity |
+| Visuals | Measured compact HUD positions, observed main-menu ordering and eight-row record pages; authored 3D, glyphs and scenery | Per-pixel match, original fonts, original backgrounds/textures or identical animations |
+| Input | Left-button start, rising two-button takeoff, independent timed landing feet; separate virtual touch buttons and accessible shortcuts | Exact original sensitivity transfer function or device-specific parity |
 | Physics | Deterministic inrun, timing-dependent impulse, lift/drag, body angle, wind, landing preparation and collisions | Recovered original constants, bit-identical trajectories, exact original exploits/records |
-| Rules | Five judges, dropped extremes, distance/style totals, two-round cups and team rounds | Proof that every scoring threshold, tie detail and cup rule matches the DOS executable |
+| Rules | Documented 15/10-second start behavior, distance coefficients, first-four team awards; legacy/new profile separation | Proof that every scoring threshold, tie detail and cup rule matches the DOS executable |
 | Modes | Practice/session statistics, World Cup, Team Cup, editable repeated-venue tours, start lists/history and up to 16 hot-seat humans | Network multiplayer, original service connectivity |
 | Replays | Own validated numeric format, reverse playback, exact sample stepping, phase markers, bounded loops and cameras | `.rpl` import/export compatibility |
 | Persistence | Local top-ten/personal records, separate assisted records, players, saved cups/tours, replay labels and JSON backup | Original save format compatibility or server-verified world records |
@@ -34,3 +34,11 @@ Capture a reproducible reference corpus from an authorized original installation
 The publisher overview confirms the original's high-level hill count, practice/world/team modes, replays, web records and 16-player support. It does not specify every original UI command, tie-break, replay speed or editable-tour feature. The new schedule editor, history views, CSV output, bounded replay loops and session statistics are independently authored implementations/extensions; they are **not asserted to be documented DSJ2 features or pixel-identical replicas**. This version does not change hill profiles or physics constants, and the numeric replay/save schemas remain version 1.
 
 Validation checks correctness of our implementation. The dedicated WebGPU test records whether an actual WebGPU adapter executed render and compute work; a SwiftShader adapter is not a hardware-performance or mobile-compatibility certification. No proprietary original assets or services are bundled or connected.
+
+## 0.3.0 evidence classification
+
+See [DSJ 2.10 reference register](REFERENCE-DSJ210.md) for publisher archive SHA-256,
+manual line references, measured HUD/menu layouts, and all authored thresholds.
+New rules have independent scores/ghosts and serialized cup state. Replay v2
+retains start/stance state without dropping v1 compatibility. This release does
+not establish original hill/aerodynamic/bitmap/audio/binary-format equivalence.

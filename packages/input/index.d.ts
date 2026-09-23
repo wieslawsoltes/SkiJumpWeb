@@ -2,6 +2,7 @@ export interface InputOptions {
     sensitivity?: number;
     control?: 'modern' | 'classic';
     motion?: boolean;
+    rules?: 'legacy' | 'dsj210';
 }
 export interface InputHandlers {
     phase?: () => string;
@@ -13,6 +14,7 @@ export declare class SkiInput {
     enabled: boolean;
     options: InputOptions;
     constructor(element: HTMLElement, handlers: InputHandlers, options?: InputOptions);
+    virtualButton(side: 'left' | 'right', down: boolean): void;
     setEnabled(value: boolean): void;
     setOptions(options: InputOptions): void;
     phase(): string;

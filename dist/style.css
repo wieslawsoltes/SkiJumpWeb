@@ -8,3 +8,48 @@
 
 /* Additional classic-menu views retain the 640x400 logical UI and touch scaling. */
 .tour-events{max-height:139px;overflow:auto;scrollbar-width:thin;border-top:1px solid #77793d;border-bottom:1px solid #77793d;margin:4px 0 8px}.tour-event{display:flex;align-items:center;gap:4px;padding:3px 2px;border-bottom:1px solid #88883333;font-size:10px}.tour-event strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.small-button.tiny{font-size:8px;padding:3px 5px;min-height:22px}.table-link{padding:0;border:0;color:var(--yellow);background:transparent;font:inherit;text-align:left}.table-link:hover{text-decoration:underline}.start-list-table{max-height:190px}#menu-layer[data-view=tour] .toolbar{margin-bottom:5px}#menu-layer[data-view=tour] .toolbar select{width:auto;max-width:210px}#menu-layer[data-view=tour] .toolbar input{width:240px}#menu-layer[data-view=tour] .buttons{margin-top:4px}#replay-controls{flex-wrap:wrap}.replay-extra{display:flex;flex-wrap:wrap;gap:4px;width:100%}#replay-controls .replay-extra button{flex:1;padding:4px;min-width:35px;font-size:9px;min-height:27px}#arena.portrait .tour-events{max-height:42vh}#arena.portrait .tour-event{flex-wrap:wrap;font-size:12px;padding:6px 2px}#arena.portrait .tour-event strong{flex-basis:100%;white-space:normal}#arena.portrait .small-button.tiny{min-height:34px;font-size:11px;padding:5px 9px}#arena.portrait #replay-controls .replay-extra button{min-height:34px;font-size:9px}#arena.portrait #replay-seek{order:0}#arena.portrait .start-list-table{max-height:49vh}
+/* Documented-behavior profile: compact, sparse HUD and independent touch mouse pads. */
+#classic-pads { position:absolute; inset:auto 0 74px; display:flex; justify-content:space-between; padding:0 14px; pointer-events:none; }
+#classic-pads button { pointer-events:auto; touch-action:none; user-select:none; min-width:76px; min-height:48px; background:#20212dd9; color:#eeee43; border:1px solid #c9c74b; border-radius:0; font:700 14px monospace; }
+#classic-pads button:active { background:#686941; }
+#classic-pads[hidden] { display:none!important; }
+#arena[data-presentation=classic] #game-toolbar { opacity:.22; transition:opacity .12s; }
+#arena[data-presentation=classic] #game-toolbar:hover, #arena[data-presentation=classic] #game-toolbar:focus-within { opacity:1; }
+@media(pointer:coarse) { #arena[data-presentation=classic] #game-toolbar { opacity:.8; } }
+@media(orientation:landscape) { #classic-pads { bottom:68px; } }
+
+/* DSJ 2.10 measured menu rhythm. The background and glyphs remain our own artwork. */
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=main] #menu-header,
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=records] #menu-header { height:70px; min-height:70px; }
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=main] #logo,
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=records] #logo { width:236px; height:44px; margin-left:20px; }
+#arena[data-presentation=classic]:not(.portrait) .main-menu { position:absolute; left:96px; top:152px; width:240px; margin:0; gap:0; padding:0; }
+#arena[data-presentation=classic]:not(.portrait) .main-menu .menu-item { min-height:24px; height:24px; padding:4px 2px; }
+#arena[data-presentation=classic] .main-menu .menu-item:hover,
+#arena[data-presentation=classic] .main-menu .menu-item:focus-visible { outline:1px solid #49d8d1; outline-offset:-1px; background:transparent; }
+#arena[data-presentation=classic] .main-menu .menu-item:hover:before,
+#arena[data-presentation=classic] .main-menu .menu-item:focus-visible:before { content:none; }
+#arena[data-presentation=classic] .main-menu [data-action=quit] { margin-top:16px; }
+.classic-extensions { position:absolute; left:16px; right:16px; bottom:24px; display:flex; gap:6px; flex-wrap:wrap; }
+.classic-extensions .small-button { font-size:9px; min-height:20px; padding:3px 6px; }
+.classic-records { margin:23px 0 0 83px; }
+.classic-record { display:grid; grid-template-columns:140px 74px 1fr; width:430px; min-height:20px; border:0; background:transparent; padding:2px 0; text-align:left; }
+.classic-record:hover,.classic-record:focus-visible { outline:1px solid #49d8d1; outline-offset:-1px; }
+.record-page { position:absolute; top:88px; right:43px; }
+.classic-record-nav { margin:23px 0 0 83px; display:grid; grid-template-columns:280px 1fr; }
+.classic-record-nav .menu-item { padding:3px 0; }
+#arena[data-presentation=classic] #menu-layer[data-view=records] .record-extensions { font-size:8px; margin-top:4px; }
+#arena[data-presentation=classic] #menu-layer[data-view=records] .record-extensions .small-button { font-size:8px; min-height:18px; padding:2px 5px; }
+.sound-setup { max-width:330px; margin:30px auto; }
+#arena.portrait .classic-extensions { position:static; margin-top:20px; }
+#arena.portrait .classic-records { margin:12px 0; }
+#arena.portrait .classic-record { grid-template-columns:136px 76px 1fr; width:100%; min-height:34px; }
+#arena.portrait .record-page { position:static; display:block; margin:8px 0 12px; }
+#arena.portrait .classic-record-nav { margin:12px 0; grid-template-columns:1fr; }
+#arena.portrait .classic-record-nav .menu-item { min-height:34px; }
+
+#arena[data-presentation=classic] #menu-layer { background:rgba(22,23,30,.46); }
+.classic-record-tools { position:absolute; right:16px; bottom:24px; max-width:380px; font-size:9px; text-align:right; }
+.classic-record-tools summary { cursor:pointer; color:#cbce86; padding:4px; }
+.classic-record-tools[open] { padding:8px; background:#20232df5; border:1px solid #93984c; text-align:left; z-index:7; }
+#arena.portrait .classic-record-tools { position:static; margin:12px 0; max-width:none; text-align:left; }

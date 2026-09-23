@@ -1,6 +1,6 @@
 {
   "name": "@wieslawsoltes/ski-renderer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Reusable classic ski jumping renderer package",
   "main": "./index.js",
@@ -28,8 +28,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@wieslawsoltes/ski-core": "0.2.0",
-    "@wieslawsoltes/ski-hills": "0.2.0"
+    "@wieslawsoltes/ski-core": "0.3.0",
+    "@wieslawsoltes/ski-hills": "0.3.0"
   },
   "repository": {
     "type": "git",

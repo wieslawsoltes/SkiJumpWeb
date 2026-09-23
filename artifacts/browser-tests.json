@@ -21,7 +21,7 @@
     "hot-seat player creation",
     "custom cup supports all 32 hills",
     "team cup setup opens",
-    "WebGL2 renders without GL errors",
+    "active rendering backend reports no GL errors",
     "procedural audio unlocks after interaction",
     "audio voice budget and mute",
     "portrait hill selection",
@@ -44,7 +44,7 @@
       200
     ],
     "triangles": 18072,
-    "fps": 19,
+    "fps": 16,
     "staticBytes": 1301184,
     "deviceLosses": 0,
     "fallbackReason": null,
@@ -57,7 +57,7 @@
       200
     ],
     "triangles": 18072,
-    "fps": 16,
+    "fps": 17,
     "staticBytes": 1301184,
     "deviceLosses": 0,
     "fallbackReason": null,

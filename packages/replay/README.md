@@ -32,3 +32,10 @@ API signatures are in `index.d.ts`; implementation and lifecycle behavior are in
 ## Exact sample navigation (0.2)
 
 `stepFrame(-1|1)` pauses on a neighboring actual recorded timestamp; it does not approximate a sample using 1/60 seconds. `jumpTo('start'|'takeoff'|'landing'|'end')` seeks phase markers. The `takeoff` marker is the first flight-phase sample, not the input button timestamp. Set negative `speed` for reverse playback, or call `setLoop(start,end)` to define a bounded loop. `.loop=false` pauses at recording endpoints.
+
+## 0.3.0 reference profile
+
+See [`docs/REFERENCE-DSJ210.md`](../../docs/REFERENCE-DSJ210.md) in the repository
+for documented behavior versus authored reconstruction parameters. New profile
+APIs are declared in `index.d.ts`; old low-level defaults and replay v1 remain
+compatible. Application defaults are separate from the SDK defaults.

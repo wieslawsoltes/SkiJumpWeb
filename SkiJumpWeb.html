@@ -9,21 +9,66 @@
 
 /* Additional classic-menu views retain the 640x400 logical UI and touch scaling. */
 .tour-events{max-height:139px;overflow:auto;scrollbar-width:thin;border-top:1px solid #77793d;border-bottom:1px solid #77793d;margin:4px 0 8px}.tour-event{display:flex;align-items:center;gap:4px;padding:3px 2px;border-bottom:1px solid #88883333;font-size:10px}.tour-event strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.small-button.tiny{font-size:8px;padding:3px 5px;min-height:22px}.table-link{padding:0;border:0;color:var(--yellow);background:transparent;font:inherit;text-align:left}.table-link:hover{text-decoration:underline}.start-list-table{max-height:190px}#menu-layer[data-view=tour] .toolbar{margin-bottom:5px}#menu-layer[data-view=tour] .toolbar select{width:auto;max-width:210px}#menu-layer[data-view=tour] .toolbar input{width:240px}#menu-layer[data-view=tour] .buttons{margin-top:4px}#replay-controls{flex-wrap:wrap}.replay-extra{display:flex;flex-wrap:wrap;gap:4px;width:100%}#replay-controls .replay-extra button{flex:1;padding:4px;min-width:35px;font-size:9px;min-height:27px}#arena.portrait .tour-events{max-height:42vh}#arena.portrait .tour-event{flex-wrap:wrap;font-size:12px;padding:6px 2px}#arena.portrait .tour-event strong{flex-basis:100%;white-space:normal}#arena.portrait .small-button.tiny{min-height:34px;font-size:11px;padding:5px 9px}#arena.portrait #replay-controls .replay-extra button{min-height:34px;font-size:9px}#arena.portrait #replay-seek{order:0}#arena.portrait .start-list-table{max-height:49vh}
+/* Documented-behavior profile: compact, sparse HUD and independent touch mouse pads. */
+#classic-pads { position:absolute; inset:auto 0 74px; display:flex; justify-content:space-between; padding:0 14px; pointer-events:none; }
+#classic-pads button { pointer-events:auto; touch-action:none; user-select:none; min-width:76px; min-height:48px; background:#20212dd9; color:#eeee43; border:1px solid #c9c74b; border-radius:0; font:700 14px monospace; }
+#classic-pads button:active { background:#686941; }
+#classic-pads[hidden] { display:none!important; }
+#arena[data-presentation=classic] #game-toolbar { opacity:.22; transition:opacity .12s; }
+#arena[data-presentation=classic] #game-toolbar:hover, #arena[data-presentation=classic] #game-toolbar:focus-within { opacity:1; }
+@media(pointer:coarse) { #arena[data-presentation=classic] #game-toolbar { opacity:.8; } }
+@media(orientation:landscape) { #classic-pads { bottom:68px; } }
+
+/* DSJ 2.10 measured menu rhythm. The background and glyphs remain our own artwork. */
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=main] #menu-header,
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=records] #menu-header { height:70px; min-height:70px; }
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=main] #logo,
+#arena[data-presentation=classic]:not(.portrait) #menu-layer[data-view=records] #logo { width:236px; height:44px; margin-left:20px; }
+#arena[data-presentation=classic]:not(.portrait) .main-menu { position:absolute; left:96px; top:152px; width:240px; margin:0; gap:0; padding:0; }
+#arena[data-presentation=classic]:not(.portrait) .main-menu .menu-item { min-height:24px; height:24px; padding:4px 2px; }
+#arena[data-presentation=classic] .main-menu .menu-item:hover,
+#arena[data-presentation=classic] .main-menu .menu-item:focus-visible { outline:1px solid #49d8d1; outline-offset:-1px; background:transparent; }
+#arena[data-presentation=classic] .main-menu .menu-item:hover:before,
+#arena[data-presentation=classic] .main-menu .menu-item:focus-visible:before { content:none; }
+#arena[data-presentation=classic] .main-menu [data-action=quit] { margin-top:16px; }
+.classic-extensions { position:absolute; left:16px; right:16px; bottom:24px; display:flex; gap:6px; flex-wrap:wrap; }
+.classic-extensions .small-button { font-size:9px; min-height:20px; padding:3px 6px; }
+.classic-records { margin:23px 0 0 83px; }
+.classic-record { display:grid; grid-template-columns:140px 74px 1fr; width:430px; min-height:20px; border:0; background:transparent; padding:2px 0; text-align:left; }
+.classic-record:hover,.classic-record:focus-visible { outline:1px solid #49d8d1; outline-offset:-1px; }
+.record-page { position:absolute; top:88px; right:43px; }
+.classic-record-nav { margin:23px 0 0 83px; display:grid; grid-template-columns:280px 1fr; }
+.classic-record-nav .menu-item { padding:3px 0; }
+#arena[data-presentation=classic] #menu-layer[data-view=records] .record-extensions { font-size:8px; margin-top:4px; }
+#arena[data-presentation=classic] #menu-layer[data-view=records] .record-extensions .small-button { font-size:8px; min-height:18px; padding:2px 5px; }
+.sound-setup { max-width:330px; margin:30px auto; }
+#arena.portrait .classic-extensions { position:static; margin-top:20px; }
+#arena.portrait .classic-records { margin:12px 0; }
+#arena.portrait .classic-record { grid-template-columns:136px 76px 1fr; width:100%; min-height:34px; }
+#arena.portrait .record-page { position:static; display:block; margin:8px 0 12px; }
+#arena.portrait .classic-record-nav { margin:12px 0; grid-template-columns:1fr; }
+#arena.portrait .classic-record-nav .menu-item { min-height:34px; }
+
+#arena[data-presentation=classic] #menu-layer { background:rgba(22,23,30,.46); }
+.classic-record-tools { position:absolute; right:16px; bottom:24px; max-width:380px; font-size:9px; text-align:right; }
+.classic-record-tools summary { cursor:pointer; color:#cbce86; padding:4px; }
+.classic-record-tools[open] { padding:8px; background:#20232df5; border:1px solid #93984c; text-align:left; z-index:7; }
+#arena.portrait .classic-record-tools { position:static; margin:12px 0; max-width:none; text-align:left; }
 </style></head>
 <body>
 <div id="shell">
   <main id="arena" aria-label="Ski jumping game">
     <div id="scene-host"></div><canvas id="hud" aria-hidden="true"></canvas><div id="scanlines" aria-hidden="true"></div>
     <div id="game-toolbar" hidden><button data-game="skip-cpu" id="skip-cpu" hidden aria-label="Skip CPU jump" title="Skip CPU (Space)">SKIP</button><button data-game="pause" aria-label="Pause game" title="Pause (P / Esc)">II</button><button data-game="camera" aria-label="Change camera" title="Camera (C)">C</button><button data-game="fullscreen" aria-label="Fullscreen" title="Fullscreen (F)">[ ]</button></div>
-    <div id="touch-controls" hidden><div id="drag-tip">DRAG UP / DOWN<br>TO BALANCE</div><div class="touch-actions"><button id="touch-main" data-game="primary">START</button><button data-game="parallel" id="touch-safe">TWO<br>FEET</button></div></div>
+    <div id="touch-controls" hidden><div id="drag-tip">DRAG UP / DOWN<br>TO BALANCE</div><div id="classic-pads" data-no-input><button data-mouse="left" aria-label="Left mouse button">LEFT</button><button data-mouse="right" aria-label="Right mouse button">RIGHT</button></div><div class="touch-actions"><button id="touch-main" data-game="primary">START</button><button data-game="parallel" id="touch-safe">TWO<br>FEET</button></div></div>
     <div id="replay-controls" hidden data-no-input><button data-replay="back" aria-label="Back from replay">BACK</button><button data-replay="play" id="replay-play">II</button><select id="replay-speed" aria-label="Replay speed"><option value="-4">-4x</option><option value="-2">-2x</option><option value="-1">-1x</option><option value="-.5">-0.5x</option><option value="-.25">-0.25x</option><option value=".25">0.25x</option><option value=".5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select><input type="range" id="replay-seek" min="0" max="1000" value="0" aria-label="Replay timeline"><button data-replay="camera">CAM</button><button data-replay="export">SAVE</button><div class="replay-extra"><button data-replay="frame-back" aria-label="Previous recorded frame">|&lt;</button><button data-replay="frame-next" aria-label="Next recorded frame">&gt;|</button><button data-replay="start">START</button><button data-replay="takeoff">FLIGHT</button><button data-replay="landing">LANDING</button><button data-replay="end">END</button><button data-replay="loop" id="replay-loop">LOOP ON</button><button data-replay="flight-loop">LOOP FLIGHT</button><button data-replay="whole-loop">FULL RANGE</button></div></div>
-    <section id="menu-layer" aria-label="Game menu"><header id="menu-header"><canvas id="logo" aria-label="Deluxe Ski Jump 2"></canvas><div id="header-note">INDEPENDENT<br>WEB RECREATION<br><span id="renderer-name">INITIALIZING</span></div></header><div id="menu-heading"></div><div id="menu-content"></div><footer><span id="footer-left">32 HILLS / LOCAL HOT-SEAT</span><span>SKIJUMPWEB 0.2.0</span></footer></section>
+    <section id="menu-layer" aria-label="Game menu"><header id="menu-header"><canvas id="logo" aria-label="Deluxe Ski Jump 2"></canvas><div id="header-note">INDEPENDENT<br>WEB RECREATION<br><span id="renderer-name">INITIALIZING</span></div></header><div id="menu-heading"></div><div id="menu-content"></div><footer><span id="footer-left">32 HILLS / LOCAL HOT-SEAT</span><span>SKIJUMPWEB 0.3.0</span></footer></section>
     <div id="toast" role="status" aria-live="polite" hidden></div><div id="live-status" class="sr-only" aria-live="polite"></div>
   </main>
 </div>
 <input id="file-import" type="file" accept=".json,.sjr.json,application/json" hidden>
 <noscript>This game requires JavaScript. Enable it and reload this page.</noscript>
-<script>/*! SkiJumpWeb 0.2.0 - independent recreation, MIT. See README for scope. */
+<script>/*! SkiJumpWeb 0.3.0 - independent recreation, MIT. See README for scope. */
 (function(){'use strict';
 const modules=new Map(),cache=new Map();
 function define(id,factory){modules.set(id,factory)}
@@ -231,6 +276,29 @@ const { clamp, lerp, smoothstep, round, Random, Events, wrapAngle }=require("@wi
 const { HillProfile }=require("@wieslawsoltes/ski-hills");
 const PHYSICS_VERSION = 'sjw-1';
 const FIXED_DT = 1 / 120;
+const CLASSIC_PHYSICS_VERSION = 'sjw-dsj210-1';
+const START_WINDOW_SECONDS = 15;
+const START_BLINK_SECONDS = 10;
+// Input tolerance and stance response are authored, not recovered original constants.
+const LANDING_CHORD_SECONDS = 1 / 20;
+function validateRules(rules = 'legacy') {
+    if (rules !== 'legacy' && rules !== 'dsj210') throw new RangeError('Unknown jumping rules');
+    return rules;
+}
+/** Category boundaries are a reconstruction; the three coefficients are documented in READ-ENG.TXT. */
+function classicHillClass(k) {
+    if (!Number.isFinite(k) || k < 1) throw new RangeError('Invalid K point');
+    return k < 110 ? 'small' : k < 165 ? 'large' : 'flying';
+}
+function startSignal(elapsed, active = true) {
+    if (!Number.isFinite(elapsed) || elapsed < 0) throw new RangeError('Invalid gate clock');
+    const remaining = Math.max(0, START_WINDOW_SECONDS - elapsed);
+    const blinking = active && remaining > 0 && remaining <= START_BLINK_SECONDS;
+    // Two flashes/second is our presentation choice; the documented onset is exactly ten seconds remaining.
+    return { remaining, expired: remaining === 0, blinking,
+        green: active && remaining > 0 && (!blinking || Math.floor(elapsed * 4) % 2 === 0),
+        red: active && remaining === 0 };
+}
 /** Positive wind is a headwind. Absolute-time noise makes wind independent of input calls. */
 class WindField {
     constructor(seed = 1, strength = 1, base = null) {
@@ -242,15 +310,20 @@ class WindField {
     }
     sample(t, x = 0) { return clamp(this.base + (Math.sin(t * .57 + this.phase + x * .008) * .46 + Math.sin(t * 1.23 + this.secondary) * .18) * this.strength, -4.5, 4.5); }
 }
-function pointsPerMetre(k) { return k < 60 ? 4.8 : k < 70 ? 4.4 : k < 80 ? 4 : k < 90 ? 3.6 : k < 100 ? 2.8 : k < 110 ? 2.4 : k < 165 ? 1.8 : 1.2; }
-function scoreJump({ distance, k, judges, crashed = false }) {
+function pointsPerMetre(k, rules = 'legacy', hillClass = classicHillClass(k)) {
+    validateRules(rules);
+    if (!['small', 'large', 'flying'].includes(hillClass)) throw new RangeError('Invalid hill class');
+    if (rules === 'dsj210') return { small: 2, large: 1.8, flying: 1.2 }[hillClass];
+    return k < 60 ? 4.8 : k < 70 ? 4.4 : k < 80 ? 4 : k < 90 ? 3.6 : k < 100 ? 2.8 : k < 110 ? 2.4 : k < 165 ? 1.8 : 1.2; }
+function scoreJump({ distance, k, judges, crashed = false, rules = 'legacy', hillClass = classicHillClass(k) }) {
     if (!Number.isFinite(distance) || distance < 0 || !Number.isFinite(k) || k < 1)
         throw new TypeError('Invalid jump distance or hill');
     if (!Array.isArray(judges) || judges.length !== 5 || judges.some(n => !Number.isFinite(n) || n < 0 || n > 20))
         throw new TypeError('Exactly five valid judge marks are required');
     const sorted = judges.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v || a.i - b.i);
     const counted = sorted.slice(1, 4).map(j => j.i);
-    const distancePoints = round((k >= 165 ? 120 : 60) + (distance - k) * pointsPerMetre(k), 1);
+    const flying = rules === 'dsj210' ? hillClass === 'flying' : k >= 165;
+    const distancePoints = round((flying ? 120 : 60) + (distance - k) * pointsPerMetre(k, rules, hillClass), 1);
     const stylePoints = round(sorted.slice(1, 4).reduce((n, j) => n + j.v, 0), 1);
     return { distancePoints, stylePoints, total: round(Math.max(0, distancePoints + stylePoints), 1), counted, crashed };
 }
@@ -258,7 +331,9 @@ class JumpSimulation {
     constructor(hill, options = {}) {
         this.profile = hill instanceof HillProfile ? hill : new HillProfile(hill);
         this.hill = this.profile.hill;
-        this.options = { seed: 1, gate: 0, windStrength: 1, windBase: null, assist: false, ...options };
+        this.options = { rules: 'legacy', seed: 1, gate: 0, windStrength: 1, windBase: null, assist: false, ...options };
+        this.options.rules = validateRules(this.options.rules);
+        this.physicsVersion = this.options.rules === 'dsj210' ? CLASSIC_PHYSICS_VERSION : PHYSICS_VERSION;
         this.options.gate = clamp(Number(this.options.gate) || 0, -5, 8);
         this.events = new Events();
         this.windField = new WindField(this.options.seed, this.options.windStrength, this.options.windBase);
@@ -269,6 +344,8 @@ class JumpSimulation {
         this.state = { phase: 'gate', time: 0, flightTime: 0, x: p.startX + 2 + this.options.gate * .8, y: 0, z: 0, vx: 0, vy: 0, speed: 0,
             lean: 0, pitch: -Math.atan(p.steepSlope), angularVelocity: 0, wind: 0, height: 0, distance: 0, quality: 0,
             takeoff: false, landing: 'none', crashed: false, landingTime: 0, runoutTime: 0, flightError: 0 };
+        Object.assign(this.state, { gateElapsed: 0, startRemaining: START_WINDOW_SECONDS, disqualified: false,
+            leftLandingTime: -1, rightLandingTime: -1, telemarkWidth: 0, windAngle: 0 });
         this.state.y = p.inrunY(this.state.x);
         this.state.wind = this.windField.sample(0, this.state.x);
         this.result = null;
@@ -288,13 +365,38 @@ class JumpSimulation {
         this.events.emit('takeoff', { quality: s.quality, x: s.x });
         return true;
     }
+    /** Deploy one ski independently. Either order works; repeated presses on the same ski are inert. */
+    landingFoot(side) {
+        const s = this.state;
+        if (side !== 'left' && side !== 'right') return false;
+        if (this.options.rules === 'legacy') return this.land(s.landing === 'none' ? 'telemark' : 'parallel');
+        if (s.phase !== 'flight' || s.flightTime < .28 || s[side + 'LandingTime'] >= 0) return false;
+        s[side + 'LandingTime'] = s.flightTime;
+        if (s.landing === 'none') { s.landingTime = s.flightTime; s.landing = 'telemark'; }
+        const both = s.leftLandingTime >= 0 && s.rightLandingTime >= 0;
+        if (both) {
+            const delay = Math.abs(s.leftLandingTime - s.rightLandingTime);
+            s.landing = delay <= LANDING_CHORD_SECONDS + 1e-9 ? 'parallel' : 'telemark';
+            s.telemarkWidth = s.landing === 'parallel' ? 0 : clamp(delay * 2.5, 0, 1.5);
+        }
+        this.events.emit('landing-foot', { side, time: s.flightTime, complete: both });
+        return true;
+    }
+    /** Accessible one-action preparation, also used by CPU control. Not an original mouse gesture. */
     land(kind = 'telemark') {
         const s = this.state;
         if (s.phase !== 'flight' || s.flightTime < .28)
             return false;
         if (kind !== 'telemark' && kind !== 'parallel')
             return false;
-        // A second simultaneous button upgrades telemark to a safer two-foot landing.
+        if (this.options.rules === 'dsj210') {
+            // Explicit accessibility actions complete both feet; raw mouse input uses landingFoot instead.
+            if (s.landing !== 'none' && kind !== 'parallel') return false;
+            s.leftLandingTime = s.rightLandingTime = s.flightTime;
+            s.telemarkWidth = kind === 'telemark' ? .5 : 0;
+        }
+        // Legacy one-action preparation retains its pre-profile visual stance.
+        if (this.options.rules === 'legacy' && (s.landing === 'none' || kind === 'parallel')) s.telemarkWidth = kind === 'telemark' ? .5 : 0;
         if (s.landing === 'none') {
             s.landingTime = s.flightTime;
             s.landing = kind;
@@ -304,10 +406,23 @@ class JumpSimulation {
             s.landing = 'parallel';
         return true;
     }
-    command(kind) { if (kind === 'start')
+    command(kind) { if (kind === 'left-foot' || kind === 'right-foot') return this.landingFoot(kind.split('-')[0]); if (kind === 'start')
         return this.start(); if (kind === 'takeoff')
         return this.takeoff(); if (kind === 'telemark' || kind === 'parallel')
         return this.land(kind); return false; }
+    disqualify() {
+        const s = this.state;
+        if (s.phase !== 'gate') return false;
+        s.disqualified = true; s.startRemaining = 0; s.phase = 'finished';
+        this.result = { hillId: this.hill.id, k: this.hill.k, distance: 0, judges: [0, 0, 0, 0, 0],
+            landing: 'none', crashed: false, disqualified: true, reason: 'start-time-exceeded',
+            takeoffQuality: 0, takeoffX: null, flightTime: 0, speed: 0, wind: round(s.wind, 2), impact: 0,
+            seed: this.options.seed, assisted: !!this.options.assist, gate: this.options.gate,
+            physics: this.physicsVersion, rules: this.options.rules, distancePoints: 0, stylePoints: 0,
+            total: 0, counted: [], gateElapsed: s.gateElapsed, telemarkWidth: 0 };
+        this.events.emit('disqualified', this.result); this.events.emit('finish', this.result);
+        return true;
+    }
     control(delta) { if (this.state.phase === 'flight' && Number.isFinite(delta))
         this.state.lean = clamp(this.state.lean + delta, -1.25, 1.25); }
     snapshot() { return { ...this.state }; }
@@ -318,11 +433,21 @@ class JumpSimulation {
         if (s.phase === 'finished')
             return;
         if (s.phase === 'gate') {
-            s.wind = this.windField.sample(0, s.x);
+            if (this.options.rules === 'dsj210') {
+                const step = Math.min(dt, START_WINDOW_SECONDS - s.gateElapsed);
+                s.gateElapsed = Math.min(START_WINDOW_SECONDS, s.gateElapsed + step);
+                // Avoid a one-tick grace period caused by accumulated floating point error.
+                if (START_WINDOW_SECONDS - s.gateElapsed < 1e-9) s.gateElapsed = START_WINDOW_SECONDS;
+                s.time = s.gateElapsed; s.startRemaining = START_WINDOW_SECONDS - s.gateElapsed;
+                s.wind = this.windField.sample(s.time, s.x);
+                s.windAngle = Math.atan2(.25 * Math.sin(s.time * .31 + this.options.seed), -s.wind);
+                if (s.startRemaining === 0) this.disqualify();
+            } else s.wind = this.windField.sample(0, s.x);
             return;
         }
         s.time += dt;
         s.wind = this.windField.sample(s.time, s.x);
+        s.windAngle = Math.atan2(.25 * Math.sin(s.time * .31 + this.options.seed), -s.wind);
         if (s.phase === 'inrun') {
             const d = p.inrunDerivative(s.x), cos = 1 / Math.sqrt(1 + d * d), sin = -d * cos;
             s.speed = Math.max(0, s.speed + (9.81 * (sin - .022 * cos) - .00105 * s.speed * s.speed) * dt);
@@ -422,17 +547,21 @@ class JumpSimulation {
         const prep = s.landing === 'none' ? 0 : s.flightTime - s.landingTime;
         const over = s.distance / this.hill.k;
         const safe = (s.landing === 'parallel' ? 1.95 : 1.48) * Math.sqrt(this.hill.k);
-        s.crashed = s.crashed || s.landing === 'none' || prep < .075 || normalSpeed > safe || Math.abs(s.lean) > 1.07 || (over > 1.32 && s.landing === 'telemark');
+        const incomplete = this.options.rules === 'dsj210' && (s.leftLandingTime < 0 || s.rightLandingTime < 0);
+        const overWide = this.options.rules === 'dsj210' && s.telemarkWidth > 1.25;
+        s.crashed = s.crashed || incomplete || overWide || s.landing === 'none' || prep < .075 || normalSpeed > safe || Math.abs(s.lean) > 1.07 || (over > 1.32 && s.landing === 'telemark');
         const avgError = s.flightError / Math.max(.1, s.flightTime);
         let style = s.crashed ? 7.8 : 20 - (s.landing === 'parallel' ? 2.1 : 0) - clamp(avgError * .75, 0, 2.5) - Math.max(0, normalSpeed / Math.sqrt(this.hill.k) - .55) * .8 - Math.max(0, prep - .8) * .9;
+        if (this.options.rules === 'dsj210' && s.landing === 'telemark' && !s.crashed)
+            style -= Math.abs(s.telemarkWidth - .55) * 1.5;
         const r = new Random(this.options.seed + Math.round(s.distance * 100));
         const judges = Array.from({ length: 5 }, () => clamp(Math.round((style + r.range(-.55, .35)) * 2) / 2, 0, 20));
         const distance = Math.floor(Math.max(0, s.distance) * 100) / 100;
         this.result = { hillId: this.hill.id, k: this.hill.k, distance, judges, landing: s.landing, crashed: s.crashed,
             takeoffQuality: round(s.quality, 3), takeoffX: this.takeoffX, flightTime: round(s.flightTime, 3),
             speed: round(s.speed * 3.6, 1), wind: round(s.wind, 2), impact: round(normalSpeed, 2), seed: this.options.seed,
-            assisted: !!this.options.assist, gate: this.options.gate, physics: PHYSICS_VERSION,
-            ...scoreJump({ distance, k: this.hill.k, judges, crashed: s.crashed }) };
+            assisted: !!this.options.assist, gate: this.options.gate, physics: this.physicsVersion, rules: this.options.rules, gateElapsed: s.gateElapsed, telemarkWidth: s.telemarkWidth, disqualified: false,
+            ...scoreJump({ distance, k: this.hill.k, judges, crashed: s.crashed, rules: this.options.rules }) };
         s.phase = 'runout';
         s.runoutTime = 0;
         this.events.emit(s.crashed ? 'crash' : 'land', this.result);
@@ -467,13 +596,14 @@ function simulateCPU(hill, options = {}, skill = .85) {
     return sim.result;
 }
 
-return {PHYSICS_VERSION,FIXED_DT,WindField,pointsPerMetre,scoreJump,JumpSimulation,CPUController,simulateCPU};
+return {PHYSICS_VERSION,FIXED_DT,CLASSIC_PHYSICS_VERSION,START_WINDOW_SECONDS,START_BLINK_SECONDS,LANDING_CHORD_SECONDS,validateRules,classicHillClass,startSignal,WindField,pointsPerMetre,scoreJump,JumpSimulation,CPUController,simulateCPU};
 });
 define("@wieslawsoltes/ski-competition",function(require){
 const { clamp, Random, round }=require("@wieslawsoltes/ski-core");
 const { getHill }=require("@wieslawsoltes/ski-hills");
-const { simulateCPU, pointsPerMetre }=require("@wieslawsoltes/ski-physics");
+const { simulateCPU, validateRules, pointsPerMetre }=require("@wieslawsoltes/ski-physics");
 const CUP_POINTS = Object.freeze([100, 80, 60, 50, 45, 40, 36, 32, 29, 26, 24, 22, 20, 18, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+const TEAM_CUP_POINTS = Object.freeze([200, 160, 120, 100]);
 const aiNames = ['A. KORHONEN', 'M. WEBER', 'J. NOWICKI', 'T. BERG', 'S. YAMAMOTO', 'P. NOVAK', 'L. ROSSI', 'E. ANDERSEN', 'D. MILLER', 'R. KOVAC', 'O. LIND', 'N. MARTIN', 'K. LEE', 'V. PETROV', 'B. FISCHER', 'A. KOVAL'];
 const countries = ['FIN', 'GER', 'POL', 'NOR', 'JPN', 'CZE', 'ITA', 'AUT', 'USA', 'SLO', 'SWE', 'FRA', 'KOR', 'RUS', 'SUI', 'UKR'];
 const suits = ['#225be7', '#dc303b', '#cf3c37', '#14689e', '#8c38b8', '#2a9d66', '#238ed0', '#e95321', '#943db9', '#258753', '#1d7296', '#e7c329'];
@@ -518,7 +648,7 @@ function ranked(items, value = x => x.total) {
 }
 /** Serializable two-round individual / four-athlete team competition state machine. */
 class Competition {
-    constructor({ mode = 'world', hills = ['fin'], players, teams = null, seed = 1, windStrength = 1 } = {}) {
+    constructor({ mode = 'world', hills = ['fin'], players, teams = null, seed = 1, windStrength = 1, rules = 'legacy' } = {}) {
         if (!['world', 'team'].includes(mode))
             throw new RangeError('Invalid competition mode');
         if (!hills.length || hills.length > 64)
@@ -530,6 +660,7 @@ class Competition {
             throw new Error('Player IDs must be unique');
         if (mode === 'team' && (!teams?.length || teams.some(t => t.members.length !== 4)))
             throw new Error('Team cup requires four jumpers per team');
+        this.rules = validateRules(rules);
         this.version = 1;
         this.mode = mode;
         this.hills = [...hills];
@@ -561,7 +692,7 @@ class Competition {
     buildQueue(order) { return this.mode === 'team' ? [0, 1, 2, 3].flatMap(slot => order.map(t => t.members[slot].id)) : order.map(p => p.id); }
     current() { if (this.status !== 'running')
         return null; return this.players.find(p => p.id === this.queue[this.turn]) || null; }
-    options() { return { seed: this.seed + this.eventIndex * 7919 + this.round * 101, windStrength: this.windStrength, assist: false, gate: 0 }; }
+    options() { return { rules: this.rules, seed: this.seed + this.eventIndex * 7919 + this.round * 101, windStrength: this.windStrength, assist: false, gate: 0 }; }
     rows() {
         if (this.mode === 'world')
             return ranked(this.players.map(p => { const jumps = this.scores[p.id] || []; return { ...p, jumps, total: round(jumps.reduce((n, r) => n + (r?.total || 0), 0), 1) }; }));
@@ -573,6 +704,7 @@ class Competition {
             throw new Error('No active turn');
         if (!result || result.hillId !== this.hill.id || !Number.isFinite(result.total))
             throw new Error('Result does not match current event');
+        if (result.rules !== undefined && result.rules !== this.rules) throw new Error('Result rules do not match cup');
         if (this.scores[p.id][this.round - 1])
             throw new Error('Result already submitted');
         this.scores[p.id][this.round - 1] = { ...result };
@@ -591,7 +723,7 @@ class Competition {
             this.status = 'event-complete';
             const rows = this.rows();
             for (const row of rows)
-                this.cup[row.id] = (this.cup[row.id] || 0) + (CUP_POINTS[row.rank - 1] || 0);
+                this.cup[row.id] = (this.cup[row.id] || 0) + ((this.rules === 'dsj210' && this.mode === 'team' ? TEAM_CUP_POINTS : CUP_POINTS)[row.rank - 1] || 0);
             this.history.push({ hillId: this.hill.id, rows: rows.map(r => ({ id: r.id, name: r.name, rank: r.rank, total: r.total, jumps: r.jumps })) });
             return 'event';
         }
@@ -628,7 +760,7 @@ class Competition {
         const needed = round(leader.total - self.total + .1, 1);
         const k = this.hill.k, base = k >= 165 ? 120 : 60;
         return { leader: leader.name, points: needed, assumedStyle: clamp(stylePoints, 0, 60),
-            distance: Math.max(0, Math.ceil((k + (needed - clamp(stylePoints, 0, 60) - base) / pointsPerMetre(k)) * 2) / 2) };
+            distance: Math.max(0, Math.ceil((k + (needed - clamp(stylePoints, 0, 60) - base) / pointsPerMetre(k, this.rules)) * 2) / 2) };
     }
     teamDetails(teamId) {
         if (this.mode !== 'team') throw new Error('Team details require a team cup');
@@ -666,6 +798,7 @@ class Competition {
         if (d.mode === 'team' && (!Array.isArray(d.teams) || d.teams.length > 16 || d.teams.some(t => !Array.isArray(t.members) || t.members.length !== 4 || t.members.some(p => !d.players.some(q => q.id === p.id)))))
             throw new Error('Invalid team data');
         const obj = Object.create(Competition.prototype);
+        obj.rules = validateRules(d.rules ?? 'legacy');
         for (const key of ['version', 'mode', 'hills', 'players', 'teams', 'seed', 'windStrength', 'eventIndex', 'round', 'status', 'history', 'cup', 'scores', 'turn', 'queue'])
             obj[key] = d[key];
         return obj;
@@ -714,36 +847,38 @@ function competitionCSV(competition) {
     return lines.map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
 }
 
-return {CUP_POINTS,normalizePlayer,createField,createTeams,ranked,Competition,TourSchedule,competitionCSV};
+return {CUP_POINTS,TEAM_CUP_POINTS,normalizePlayer,createField,createTeams,ranked,Competition,TourSchedule,competitionCSV};
 });
 define("@wieslawsoltes/ski-replay",function(require){
-const { clamp, lerp, round }=require("@wieslawsoltes/ski-core");
+const { clamp, lerp, round, wrapAngle }=require("@wieslawsoltes/ski-core");
 const { getHill }=require("@wieslawsoltes/ski-hills");
-const { PHYSICS_VERSION }=require("@wieslawsoltes/ski-physics");
-const REPLAY_VERSION = 1;
+const { PHYSICS_VERSION, validateRules }=require("@wieslawsoltes/ski-physics");
+const REPLAY_VERSION = 2;
 const REPLAY_PHASES = ['gate', 'inrun', 'flight', 'runout', 'finished'];
 const FRAME_FIELDS = ['time', 'x', 'y', 'pitch', 'lean', 'speed', 'distance', 'wind', 'phase', 'landing', 'crashed', 'quality'];
-function frame(s) { return [round(s.time, 4), round(s.x, 4), round(s.y, 4), round(s.pitch, 5), round(s.lean, 5), round(s.speed, 4), round(s.distance, 3), round(s.wind, 3), REPLAY_PHASES.indexOf(s.phase), s.landing === 'telemark' ? 1 : s.landing === 'parallel' ? 2 : 0, s.crashed ? 1 : 0, round(s.quality, 4)]; }
+function frame(s, version) { const f = [round(s.time, 4), round(s.x, 4), round(s.y, 4), round(s.pitch, 5), round(s.lean, 5), round(s.speed, 4), round(s.distance, 3), round(s.wind, 3), REPLAY_PHASES.indexOf(s.phase), s.landing === 'telemark' ? 1 : s.landing === 'parallel' ? 2 : 0, s.crashed ? 1 : 0, round(s.quality, 4)]; if (version === 2) f.push(round(s.leftLandingTime ?? -1, 4), round(s.rightLandingTime ?? -1, 4), round(s.telemarkWidth ?? 0, 4), round(s.gateElapsed ?? 0, 4), round(s.windAngle ?? 0, 5), s.disqualified ? 1 : 0); return f; }
 class ReplayRecorder {
-    constructor(sim, player = { name: 'PLAYER 1' }, hz = 60) { this.sim = sim; this.player = { ...player }; this.hz = hz; this.next = 0; this.frames = []; this.capture(true); }
+    constructor(sim, player = { name: 'PLAYER 1' }, hz = 60) { this.sim = sim; this.version = sim.options.rules === 'dsj210' ? 2 : 1; this.player = { ...player }; this.hz = hz; this.next = 0; this.frames = []; this.capture(true); }
     capture(force = false) { const s = this.sim.state; if (this.frames.length >= 14400)
         return; if (!force && s.time < this.next)
         return; if (this.frames.length && round(s.time, 4) <= this.frames.at(-1)[0])
-        return; this.frames.push(frame(s)); this.next = s.time + 1 / this.hz - .00001; }
-    finish() { this.capture(true); return { format: 'ski-jump-web-replay', version: REPLAY_VERSION, physics: PHYSICS_VERSION, hillId: this.sim.hill.id, player: this.player, options: { ...this.sim.options }, result: this.sim.result ? { ...this.sim.result } : null, createdAt: new Date().toISOString(), frames: this.frames.map(f => [...f]) }; }
+        return; this.frames.push(frame(s, this.version)); this.next = s.time + 1 / this.hz - .00001; }
+    finish() { this.capture(true); return { format: 'ski-jump-web-replay', version: this.version, physics: this.sim.physicsVersion || PHYSICS_VERSION, hillId: this.sim.hill.id, player: this.player, options: { ...this.sim.options }, result: this.sim.result ? { ...this.sim.result } : null, createdAt: new Date().toISOString(), frames: this.frames.map(f => [...f]) }; }
 }
 function validateReplay(data) {
-    if (!data || data.format !== 'ski-jump-web-replay' || data.version !== 1)
+    if (!data || data.format !== 'ski-jump-web-replay' || ![1, 2].includes(data.version))
         throw new Error('This is not a SkiJumpWeb .sjr.json replay. Original DSJ2 .rpl files are not supported.');
     getHill(data.hillId);
     if (!Array.isArray(data.frames) || data.frames.length < 2 || data.frames.length > 14400)
         throw new Error('Invalid replay frame count');
     let previous = -1;
     for (const f of data.frames) {
-        if (!Array.isArray(f) || f.length !== 12 || f.some(n => !Number.isFinite(n) || Math.abs(n) > 1e6))
+        if (!Array.isArray(f) || f.length !== (data.version === 2 ? 18 : 12) || f.some(n => !Number.isFinite(n) || Math.abs(n) > 1e6))
             throw new Error('Invalid replay frame');
         if (f[0] < 0 || f[0] <= previous || f[0] > 120 || !Number.isInteger(f[8]) || f[8] < 0 || f[8] > 4 || ![0, 1, 2].includes(f[9]) || ![0, 1].includes(f[10]))
             throw new Error('Invalid replay timeline');
+        if (data.version === 2 && (f[12] < -1 || f[13] < -1 || f[14] < 0 || f[14] > 1.5 || f[15] < 0 || f[15] > 15 || Math.abs(f[16]) > Math.PI + .0001 || ![0, 1].includes(f[17])))
+            throw new Error('Invalid original-profile replay fields');
         previous = f[0];
     }
     const player = { name: String(data.player?.name || 'REPLAY').replace(/[<>\x00-\x1f]/g, '').slice(0, 22), country: String(data.player?.country || '').slice(0, 3) };
@@ -754,9 +889,11 @@ function validateReplay(data) {
         const r = data.result;
         if (!Number.isFinite(r.distance) || r.distance < 0 || r.distance > 2000 || !Number.isFinite(r.total) || !Array.isArray(r.judges) || r.judges.length !== 5 || r.judges.some(x => !Number.isFinite(x) || x < 0 || x > 20))
             throw new Error('Invalid replay result');
+        if (r.disqualified && (r.total !== 0 || r.distance !== 0 || r.judges.some(n => n !== 0))) throw new Error('Invalid disqualified result');
         result = { ...r, hillId: data.hillId };
     }
-    return { format: data.format, version: 1, physics: String(data.physics || ''), hillId: data.hillId, player, options: data.options && typeof data.options === 'object' ? data.options : {}, result, createdAt: String(data.createdAt || '').slice(0, 40), frames: data.frames.map(f => [...f]) };
+    validateRules(data.options?.rules ?? 'legacy');
+    return { format: data.format, version: data.version, physics: String(data.physics || ''), hillId: data.hillId, player, options: data.options && typeof data.options === 'object' ? { ...data.options } : {}, result, createdAt: String(data.createdAt || '').slice(0, 40), frames: data.frames.map(f => [...f]) };
 }
 function parseReplay(text) { if (typeof text !== 'string' || text.length > 3000000)
     throw new Error('Replay exceeds 3 MB'); return validateReplay(JSON.parse(text)); }
@@ -809,8 +946,8 @@ class ReplayPlayer {
                 hi = m;
         }
         const a = t >= fs[hi][0] ? fs[hi] : fs[lo], b = fs[hi], alpha = clamp((t - a[0]) / Math.max(1e-6, b[0] - a[0]), 0, 1);
-        const f = a.map((v, i) => i < 8 || i === 11 ? lerp(v, b[i], alpha) : v);
-        return { time: t, x: f[1], y: f[2], pitch: f[3], lean: f[4], speed: f[5], distance: f[6], wind: f[7], phase: REPLAY_PHASES[f[8]], landing: ['none', 'telemark', 'parallel'][f[9]], crashed: !!f[10], quality: f[11], z: 0, height: 0, flightTime: Math.max(0, t - this.flightStart), runoutTime: Math.max(0, t - this.runoutStart) };
+        const f = a.map((v, i) => i === 16 ? wrapAngle(v + wrapAngle(b[i] - v) * alpha) : i < 8 || i === 11 || i === 14 || i === 15 ? lerp(v, b[i], alpha) : v);
+        return { leftLandingTime: f[12] ?? -1, rightLandingTime: f[13] ?? -1, telemarkWidth: f[14] ?? (f[9] === 1 ? .5 : 0), gateElapsed: f[15] ?? 0, startRemaining: 15 - (f[15] ?? 0), windAngle: f[16] ?? (f[7] >= 0 ? Math.PI : 0), disqualified: !!f[17], time: t, x: f[1], y: f[2], pitch: f[3], lean: f[4], speed: f[5], distance: f[6], wind: f[7], phase: REPLAY_PHASES[f[8]], landing: ['none', 'telemark', 'parallel'][f[9]], crashed: !!f[10], quality: f[11], z: 0, height: 0, flightTime: Math.max(0, t - this.flightStart), runoutTime: Math.max(0, t - this.runoutStart) };
     }
 }
 
@@ -1021,7 +1158,7 @@ function skierMesh(state, player = {}, ghost = false) {
         foot = [-.05, .1, 0];
     }
     for (const side of [-1, 1]) {
-        const vstyle = flight && s.landing === 'none', tele = standing && s.landing === 'telemark', shift = tele ? side * .45 : 0;
+        const vstyle = flight && s.landing === 'none', tele = (standing || flight) && s.landing === 'telemark', width = s.telemarkWidth ?? .5, shift = tele ? side * width * .9 : 0;
         const z = side * .19;
         const back = [-1.55 + shift, .02, vstyle ? side * .055 : z], tip = [1.55 + shift, .02, vstyle ? side * .65 : z];
         limb(back, tip, .067, skis);
@@ -1599,7 +1736,7 @@ class SkiInput {
             return;
         const p = this.phase(), both = (buttons & 3) === 3;
         if (p === 'gate') {
-            this.action('start');
+            if ((buttons & ~previous & 1) !== 0) this.action('start');
             return;
         }
         if (p === 'inrun') {
@@ -1608,20 +1745,35 @@ class SkiInput {
             return;
         }
         if (p === 'flight') {
+            if (this.options.control === 'classic') {
+                if (buttons & ~previous & 1) this.action('left-foot');
+                if (buttons & ~previous & 2) this.action('right-foot');
+                return;
+            }
             if (both || (this.options.control === 'modern' && (buttons & 2)))
                 this.action('parallel');
             else if (buttons & 3)
                 this.action('telemark');
         }
     }
+    virtualButton(side, down) {
+        if (!this.enabled || !['left', 'right'].includes(side)) return;
+        const mask = side === 'left' ? 1 : 2;
+        if (down) this.handleMouseButtons(this.lastButtons | mask);
+        else this.lastButtons &= ~mask;
+    }
     pointerDown(e) {
         if (!this.enabled || this.interactive(e.target))
             return;
-        e.preventDefault();
         this.handlers.unlock?.();
         this.lastMouse = { x: e.clientX, y: e.clientY };
-        if (e.pointerType === 'mouse')
+        if (e.pointerType === 'mouse') {
+            // Canceling mouse pointerdown suppresses compatibility mousedown, including the chord.
+            // Handle the first edge here; the mousedown listener handles additional buttons, deduplicated.
+            this.handleMouseButtons(e.buttons);
             return;
+        }
+        e.preventDefault();
         this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, startY: e.clientY });
         try {
             this.element.setPointerCapture(e.pointerId);
@@ -1629,7 +1781,7 @@ class SkiInput {
         catch { }
         if (this.phase() === 'gate')
             this.action('start');
-        else if (this.options.control === 'classic' && this.pointers.size >= 2)
+        else if (this.options.control === 'classic' && this.options.rules !== 'dsj210' && this.pointers.size >= 2)
             this.primary(true);
     }
     pointerMove(e) {
@@ -1725,11 +1877,12 @@ return {SkiInput};
 });
 define("@wieslawsoltes/ski-storage",function(require){
 const { clamp }=require("@wieslawsoltes/ski-core");
-const { getHill }=require("@wieslawsoltes/ski-hills");
+const { getHill, HILLS }=require("@wieslawsoltes/ski-hills");
+const { validateRules }=require("@wieslawsoltes/ski-physics");
 const { validateReplay }=require("@wieslawsoltes/ski-replay");
 const { Competition, normalizePlayer }=require("@wieslawsoltes/ski-competition");
 const DEFAULT_SETTINGS = Object.freeze({ resolution: 'classic', renderer: 'auto', weather: 'clear', volume: .55, mute: false,
-    sensitivity: 1, control: 'modern', assist: false, guide: true, ghost: true, camera: 'classic', haptics: true,
+    sensitivity: 1, control: 'classic', rules: 'dsj210', presentation: 'classic', assist: false, guide: false, ghost: false, camera: 'classic', haptics: true,
     windStrength: 1, windBase: null, gate: 0, watchCPU: false, difficulty: .8, aiCount: 15, scanlines: false, showFPS: false, motion: false });
 function validateSettings(raw = {}) {
     const s = { ...DEFAULT_SETTINGS };
@@ -1739,7 +1892,7 @@ function validateSettings(raw = {}) {
     for (const [k, range] of Object.entries({ volume: [0, 1], sensitivity: [.2, 3], windStrength: [0, 2], gate: [-5, 8], difficulty: [.2, 1], aiCount: [0, 49] }))
         if (Number.isFinite(raw[k]))
             s[k] = clamp(raw[k], ...range);
-    for (const [k, choices] of Object.entries({ resolution: ['classic', 'sharp', 'native'], renderer: ['auto', 'webgl', 'software'], weather: ['clear', 'snow', 'dusk', 'night'], control: ['modern', 'classic'], camera: ['classic', 'close', 'wide', 'chase'] }))
+    for (const [k, choices] of Object.entries({ rules: ['legacy', 'dsj210'], presentation: ['classic', 'enhanced'], resolution: ['classic', 'sharp', 'native'], renderer: ['auto', 'webgl', 'software'], weather: ['clear', 'snow', 'dusk', 'night'], control: ['modern', 'classic'], camera: ['classic', 'close', 'wide', 'chase'] }))
         if (choices.includes(raw[k]))
             s[k] = raw[k];
     if (raw.windBase === null || Number.isFinite(raw.windBase))
@@ -1786,22 +1939,35 @@ class GameStore {
         this.storage?.removeItem(this.prefix + key);
     }
     catch { } }
-    settings() { return validateSettings(this.get('settings', {})); }
+    settings() {
+        const raw = this.get('settings', null);
+        return validateSettings(raw ? { rules: 'legacy', presentation: 'enhanced', ...raw } : {});
+    }
     saveSettings(settings) { return this.set('settings', validateSettings(settings)); }
     records() { const r = this.get('records', {}); return r && typeof r === 'object' && !Array.isArray(r) ? r : {}; }
-    recordKey(hillId, assisted = false) { getHill(hillId); return `${hillId}${assisted ? '.assisted' : ''}`; }
+    resetRecords(assisted = false, rules = 'legacy') {
+        validateRules(rules);
+        const records = this.records(), boards = this.leaderboards();
+        for (const hill of HILLS) {
+            const key = this.recordKey(hill.id, assisted, rules);
+            delete records[key]; delete boards[key]; this.remove('ghost.' + key);
+        }
+        this.set('records', records); this.set('leaderboards', boards);
+    }
+    recordKey(hillId, assisted = false, rules = 'legacy') { getHill(hillId); validateRules(rules); return `${hillId}${rules === 'dsj210' ? '.dsj210' : ''}${assisted ? '.assisted' : ''}`; }
     leaderboards() {
         const value = this.get('leaderboards', {});
         return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     }
-    hillLeaderboard(hillId, assisted = false, limit = 10) {
-        const key = this.recordKey(hillId, assisted), records = this.leaderboards()[key];
+    hillLeaderboard(hillId, assisted = false, limit = 10, rules = 'legacy') {
+        const key = this.recordKey(hillId, assisted, rules), records = this.leaderboards()[key];
         if (Array.isArray(records)) return records.slice(0, clamp(Math.floor(limit) || 10, 1, 64)).map(r => ({ ...r }));
         const best = this.records()[key]; return best ? [{ ...best }] : [];
     }
-    personalBests(name, assisted = false) {
+    personalBests(name, assisted = false, rules = 'legacy') {
         const board = this.leaderboards(), output = {};
         for (const key of Object.keys(board)) {
+            if (key.includes('.dsj210') !== (rules === 'dsj210')) continue;
             if (key.endsWith('.assisted') !== !!assisted) continue;
             const result = Array.isArray(board[key]) ? board[key].find(row => row.name === name) : null;
             if (result) output[key.split('.')[0]] = { ...result };
@@ -1827,10 +1993,10 @@ class GameStore {
         this.set('replays', list);
     }
     updateRecord(result, player, replay = null) {
-        if (!result || result.crashed || !Number.isFinite(result.distance) || result.distance < 0 || result.distance > 2000 || !Number.isFinite(result.total))
+        if (!result || result.disqualified || result.crashed || !Number.isFinite(result.distance) || result.distance < 0 || result.distance > 2000 || !Number.isFinite(result.total))
             return false;
-        const key = this.recordKey(result.hillId, result.assisted), all = this.records(), old = all[key];
-        const boards = this.leaderboards(), board = this.hillLeaderboard(result.hillId, result.assisted, 64);
+        const key = this.recordKey(result.hillId, result.assisted, result.rules), all = this.records(), old = all[key];
+        const boards = this.leaderboards(), board = this.hillLeaderboard(result.hillId, result.assisted, 64, result.rules);
         const name = String(player.name).replace(/[<>\x00-\x1f]/g, '').slice(0, 22);
         const personal = board.find(r => r.name === name);
         if (!personal || personal.distance < result.distance) {
@@ -1852,8 +2018,8 @@ class GameStore {
         }
         return true;
     }
-    ghost(hillId, assisted = false) { try {
-        const r = this.get(`ghost.${this.recordKey(hillId, assisted)}`);
+    ghost(hillId, assisted = false, rules = 'legacy') { try {
+        const r = this.get(`ghost.${this.recordKey(hillId, assisted, rules)}`);
         return r ? validateReplay(r) : null;
     }
     catch {
@@ -1867,7 +2033,7 @@ class GameStore {
     loadReplay(id) { const r = this.get(`replay.${id}`); return r ? validateReplay(r) : null; }
     deleteReplay(id) { this.remove(`replay.${id}`); this.set('replays', this.replays().filter(r => r.id !== id)); }
     stats() { return { jumps: 0, landings: 0, falls: 0, distance: 0, cups: 0, ...this.get('stats', {}) }; }
-    addJump(r) { const s = this.stats(); s.jumps++; s[r.crashed ? 'falls' : 'landings']++; s.distance += r.distance; this.set('stats', s); }
+    addJump(r) { if (r.disqualified) { this.set('disqualifications', this.get('disqualifications', 0) + 1); return; } const s = this.stats(); s.jumps++; s[r.crashed ? 'falls' : 'landings']++; s.distance += r.distance; this.set('stats', s); }
     exportData() { return JSON.stringify({ format: 'ski-jump-web-save', version: 1, settings: this.settings(), players: this.get('players', []), records: this.records(), leaderboards: this.leaderboards(), tours: this.tours(), stats: this.stats(), cup: this.get('cup') }, null, 2); }
     importData(text) {
         if (typeof text !== 'string' || text.length > 5000000)
@@ -1875,19 +2041,19 @@ class GameStore {
         const d = JSON.parse(text);
         if (!d || d.format !== 'ski-jump-web-save' || d.version !== 1)
             throw new Error('Unsupported save file');
-        if (!Array.isArray(d.players) || d.players.length > 16 || !d.records || typeof d.records !== 'object' || Array.isArray(d.records) || Object.keys(d.records).length > 64)
+        if (!Array.isArray(d.players) || d.players.length > 16 || !d.records || typeof d.records !== 'object' || Array.isArray(d.records) || Object.keys(d.records).length > 128)
             throw new Error('Invalid save data');
         for (const [key, r] of Object.entries(d.records)) {
-            if (!/^[a-z]{3}(\.assisted)?$/.test(key))
+            if (!/^[a-z]{3}(\.dsj210)?(\.assisted)?$/.test(key))
                 throw new Error('Invalid record key');
             getHill(key.split('.')[0]);
             if (!r || !Number.isFinite(r.distance) || r.distance < 0 || r.distance > 2000)
                 throw new Error('Invalid record');
         }
         const boards = d.leaderboards ?? {};
-        if (!boards || typeof boards !== 'object' || Array.isArray(boards) || Object.keys(boards).length > 64) throw new Error('Invalid leaderboards');
+        if (!boards || typeof boards !== 'object' || Array.isArray(boards) || Object.keys(boards).length > 128) throw new Error('Invalid leaderboards');
         for (const [key, rows] of Object.entries(boards)) {
-            if (!/^[a-z]{3}(\.assisted)?$/.test(key)) throw new Error('Invalid leaderboard key');
+            if (!/^[a-z]{3}(\.dsj210)?(\.assisted)?$/.test(key)) throw new Error('Invalid leaderboard key');
             getHill(key.split('.')[0]);
             if (!Array.isArray(rows) || rows.length > 64 || rows.some(r => !r || typeof r.name !== 'string' || !Number.isFinite(r.distance) || r.distance < 0 || r.distance > 2000)) throw new Error('Invalid leaderboard');
         }
@@ -1902,7 +2068,7 @@ class GameStore {
             cup = Competition.restore(d.cup).serialize();
         }
         this.set('leaderboards', boards); this.set('tours', tours);
-        this.saveSettings(d.settings && typeof d.settings === 'object' ? d.settings : {});
+        this.saveSettings({ rules: 'legacy', presentation: 'enhanced', ...(d.settings && typeof d.settings === 'object' ? d.settings : {}) });
         this.set('players', players);
         this.set('records', d.records);
         if (d.stats) {
@@ -1941,6 +2107,56 @@ function paintLabels(root = document) { root.querySelectorAll('[data-pixel]').fo
 function drawLogo(canvas) { canvas.width = 314; canvas.height = 58; const c = canvas.getContext('2d'); drawText(c, 'DELUXE', 64, 2, '#c2c547', 2); drawText(c, 'SKI JUMP', 5, 22, '#eeee43', 4); drawText(c, '2', 188, 22, '#eeee43', 4); c.fillStyle = '#9fa546'; c.fillRect(62, 17, 138, 2); }
 function escapeHTML(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function downloadText(filename, text, mime = 'application/json') { const blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+/** Reference-space layout measured from the publisher's DSJ2.10 gallery (not copied bitmap assets). */
+const CLASSIC_HUD_LAYOUT = Object.freeze({ width: 320, height: 200, statusHeight: 13,
+    windWidth: 29, windHeight: 27, right: 4, top: 3, judgeTop: 58, judgeStep: 12 });
+function drawClassicHUD(ctx, W, H, state, hill, player, options = {}, meta = {}) {
+    const fit = (s, width) => { s = String(s); while (s.length && textWidth(s) > width) s = s.slice(0, -1); return s; };
+    const text = (s, x, y, color = '#eeee43') => drawText(ctx, s, Math.round(x), Math.round(y), color, 1);
+    // Snow belongs behind instruments, never on top of their labels.
+    if (options.weather === 'snow' && meta.backend !== 'webgpu') {
+        ctx.fillStyle = '#f5f8ffbb';
+        for (let i = 0; i < 110; i++) ctx.fillRect(Math.floor(((i * 47.317 + state.time * (4 + state.wind * 2)) % W + W) % W), Math.floor((i * 37.317 + state.time * (5 + i % 7)) % H), 1, 1);
+    }
+    const L = CLASSIC_HUD_LAYOUT, wx = W - L.right - L.windWidth;
+    ctx.fillStyle = '#24242c'; ctx.fillRect(0, H - L.statusHeight, W, L.statusHeight);
+    const landed = state.phase === 'runout' || state.phase === 'finished';
+    const mode = meta.replay ? 'REPLAY' : String(meta.mode || 'PRACTICE');
+    text(fit(mode, W * .49), 3, H - 10);
+    if (state.disqualified) text('DISQUALIFIED', Math.max(W * .51, W - 77), H - 10);
+    else if (landed) text((meta.result?.distance ?? state.distance).toFixed(1) + 'M', W * .53, H - 10);
+    else if (mode !== 'PRACTICE') text(fit(player.name || 'PLAYER', W * .44), W * .53, H - 10);
+    ctx.fillStyle = '#101017'; ctx.fillRect(wx, L.top, L.windWidth, L.windHeight);
+    const wind = Number.isFinite(state.wind) ? state.wind : 0;
+    const angle = Number.isFinite(state.windAngle) ? state.windAngle : wind >= 0 ? Math.PI : 0;
+    // Arrow rotates within the wind box; gust direction is authored because original 2D wind physics is not recovered.
+    const cx = wx + 14, cy = 12, dx = Math.cos(angle), dy = Math.sin(angle), px = -dy, py = dx;
+    ctx.fillStyle = '#ef3030'; ctx.beginPath();
+    ctx.moveTo(cx + dx * 9, cy + dy * 9);
+    ctx.lineTo(cx - dx * 1 + px * 4, cy - dy * 1 + py * 4);
+    ctx.lineTo(cx - dx * 1 + px, cy - dy * 1 + py);
+    ctx.lineTo(cx - dx * 8 + px, cy - dy * 8 + py);
+    ctx.lineTo(cx - dx * 8 - px, cy - dy * 8 - py);
+    ctx.lineTo(cx - dx * 1 - px, cy - dy * 1 - py);
+    ctx.lineTo(cx - dx * 1 - px * 4, cy - dy * 1 - py * 4); ctx.closePath(); ctx.fill();
+    const speed = Math.abs(wind).toFixed(1); text(speed, wx + (L.windWidth - textWidth(speed)) / 2, 21);
+    if (state.phase === 'gate' && !meta.replay) {
+        const elapsed = state.gateElapsed || 0, remaining = state.startRemaining ?? 15;
+        const on = remaining > 10 || Math.floor(elapsed * 4) % 2 === 0;
+        ctx.fillStyle = '#15151a'; ctx.fillRect(wx - 19, 3, 15, 27);
+        ctx.fillStyle = remaining > 0 ? '#651717' : '#ff3830'; ctx.fillRect(wx - 16, 6, 9, 8);
+        ctx.fillStyle = remaining > 0 && on ? '#39e02b' : '#163d14'; ctx.fillRect(wx - 16, 18, 9, 8);
+    }
+    const result = meta.result;
+    if (landed && result && !result.disqualified) {
+        result.judges.forEach((mark, i) => {
+            const x = W - 29, y = L.judgeTop + i * L.judgeStep;
+            ctx.fillStyle = '#20202a'; ctx.fillRect(x, y, 25, 11);
+            text(mark.toFixed(1), x + 1, y + 2, result.counted.includes(i) ? '#eeee43' : '#98954e');
+        });
+    }
+    if (options.showFPS) text(fit(`${meta.backend || ''} ${meta.fps || 0} FPS`, W - 60), 3, 3, '#c9c9d6');
+}
 class JumpHUD {
     constructor(canvas) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.fps = 0; }
     render(state, hill, player, options = {}, meta = {}) {
@@ -1948,6 +2164,7 @@ class JumpHUD {
         ctx.clearRect(0, 0, w, h);
         ctx.save();
         ctx.scale(scale, scale);
+        if (options.presentation === 'classic') { drawClassicHUD(ctx, W, H, state, hill, player, options, meta); ctx.restore(); return; }
         const fit = (s, width) => { s = String(s); while (s.length && textWidth(s) > width)
             s = s.slice(0, -1); return s; };
         const text = (s, x, y, color = '#eeee43', shadow = true) => drawText(ctx, s, x, y, color, 1, shadow), center = (s, y, color) => text(s, (W - textWidth(s)) / 2, y, color);
@@ -2036,7 +2253,7 @@ class JumpHUD {
     }
 }
 
-return {GLYPHS,plainASCII,textWidth,drawText,pixelCanvas,paintLabels,drawLogo,escapeHTML,downloadText,JumpHUD};
+return {GLYPHS,plainASCII,textWidth,drawText,pixelCanvas,paintLabels,drawLogo,escapeHTML,downloadText,CLASSIC_HUD_LAYOUT,drawClassicHUD,JumpHUD};
 });
 define("app",function(require){
 const { FixedClock, Random, clamp, round }=require("@wieslawsoltes/ski-core");
@@ -2077,7 +2294,7 @@ class SkiJumpApp {
             this.lastHill = 'fin';
         }
         this.touch = matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
-        this.arena = $('#arena');
+        this.arena = $('#arena'); this.arena.dataset.presentation = this.settings.presentation;
         this.menu = $('#menu-layer');
         this.content = $('#menu-content');
         this.audio = new SkiAudio(this.settings);
@@ -2093,7 +2310,7 @@ class SkiJumpApp {
         this.frameId = requestAnimationFrame(t => this.frame(t));
         if (new URLSearchParams(location.search).has('debug'))
             globalThis.__SKI_DEBUG__ = this;
-        globalThis.SkiJumpWeb = { version: '0.2.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
+        globalThis.SkiJumpWeb = { version: '0.3.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
         if (location.protocol !== 'file:' && 'serviceWorker' in navigator)
             navigator.serviceWorker.register('./sw.js').catch(() => { });
     }
@@ -2103,6 +2320,20 @@ class SkiJumpApp {
         this.menu.addEventListener('change', e => { try { this.change(e); } catch (error) { this.showError(error); } });
         document.querySelectorAll('[data-game]').forEach(b => { b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.audio.unlock(); this.gameAction(b.dataset.game); }); b.addEventListener('click', e => { if (e.detail === 0)
             this.gameAction(b.dataset.game); }); });
+        this.virtualPointers = new Map();
+        document.querySelectorAll('[data-mouse]').forEach(b => {
+            b.addEventListener('pointerdown', e => {
+                e.stopPropagation(); e.preventDefault(); if (!this.input.enabled) return;
+                b.setPointerCapture(e.pointerId); this.virtualPointers.set(e.pointerId, b.dataset.mouse);
+                this.input.virtualButton(b.dataset.mouse, true);
+            });
+            const release = e => {
+                e.stopPropagation(); e.preventDefault(); const side = this.virtualPointers.get(e.pointerId);
+                this.virtualPointers.delete(e.pointerId);
+                if (side && ![...this.virtualPointers.values()].includes(side)) this.input.virtualButton(side, false);
+            };
+            for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(event, release);
+        });
         document.querySelectorAll('[data-replay]').forEach(b => b.addEventListener('click', () => this.replayAction(b.dataset.replay)));
         $('#replay-speed').addEventListener('change', e => { if (this.playback)
             this.playback.speed = Number(e.target.value); });
@@ -2193,20 +2424,38 @@ class SkiJumpApp {
     }
     resize() { const portrait = innerHeight > innerWidth * 1.08; this.arena.classList.toggle('portrait', portrait); const r = this.arena.getBoundingClientRect(), mw = portrait ? 360 : 640, scale = Math.min(r.width / mw, portrait ? 10 : r.height / 400), mh = portrait ? r.height / scale : 400; this.menu.style.setProperty('--menu-width', `${mw}px`); this.menu.style.setProperty('--menu-height', `${mh}px`); this.menu.style.setProperty('--ui-scale', String(scale)); this.renderer.resize(); this.clock.reset(); }
     updateBackend() { const d = this.renderer.diagnostics(); $('#renderer-name').textContent = `${d.backend.toUpperCase()} / ${d.resolution.join('X')}`; $('#footer-left').textContent = this.store.persistent ? '32 HILLS / LOCAL HOT-SEAT' : 'LOCAL STORAGE UNAVAILABLE / IN-MEMORY'; }
-    setHill(id) { const hill = typeof id === 'string' ? getHill(id) : id; this.hill = hill; this.profile = new HillProfile(hill); const record = this.store.records()[this.store.recordKey(hill.id, this.settings.assist)]?.distance || 0; this.renderer.setHill(this.profile, record); this.idle = new JumpSimulation(this.profile).snapshot(); this.lastHill = hill.id; this.store.set('lastHill', hill.id); }
-    openMenu(view, title, html) { this.view = view; this.menu.dataset.view = view; this.input.setEnabled(false); this.menu.hidden = false; this.arena.classList.add('menu-open'); $('#game-toolbar').hidden = true; $('#touch-controls').hidden = true; $('#replay-controls').hidden = true; $('#menu-heading').innerHTML = title ? `<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>` : ''; this.content.innerHTML = html; this.content.scrollTop = 0; paintLabels(this.menu); this.audio.update(null, true); this.updateBackend(); }
+    setHill(id) { const hill = typeof id === 'string' ? getHill(id) : id; this.hill = hill; this.profile = new HillProfile(hill); const record = this.store.records()[this.store.recordKey(hill.id, this.settings.assist, this.settings.rules)]?.distance || 0; this.hillRecordKey = this.store.recordKey(hill.id, this.settings.assist, this.settings.rules); this.renderer.setHill(this.profile, record); this.idle = new JumpSimulation(this.profile).snapshot(); this.lastHill = hill.id; this.store.set('lastHill', hill.id); }
+    openMenu(view, title, html) { this.view = view; this.menu.dataset.view = view; this.input.setEnabled(false); this.virtualPointers?.clear(); this.menu.hidden = false; this.arena.classList.add('menu-open'); $('#game-toolbar').hidden = true; $('#touch-controls').hidden = true; $('#replay-controls').hidden = true; $('#menu-heading').innerHTML = title ? `<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>` : ''; this.content.innerHTML = html; this.content.scrollTop = 0; paintLabels(this.menu); this.audio.update(null, true); this.updateBackend(); }
     hideMenu(view = 'game') { this.view = view; this.menu.hidden = true; this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
-    showMain() { this.turnToken++; this.paused = false; const cup = this.store.get('cup'), stats = this.store.stats(); this.openMenu('main', '', `<nav class="main-menu" aria-label="Main menu">${cup ? pixelBtn('continue-cup', 'CONTINUE CUP') : ''}${pixelBtn('world', 'WORLD CUP')}${pixelBtn('team', 'TEAM CUP')}${pixelBtn('practice', 'PRACTICE')}${pixelBtn('players', 'PLAYERS')}${pixelBtn('records', 'HILL RECORDS')}${pixelBtn('replays', 'REPLAYS')}${pixelBtn('options', 'OPTIONS')}${pixelBtn('help', 'HOW TO JUMP')}</nav><aside class="main-side">${stats.jumps} JUMPS / ${stats.landings} LANDED<br>ENGLAND K50 - SLOVENIA K250<br>NO DOWNLOADS. NO SIGN-IN.</aside>`); }
+    showMain() {
+        this.turnToken++; this.paused = false;
+        const cup = this.store.get('cup'), stats = this.store.stats(), classic = this.settings.presentation === 'classic';
+        const original = pixelBtn('world', 'WORLD CUP') + pixelBtn('team', 'TEAM CUP') + pixelBtn('practice', 'PRACTICE') + pixelBtn('records', 'HILL RECORDS') + pixelBtn('replays', 'REPLAY STUDIO') + pixelBtn('sound', 'SOUND SETUP') + pixelBtn('quit', 'QUIT');
+        const extended = `${cup ? pixelBtn('continue-cup', 'CONTINUE CUP') : ''}${pixelBtn('world', 'WORLD CUP')}${pixelBtn('team', 'TEAM CUP')}${pixelBtn('practice', 'PRACTICE')}${pixelBtn('players', 'PLAYERS')}${pixelBtn('records', 'HILL RECORDS')}${pixelBtn('replays', 'REPLAYS')}${pixelBtn('options', 'OPTIONS')}${pixelBtn('help', 'HOW TO JUMP')}`;
+        this.openMenu('main', classic ? 'MAIN MENU' : '', `<nav class="main-menu" aria-label="Main menu">${classic ? original : extended}</nav>${classic ? `<div class="classic-extensions" aria-label="Browser extensions">${cup ? btn('continue-cup','CONTINUE CUP') : ''}${btn('players','PLAYERS')}${btn('options','OPTIONS')}${btn('help','HOW TO JUMP')}</div>` : `<aside class="main-side">${stats.jumps} JUMPS / ${stats.landings} LANDED<br>ENGLAND K50 - SLOVENIA K250<br>NO DOWNLOADS. NO SIGN-IN.</aside>`}`);
+    }
+    showSound() {
+        const s = this.settings;
+        this.openMenu('sound', 'SOUND SETUP', `<div class="sound-setup"><p class="hint">WEB AUDIO / PROCEDURAL STEREO<br>Browser audio replaces DOS device, port and DMA configuration.</p><label class="field">VOLUME<input data-setting="volume" type="range" min="0" max="1" step=".05" value="${s.volume}"></label><label class="check"><input type="checkbox" data-setting="mute" ${s.mute ? 'checked' : ''}>MUTE SOUND</label><div class="buttons">${btn('sound-test','TEST SOUND')}${btn('main','DONE','small-button primary')}</div></div>`);
+    }
+    quit() {
+        this.saveCup(); this.audio.suspend();
+        this.openMenu('quit', 'SKIJUMPWEB', `<div class="empty">SESSION SAVED.<br>Close this browser tab to exit.</div><div class="buttons">${btn('main','RETURN TO GAME','small-button primary')}</div>`);
+    }
     showHills(filter = 'all') {
         this.hillFilter = filter;
         const records = this.store.records(), list = HILLS.filter(h => filter === 'all' || (filter === 'small' ? h.k <= 100 : filter === 'large' ? h.k > 100 && h.k < 180 : h.k >= 180));
-        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
+        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist, this.settings.rules)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
     }
     startPractice(id = this.lastHill, sameSeed = false) { this.turnToken++; this.cup = null; this.mode = 'practice'; if (!sameSeed)
-        this.seed = (this.seed + 7919) >>> 0; this.practiceSeed = this.seed; this.launchJump(getHill(id), this.players[this.playerIndex] || this.players[0], { seed: this.seed, windStrength: this.settings.windBase === null ? this.settings.windStrength : 0, windBase: this.settings.windBase, gate: this.settings.gate, assist: this.settings.assist }); }
+        this.seed = (this.seed + 7919) >>> 0; this.practiceSeed = this.seed; this.launchJump(getHill(id), this.players[this.playerIndex] || this.players[0], { rules: this.settings.rules, seed: this.seed, windStrength: this.settings.windBase === null ? this.settings.windStrength : 0, windBase: this.settings.windBase, gate: this.settings.gate, assist: this.settings.assist }); }
     launchJump(hill, player, options, cpu = false) {
-        if (this.hill?.id !== hill.id)
+        if (this.hill?.id !== hill.id || this.hillRecordKey !== this.store.recordKey(hill.id, !!options.assist, options.rules)) {
             this.setHill(hill);
+            this.hillRecordKey = this.store.recordKey(hill.id, !!options.assist, options.rules);
+            this.renderer.setHill(this.profile, this.store.records()[this.hillRecordKey]?.distance || 0);
+        }
+        this.input.reset(); this.virtualPointers.clear();
         this.player = player;
         this.sim = new JumpSimulation(this.profile, options);
         this.recorder = new ReplayRecorder(this.sim, player);
@@ -2216,7 +2465,7 @@ class SkiJumpApp {
         this.lastPhase = '';
         this.ghostPlayer = null;
         if (this.mode === 'practice' && this.settings.ghost) {
-            const g = this.store.ghost(hill.id, !!options.assist);
+            const g = this.store.ghost(hill.id, !!options.assist, options.rules);
             if (g)
                 this.ghostPlayer = new ReplayPlayer(g);
         }
@@ -2224,6 +2473,7 @@ class SkiJumpApp {
             this.sim.events.on(name, r => { this.audio.play(name); if (this.settings.haptics && navigator.vibrate && ['takeoff', 'land', 'crash'].includes(name))
                 navigator.vibrate(name === 'crash' ? [45, 30, 45] : 18); if (name === 'land' || name === 'crash')
                 $('#live-status').textContent = `${name === 'crash' ? 'Fall.' : 'Landed.'} ${r.distance.toFixed(2)} metres. ${r.total.toFixed(1)} points.`; });
+        this.sim.events.on('disqualified', () => { $('#live-status').textContent = 'Disqualified. The 15-second start window expired.'; });
         this.sim.events.on('finish', () => this.needsFinish = true);
         this.renderer.cameraReady = false;
         this.hideMenu();
@@ -2232,7 +2482,8 @@ class SkiJumpApp {
         this.refreshTouch();
         this.audio.unlock();
     }
-    refreshTouch() { const phase = this.sim?.state.phase || 'gate'; $('#touch-main').textContent = phase === 'gate' ? 'START' : phase === 'inrun' ? 'JUMP' : phase === 'flight' ? 'TELEMARK' : 'FINISH'; $('#touch-safe').disabled = phase !== 'flight'; $('#drag-tip').innerHTML = phase === 'flight' ? 'DRAG UP / DOWN<br>TO BALANCE' : phase === 'inrun' ? 'WAIT FOR THE LIP<br>THEN TAP JUMP' : 'HOLD WITH BOTH HANDS'; }
+    refreshTouch() {
+        $('#classic-pads').hidden = this.settings.control !== 'classic' || this.sim?.options.rules !== 'dsj210'; const phase = this.sim?.state.phase || 'gate'; $('#touch-main').textContent = phase === 'gate' ? 'START' : phase === 'inrun' ? 'JUMP' : phase === 'flight' ? 'TELEMARK' : 'FINISH'; $('#touch-safe').disabled = phase !== 'flight'; $('#drag-tip').innerHTML = phase === 'flight' ? 'DRAG UP / DOWN<br>TO BALANCE' : phase === 'inrun' ? 'WAIT FOR THE LIP<br>THEN TAP JUMP' : 'HOLD WITH BOTH HANDS'; }
     gameAction(action) {
         if (action === 'skip-cpu') {
             if (this.view === 'game' && this.cpu && this.cup) {
@@ -2319,8 +2570,8 @@ class SkiJumpApp {
             this.showHills();
             return;
         }
-        const style = r.crashed ? 'FALL' : r.landing === 'telemark' ? 'TELEMARK' : 'TWO-FOOT LANDING';
-        this.openMenu('result', `${this.lastPlayer.name} / ${getHill(r.hillId).name}`, `<div class="result-top"><div class="jump-distance"><span data-pixel="${r.distance.toFixed(2)} M" data-size="4"></span><p class="${r.crashed ? 'bad' : 'good'}" style="font-size:11px">${style}${r.assisted ? ' / ASSISTED PRACTICE' : ''}</p></div><div class="points-big">${r.total.toFixed(1)}<small>TOTAL POINTS</small></div></div>${this.newRecord ? '<div class="new-record">NEW LOCAL HILL RECORD!</div>' : ''}<div class="judge-marks">${r.judges.map((j, i) => `<div class="judge ${r.counted.includes(i) ? '' : 'dropped'}"><small>JUDGE ${i + 1}</small>${j.toFixed(1)}</div>`).join('')}</div><div class="result-meta"><div>DISTANCE<strong>${r.distancePoints.toFixed(1)} PTS</strong></div><div>STYLE<strong>${r.stylePoints.toFixed(1)} PTS</strong></div><div>TAKEOFF<strong>${Math.round(r.takeoffQuality * 100)}%</strong></div><div>WIND<strong>${r.wind.toFixed(1)} M/S</strong></div></div><p class="hint">${r.crashed ? (r.landing === 'none' ? 'Prepare your landing before touching the snow. Use Z / X or the touch landing buttons.' : 'A hard impact, late landing or unstable body position caused the fall. Try a two-foot landing.') : r.takeoffQuality < .6 ? 'Jump closer to the lip for a stronger takeoff.' : 'The highest and lowest judge marks are discarded.'}</p><div class="buttons">${btn('next-jump', this.mode === 'practice' ? 'JUMP AGAIN' : 'CONTINUE CUP', 'small-button primary')}${btn('last-replay', 'REPLAY')}${btn('save-last-replay', 'SAVE REPLAY')}${this.mode === 'practice' ? btn('practice', 'HILLS') + btn('session', 'SESSION') + btn('retry', 'SAME WIND') : btn('cup-table', 'STANDINGS')}${btn('main', 'MENU')}</div>`);
+        const style = r.disqualified ? 'DISQUALIFIED / START TIME EXCEEDED' : r.crashed ? 'FALL' : r.landing === 'telemark' ? 'TELEMARK' : 'TWO-FOOT LANDING';
+        this.openMenu('result', `${this.lastPlayer.name} / ${getHill(r.hillId).name}`, `<div class="result-top"><div class="jump-distance"><span data-pixel="${r.distance.toFixed(2)} M" data-size="4"></span><p class="${r.crashed ? 'bad' : 'good'}" style="font-size:11px">${style}${r.assisted ? ' / ASSISTED PRACTICE' : ''}</p></div><div class="points-big">${r.total.toFixed(1)}<small>TOTAL POINTS</small></div></div>${this.newRecord ? '<div class="new-record">NEW LOCAL HILL RECORD!</div>' : ''}<div class="judge-marks">${r.judges.map((j, i) => `<div class="judge ${r.counted.includes(i) ? '' : 'dropped'}"><small>JUDGE ${i + 1}</small>${j.toFixed(1)}</div>`).join('')}</div><div class="result-meta"><div>DISTANCE<strong>${r.distancePoints.toFixed(1)} PTS</strong></div><div>STYLE<strong>${r.stylePoints.toFixed(1)} PTS</strong></div><div>TAKEOFF<strong>${Math.round(r.takeoffQuality * 100)}%</strong></div><div>WIND<strong>${r.wind.toFixed(1)} M/S</strong></div></div><p class="hint">${r.disqualified ? 'The 15-second green-light window expired. This jump scores zero and cannot become a hill record.' : r.crashed ? (r.landing === 'none' ? 'Prepare your landing before touching the snow. Use Z / X or the touch landing buttons.' : 'A hard impact, late landing or unstable body position caused the fall. Try a two-foot landing.') : r.takeoffQuality < .6 ? 'Jump closer to the lip for a stronger takeoff.' : 'The highest and lowest judge marks are discarded.'}</p><div class="buttons">${btn('next-jump', this.mode === 'practice' ? 'JUMP AGAIN' : 'CONTINUE CUP', 'small-button primary')}${btn('last-replay', 'REPLAY')}${btn('save-last-replay', 'SAVE REPLAY')}${this.mode === 'practice' ? btn('practice', 'HILLS') + btn('session', 'SESSION') + btn('retry', 'SAME WIND') : btn('cup-table', 'STANDINGS')}${btn('main', 'MENU')}</div>`);
     }
     nextJump() { if (this.mode === 'practice')
         this.startPractice(this.lastHill);
@@ -2349,7 +2600,7 @@ class SkiJumpApp {
         else
             players = createField(this.players, ai, this.settings.difficulty);
         this.mode = this.setupMode;
-        this.cup = new Competition({ mode: this.mode, hills, players, teams, seed: (this.seed + 10243) >>> 0, windStrength: this.settings.windStrength });
+        this.cup = new Competition({ mode: this.mode, hills, players, teams, seed: (this.seed + 10243) >>> 0, rules: this.settings.rules, windStrength: this.settings.windStrength });
         this.saveCup();
         await this.proceedTurn();
     }
@@ -2402,14 +2653,26 @@ class SkiJumpApp {
         const p = cup.current();
         this.launchJump(cup.hill, p, cup.options(), !p.human);
     }
-    resultTable(rows, team = false) { return `<div class="table-wrap"><table><thead><tr><th>#</th><th>${team ? 'TEAM' : 'JUMPER'}</th>${team ? '' : '<th class="num">ROUND 1</th><th class="num">ROUND 2</th>'}<th class="num">POINTS</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.human || r.members?.some(p => p.human) ? 'you' : ''}"><td>${r.rank}</td><td>${esc(r.name)}${team && r.members ? btn('team-details', 'DETAILS', 'small-button tiny', `data-id="${esc(r.id)}"`) : ''}</td>${team ? '' : (r.jumps || [null, null]).map(j => `<td class="num">${j ? j.distance.toFixed(2) + (j.crashed ? ' F' : '') : '-'}</td>`).join('')}<td class="num">${r.total.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`; }
+    resultTable(rows, team = false) { return `<div class="table-wrap"><table><thead><tr><th>#</th><th>${team ? 'TEAM' : 'JUMPER'}</th>${team ? '' : '<th class="num">ROUND 1</th><th class="num">ROUND 2</th>'}<th class="num">POINTS</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.human || r.members?.some(p => p.human) ? 'you' : ''}"><td>${r.rank}</td><td>${esc(r.name)}${team && r.members ? btn('team-details', 'DETAILS', 'small-button tiny', `data-id="${esc(r.id)}"`) : ''}</td>${team ? '' : (r.jumps || [null, null]).map(j => `<td class="num">${j ? j.disqualified ? 'DSQ' : j.distance.toFixed(2) + (j.crashed ? ' F' : '') : '-'}</td>`).join('')}<td class="num">${r.total.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`; }
     showEvent() { const c = this.cup; this.openMenu('event', `${c.hill.name} / EVENT ${c.eventIndex + 1} OF ${c.hills.length}`, `${this.resultTable(c.rows(), c.mode === 'team')}<div class="buttons">${btn('next-event', c.eventIndex + 1 < c.hills.length ? 'NEXT HILL' : 'FINAL STANDINGS', 'small-button primary')}${btn('cup-table', 'CUP STANDINGS')}${btn('main', 'SAVE & EXIT')}</div>`); }
     showCupStandings(final = false) { const c = this.cup; if (!c)
-        return; this.standingsBack = final ? 'main' : c.status === 'event-complete' ? 'event' : 'result'; this.openMenu('standings', final ? 'FINAL CUP STANDINGS' : 'CUP STANDINGS', `${this.resultTable(c.standings(), true)}<p class="hint">${c.history.length} OF ${c.hills.length} EVENTS COMPLETE. Points: 100, 80, 60, 50, 45 ... down to 1.</p><div class="buttons">${btn('standings-back', final ? 'MAIN MENU' : 'BACK', 'small-button primary')}${btn('export-cup', 'EXPORT RESULTS')}${btn('export-csv', 'CSV')}${btn('cup-history', 'EVENT HISTORY')}</div>`); }
-    showRecords() { const records = this.store.records(), assisted = !!this.recordsAssisted; let sum = 0, count = 0; const rows = HILLS.map(h => { const r = records[this.store.recordKey(h.id, assisted)]; if (r) {
-        sum += r.distance;
-        count++;
-    } return `<tr><td><button class="table-link" data-action="hill-records" data-id="${h.id}">${esc(h.name)}</button></td><td>K${h.k}</td><td class="num">${r ? r.distance.toFixed(2) : '-'}</td><td>${r ? esc(r.name) : '-'}</td><td class="num">${r ? Number(r.total || 0).toFixed(1) : '-'}</td></tr>`; }).join(''); this.openMenu('records', 'LOCAL HILL RECORDS', `<div class="toolbar"><label class="check"><input id="records-assisted" type="checkbox" ${assisted ? 'checked' : ''}>ASSISTED PRACTICE</label><span>${count}/32 HILLS / TOTAL ${sum.toFixed(2)} M</span></div><div class="table-wrap"><table><thead><tr><th>HILL</th><th>K</th><th class="num">METRES</th><th>JUMPER</th><th class="num">POINTS</th></tr></thead><tbody>${rows}</tbody></table></div><p class="hint">Local records only. Fallen jumps are excluded. Assisted records are kept separately.</p><div class="buttons">${btn('main', 'BACK')}${btn('personal-records', 'PERSONAL TOTALS')}${btn('export-save', 'EXPORT SAVE')}${btn('import-save', 'IMPORT SAVE')}</div>`); }
+        return; this.standingsBack = final ? 'main' : c.status === 'event-complete' ? 'event' : 'result'; this.openMenu('standings', final ? 'FINAL CUP STANDINGS' : 'CUP STANDINGS', `${this.resultTable(c.standings(), true)}<p class="hint">${c.history.length} OF ${c.hills.length} EVENTS COMPLETE. ${c.mode === 'team' && c.rules === 'dsj210' ? 'Team points: 200, 160, 120, 100.' : 'Points: 100, 80, 60, 50, 45 ... down to 1.'}</p><div class="buttons">${btn('standings-back', final ? 'MAIN MENU' : 'BACK', 'small-button primary')}${btn('export-cup', 'EXPORT RESULTS')}${btn('export-csv', 'CSV')}${btn('cup-history', 'EVENT HISTORY')}</div>`); }
+    showRecords() {
+        const records = this.store.records(), assisted = !!this.recordsAssisted, classic = this.settings.presentation === 'classic';
+        this.recordPage = Math.floor(clamp(this.recordPage || 0, 0, 3));
+        let sum = 0, count = 0;
+        for (const hill of HILLS) { const r = records[this.store.recordKey(hill.id, assisted, this.settings.rules)]; if (r) { sum += r.distance; count++; } }
+        const selected = classic ? HILLS.slice(this.recordPage * 8, this.recordPage * 8 + 8) : HILLS;
+        const rows = selected.map(h => { const r = records[this.store.recordKey(h.id, assisted, this.settings.rules)];
+            if (classic) return `<button class="classic-record" data-action="hill-records" data-id="${h.id}"><span data-pixel="${esc(h.name)}" data-color="#49d8d1"></span><span data-pixel="K${h.k}:" data-color="#49d8d1"></span><span data-pixel="${r ? r.distance.toFixed(1) + 'M' : '-'}"></span></button>`;
+            return `<tr><td><button class="table-link" data-action="hill-records" data-id="${h.id}">${esc(h.name)}</button></td><td>K${h.k}</td><td class="num">${r ? r.distance.toFixed(2) : '-'}</td><td>${r ? esc(r.name) : '-'}</td><td class="num">${r ? Number(r.total || 0).toFixed(1) : '-'}</td></tr>`;
+        }).join('');
+        const content = classic ? `<div class="classic-records"><span class="record-page" data-pixel="PAGE ${this.recordPage + 1}/4"></span>${rows}</div><div class="classic-record-nav">${pixelBtn('records-next','NEXT PAGE')}${pixelBtn('records-reset','RESET HILL RECORDS')}${pixelBtn('main','BACK')}</div>` : `<div class="table-wrap"><table><thead><tr><th>HILL</th><th>K</th><th class="num">METRES</th><th>JUMPER</th><th class="num">POINTS</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        this.openMenu('records', classic ? 'HILL RECORDS' : 'LOCAL HILL RECORDS', `${content}${classic ? '<details class="classic-record-tools"><summary>BROWSER / BOARD OPTIONS</summary>' : ''}<div class="toolbar record-extensions"><label class="check"><input id="records-assisted" type="checkbox" ${assisted ? 'checked' : ''}>ASSISTED PRACTICE</label><span>${count}/32 HILLS / TOTAL ${sum.toFixed(2)} M</span></div><div class="buttons record-extensions">${classic ? '' : btn('main','BACK')}${btn('personal-records','PERSONAL TOTALS')}${btn('export-save','EXPORT SAVE')}${btn('import-save','IMPORT SAVE')}</div><p class="hint record-extensions">Local records only. Rules profiles and assisted records have separate boards. Reset applies only to the selected board.</p>${classic ? '</details>' : ''}`);
+    }
+    confirmResetRecords() {
+        this.openMenu('reset-records', 'RESET HILL RECORDS', `<div class="empty">RESET ALL 32 HILL RECORDS FOR THIS BOARD?<br>${this.settings.rules.toUpperCase()} / ${this.recordsAssisted ? 'ASSISTED' : 'UNASSISTED'}<br>Other rules and replay-library entries are preserved.</div><div class="buttons">${btn('records','CANCEL','small-button primary')}${btn('records-reset-confirm','RESET THIS BOARD')}</div>`);
+    }
     showReplays() { const list = this.store.replays(); this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
     startReplay(replay, back = 'replays') { this.playback = new ReplayPlayer(replay); this.replayBack = back; this.cpu = null; this.setHill(replay.hillId); this.player = replay.player; this.renderer.cameraReady = false; this.hideMenu('replay'); this.audio.update(null, true); $('#replay-speed').value = '1'; $('#replay-play').textContent = 'II'; $('#replay-loop').textContent = 'LOOP ON'; }
     replayAction(action) {
@@ -2441,11 +2704,11 @@ class SkiJumpApp {
         this.optionsBack = back;
         const s = this.settings;
         const select = (key, label, items) => `<label class="field">${label}<select data-setting="${key}">${items.map(([v, n]) => option(v, n, s[key])).join('')}</select></label>`, check = (key, label) => `<label class="check"><input type="checkbox" data-setting="${key}" ${s[key] ? 'checked' : ''}>${label}</label>`;
-        this.openMenu('options', 'OPTIONS', `<div class="form-grid">${select('resolution', 'RESOLUTION', [['classic', 'CLASSIC / 320 x 200'], ['sharp', 'SHARP / 640 x 400'], ['native', 'NATIVE / ADAPTIVE']])}${select('camera', 'CAMERA', [['classic', 'CLASSIC SIDE VIEW'], ['close', 'CLOSE'], ['wide', 'WIDE'], ['chase', 'CHASE']])}${select('control', 'MOUSE CONTROLS', [['modern', 'ONE BUTTON / KEYBOARD'], ['classic', 'CLASSIC / TWO BUTTONS']])}${select('weather', 'WEATHER', [['clear', 'CLEAR'], ['snow', 'SNOW'], ['dusk', 'DUSK'], ['night', 'NIGHT']])}<label class="field">SENSITIVITY <input data-setting="sensitivity" type="range" min=".2" max="3" step=".1" value="${s.sensitivity}"></label><label class="field">SOUND VOLUME <input data-setting="volume" type="range" min="0" max="1" step=".05" value="${s.volume}"></label>${select('difficulty', 'CPU SKILL', [[.45, 'ROOKIE'], [.65, 'CLUB'], [.8, 'EXPERT'], [.96, 'CHAMPION']])}<label class="field">PRACTICE WIND<select data-setting="windBase">${[[null, 'DYNAMIC WIND'], [0, 'CALM'], [1.5, 'HEADWIND +1.5'], [3, 'HEADWIND +3.0'], [-2, 'TAILWIND -2.0']].map(([v, n]) => option(v === null ? 'null' : v, n, s.windBase === null ? 'null' : s.windBase)).join('')}</select></label><label class="field">PRACTICE GATE (-5 HIGHER / +8 LOWER)<input data-setting="gate" type="number" min="-5" max="8" value="${s.gate}"></label>${select('renderer', 'RENDERER (RELOAD REQUIRED)', [['auto', 'WEBGPU / AUTOMATIC FALLBACK'], ['webgl', 'WEBGL2'], ['software', 'SOFTWARE']])}${check('guide', 'TAKEOFF / FLIGHT GUIDES')}${check('assist', 'FLIGHT ASSIST (PRACTICE ONLY)')}${check('ghost', 'PERSONAL-BEST GHOST')}${check('mute', 'MUTE SOUND')}${check('watchCPU', 'WATCH CPU JUMPERS')}${check('haptics', 'TOUCH VIBRATION')}${check('scanlines', 'CRT SCANLINES')}${check('showFPS', 'PERFORMANCE COUNTER')}${check('motion', 'DEVICE TILT (AFTER PERMISSION)')}<div class="field">${btn('motion', 'ENABLE / CALIBRATE TILT')}</div></div><p class="hint">Practice wind, gate and flight-assist overrides do not apply to cup jumps. Portrait resolution adapts to the screen. Audio starts after your first interaction.</p><div class="buttons">${btn('options-back', 'SAVE & BACK', 'small-button primary')}${btn('reset-options', 'DEFAULTS')}${btn('about', 'ABOUT / FIDELITY')}</div>`);
+        this.openMenu('options', 'OPTIONS', `<div class="form-grid">${select('rules', 'JUMPING RULES', [['dsj210', 'DSJ 2.10 DOCUMENTED RULES'], ['legacy', 'SKIJUMPWEB 0.2 LEGACY']])}${select('presentation', 'HUD / PRESENTATION', [['classic', 'ORIGINAL COMPACT HUD'], ['enhanced', 'ENHANCED / GUIDES']])}${select('resolution', 'RESOLUTION', [['classic', 'CLASSIC / 320 x 200'], ['sharp', 'SHARP / 640 x 400'], ['native', 'NATIVE / ADAPTIVE']])}${select('camera', 'CAMERA', [['classic', 'CLASSIC SIDE VIEW'], ['close', 'CLOSE'], ['wide', 'WIDE'], ['chase', 'CHASE']])}${select('control', 'MOUSE CONTROLS', [['modern', 'ONE BUTTON / KEYBOARD'], ['classic', 'CLASSIC / TWO BUTTONS']])}${select('weather', 'WEATHER', [['clear', 'CLEAR'], ['snow', 'SNOW'], ['dusk', 'DUSK'], ['night', 'NIGHT']])}<label class="field">SENSITIVITY <input data-setting="sensitivity" type="range" min=".2" max="3" step=".1" value="${s.sensitivity}"></label><label class="field">SOUND VOLUME <input data-setting="volume" type="range" min="0" max="1" step=".05" value="${s.volume}"></label>${select('difficulty', 'CPU SKILL', [[.45, 'ROOKIE'], [.65, 'CLUB'], [.8, 'EXPERT'], [.96, 'CHAMPION']])}<label class="field">PRACTICE WIND<select data-setting="windBase">${[[null, 'DYNAMIC WIND'], [0, 'CALM'], [1.5, 'HEADWIND +1.5'], [3, 'HEADWIND +3.0'], [-2, 'TAILWIND -2.0']].map(([v, n]) => option(v === null ? 'null' : v, n, s.windBase === null ? 'null' : s.windBase)).join('')}</select></label><label class="field">PRACTICE GATE (-5 HIGHER / +8 LOWER)<input data-setting="gate" type="number" min="-5" max="8" value="${s.gate}"></label>${select('renderer', 'RENDERER (RELOAD REQUIRED)', [['auto', 'WEBGPU / AUTOMATIC FALLBACK'], ['webgl', 'WEBGL2'], ['software', 'SOFTWARE']])}${check('guide', 'TAKEOFF / FLIGHT GUIDES')}${check('assist', 'FLIGHT ASSIST (PRACTICE ONLY)')}${check('ghost', 'PERSONAL-BEST GHOST')}${check('mute', 'MUTE SOUND')}${check('watchCPU', 'WATCH CPU JUMPERS')}${check('haptics', 'TOUCH VIBRATION')}${check('scanlines', 'CRT SCANLINES')}${check('showFPS', 'PERFORMANCE COUNTER')}${check('motion', 'DEVICE TILT (AFTER PERMISSION)')}<div class="field">${btn('motion', 'ENABLE / CALIBRATE TILT')}</div></div><p class="hint">Practice wind, gate and flight-assist overrides do not apply to cup jumps. Portrait resolution adapts to the screen. Audio starts after your first interaction.</p><div class="buttons">${btn('options-back', 'SAVE & BACK', 'small-button primary')}${btn('original-profile', 'DSJ 2.10 PROFILE')}${btn('reset-options', 'DEFAULTS')}${btn('about', 'ABOUT / FIDELITY')}</div>`);
     }
-    applySettings() { this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
-    showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Press <kbd>SPACE</kbd> or click to start. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. Keep the balance indicator near its centre. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Just before the snow: <kbd>Z</kbd> or left click for telemark. <kbd>X</kbd> or right click for a safer two-foot landing. Classic mode uses both buttons for two feet. No landing preparation means a fall.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. Two-thumb takeoff also works in classic mode.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
-    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.2.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
+    applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
+    showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Click the left button or press <kbd>SPACE</kbd> to start. In the DSJ 2.10 rules profile you have 15 seconds; the green light blinks with 10 seconds remaining. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. The optional enhanced HUD provides a balance indicator; the compact HUD does not. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Classic mouse: press left and right together for two feet, or one then the other for telemark. Either order works; the interval changes stance width. Release both buttons after takeoff. An unfinished one-foot landing can fall. <kbd>Z</kbd>/<kbd>X</kbd> remain accessible one-action shortcuts in either profile.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. The separate LEFT / RIGHT pads reproduce the original mouse sequence, including two-thumb takeoff and timed telemark.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
+    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.3.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
     change(e) {
         if (e.target.id === 'cup-ai') { this.setupAI = Number(e.target.value); return; }
         if (e.target.id === 'tour-name') { this.tour.name = e.target.value.slice(0, 40); return; }
@@ -2522,7 +2785,7 @@ class SkiJumpApp {
             case 'personal-records': this.showPersonalRecords(); break;
             case 'hill-records': this.showHillRecords(button.dataset.id); break;
             case 'record-ghost': {
-                const replay = this.store.ghost(button.dataset.id, !!this.recordsAssisted);
+                const replay = this.store.ghost(button.dataset.id, !!this.recordsAssisted, this.settings.rules);
                 if (replay) this.startReplay(replay, 'records'); else this.toast('No replay was saved for this record.'); break;
             }
             case 'rename-replay': {
@@ -2588,6 +2851,18 @@ class SkiJumpApp {
                 this.savePlayers();
                 this.showMain();
                 break;
+            case 'records-next':
+                this.recordPage = ((this.recordPage || 0) + 1) % 4; this.showRecords(); break;
+            case 'records-reset':
+                this.confirmResetRecords(); break;
+            case 'records-reset-confirm':
+                this.store.resetRecords(!!this.recordsAssisted, this.settings.rules); this.showRecords(); break;
+            case 'sound':
+                this.showSound(); break;
+            case 'sound-test':
+                this.audio.play('land'); break;
+            case 'quit':
+                this.quit(); break;
             case 'records':
                 this.showRecords();
                 break;
@@ -2636,6 +2911,9 @@ class SkiJumpApp {
                 else
                     this.showMain();
                 break;
+            case 'original-profile':
+                Object.assign(this.settings, { rules: 'dsj210', presentation: 'classic', control: 'classic', resolution: 'classic', guide: false, assist: false, ghost: false, camera: 'classic' });
+                this.applySettings(); this.showOptions(this.optionsBack); break;
             case 'reset-options':
                 this.settings = { ...DEFAULT_SETTINGS };
                 this.applySettings();
@@ -2711,7 +2989,7 @@ class SkiJumpApp {
                 downloadText('ski-jump-web-cup-results.json', JSON.stringify({ mode: this.cup.mode, history: this.cup.history, standings: this.cup.standings() }, null, 2));
                 break;
             case 'export-diagnostics':
-                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.2.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
+                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.3.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
                 break;
         }
     }
@@ -2741,7 +3019,7 @@ class SkiJumpApp {
         this.openMenu('team-details', `${team.name} / JUMPER BREAKDOWN`, this.resultTable(this.cup.teamDetails(id).map((p, i) => ({ ...p, rank: i + 1 }))) + `<div class="buttons">${btn('start-list', 'BACK TO CUP')}</div>`);
     }
     showHillRecords(id) {
-        const hill = getHill(id), assisted = !!this.recordsAssisted, rows = this.store.hillLeaderboard(id, assisted);
+        const hill = getHill(id), assisted = !!this.recordsAssisted, rows = this.store.hillLeaderboard(id, assisted, 10, this.settings.rules);
         this.openMenu('hill-records', `${hill.name} K${hill.k} / LOCAL TOP TEN`, `<div class="table-wrap"><table><thead><tr><th>#</th><th>JUMPER</th><th class="num">METRES</th><th class="num">POINTS</th><th>DATE</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td class="num">${r.distance.toFixed(2)}</td><td class="num">${Number(r.total || 0).toFixed(1)}</td><td>${esc(String(r.date || '').slice(0, 10))}</td></tr>`).join('')}</tbody></table></div><p class="hint">Best landed jump per player name. ${assisted ? 'Assisted' : 'Unassisted'} records. Practice gates are recorded but not separate categories.</p><div class="buttons">${btn('records', 'BACK')}${btn('hill', 'JUMP HERE', 'small-button primary', `data-id="${id}"`)}${btn('record-ghost', 'BEST REPLAY', 'small-button', `data-id="${id}"`)}</div>`);
     }
     showPersonalRecords() {
@@ -2750,14 +3028,14 @@ class SkiJumpApp {
         for (const [key, rows] of Object.entries(this.store.leaderboards())) {
             if (key.endsWith('.assisted') === assisted && Array.isArray(rows)) rows.forEach(r => names.add(r.name));
         }
-        const totals = [...names].map(name => { const records = Object.values(this.store.personalBests(name, assisted));
+        const totals = [...names].map(name => { const records = Object.values(this.store.personalBests(name, assisted, this.settings.rules));
             return { name, hills: records.length, distance: records.reduce((sum, r) => sum + r.distance, 0) }; })
             .sort((a, b) => b.distance - a.distance || a.name.localeCompare(b.name));
         this.openMenu('personal-records', 'PERSONAL HILL RECORD TOTALS', `<div class="table-wrap"><table><thead><tr><th>#</th><th>JUMPER</th><th>HILLS</th><th class="num">TOTAL METRES</th></tr></thead><tbody>${totals.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td>${r.hills}/32</td><td class="num">${r.distance.toFixed(2)}</td></tr>`).join('')}</tbody></table></div><p class="hint">${assisted ? 'ASSISTED' : 'UNASSISTED'} best landed jump on each hill, summed by player name. Up to 64 player names per hill are retained.</p><div class="buttons">${btn('records', 'BACK')}</div>`);
     }
     showSession() {
-        const rows = this.practiceLog, landed = rows.filter(r => !r.crashed), average = rows.length ? rows.reduce((s, r) => s + r.distance, 0) / rows.length : 0;
-        this.openMenu('session', 'PRACTICE SESSION / LAST 50 JUMPS', `<p class="hint">${rows.length} JUMPS / ${landed.length} LANDED / AVERAGE ${average.toFixed(2)} M</p><div class="table-wrap"><table><thead><tr><th>#</th><th>HILL</th><th class="num">METRES</th><th class="num">TAKEOFF</th><th>LANDING</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${rows.length - i}</td><td>${esc(getHill(r.hillId).name)}</td><td class="num">${r.distance.toFixed(2)}</td><td class="num">${Math.round(r.takeoffQuality * 100)}%</td><td>${r.crashed ? 'FALL' : esc(r.landing.toUpperCase())}</td></tr>`).join('')}</tbody></table></div><div class="buttons">${btn('next-jump', 'JUMP AGAIN', 'small-button primary')}${btn('retry', 'SAME WIND')}${btn('practice', 'HILLS')}</div>`);
+        const rows = this.practiceLog, landed = rows.filter(r => !r.crashed && !r.disqualified), average = rows.length ? rows.reduce((s, r) => s + r.distance, 0) / rows.length : 0;
+        this.openMenu('session', 'PRACTICE SESSION / LAST 50 JUMPS', `<p class="hint">${rows.length} JUMPS / ${landed.length} LANDED / AVERAGE ${average.toFixed(2)} M</p><div class="table-wrap"><table><thead><tr><th>#</th><th>HILL</th><th class="num">METRES</th><th class="num">TAKEOFF</th><th>LANDING</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${rows.length - i}</td><td>${esc(getHill(r.hillId).name)}</td><td class="num">${r.distance.toFixed(2)}</td><td class="num">${Math.round(r.takeoffQuality * 100)}%</td><td>${r.disqualified ? 'DSQ' : r.crashed ? 'FALL' : esc(r.landing.toUpperCase())}</td></tr>`).join('')}</tbody></table></div><div class="buttons">${btn('next-jump', 'JUMP AGAIN', 'small-button primary')}${btn('retry', 'SAME WIND')}${btn('practice', 'HILLS')}</div>`);
     }
     cycleCamera() { const modes = ['classic', 'close', 'wide', 'chase']; this.settings.camera = modes[(modes.indexOf(this.settings.camera) + 1) % modes.length]; this.renderer.setOptions(this.settings); this.renderer.cameraReady = false; this.store.saveSettings(this.settings); this.toast(`${this.settings.camera.toUpperCase()} CAMERA`); }
     async fullscreen() { try {
@@ -2785,7 +3063,8 @@ class SkiJumpApp {
                 if (this.needsFinish)
                     this.finishJump();
                 if (this.ghostPlayer && state.phase !== 'gate')
-                    ghost = this.ghostPlayer.sample(state.time);
+                    ghost = this.ghostPlayer.sample(Math.max(0, state.time - (state.gateElapsed || 0)) + (this.ghostPlayer.replay.result?.gateElapsed || 0));
+                if (state.phase === 'gate' && this.sim.options.rules === 'dsj210') { const seconds = Math.ceil(state.startRemaining); if (seconds !== this.lastGateSeconds) { this.lastGateSeconds = seconds; $('#live-status').textContent = `${seconds} seconds to start.`; } }
                 if (this.lastPhase !== state.phase) {
                     this.lastPhase = state.phase;
                     this.refreshTouch();
@@ -2814,7 +3093,7 @@ class SkiJumpApp {
                     hud.height = this.renderer.height;
                 }
                 const mode = this.mode === 'practice' ? 'PRACTICE' : `${this.mode === 'team' ? 'TEAM' : 'WORLD'} CUP / ROUND ${this.cup?.round || 1}`;
-                this.hud.render(state, this.hill, this.player || this.players[0], this.settings, { mode, replay: this.view === 'replay', touch: this.touch, backend: this.renderer.kind, fps: Math.round(this.renderer.fps) });
+                this.hud.render(state, this.hill, this.player || this.players[0], this.settings, { result: this.view === 'replay' ? this.playback.replay.result : this.sim?.result, mode, replay: this.view === 'replay', touch: this.touch, backend: this.renderer.kind, fps: Math.round(this.renderer.fps) });
             }
         }
         catch (e) {

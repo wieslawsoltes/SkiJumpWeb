@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.3.0 — 2026-09-23
+
+### Documented DSJ 2.10 behavior
+
+- Add a 15-second green start window, blinking onset at ten seconds remaining,
+  evolving pre-start wind, zero-point disqualification and a replayable gate clock.
+- Correct small/large/flying distance coefficients to the documented 2.0/1.8/1.2
+  in a separate profile; retain old scores and SDK defaults. Hill-class boundaries
+  remain inferred, not recovered original constants.
+- Add independent timed left/right landing deployment, either-order telemark,
+  simultaneous parallel landing and visual stance width. Numerical tolerance and
+  stance/style response are explicitly authored.
+- Correct the documented first-four team-cup awards to 200/160/120/100.
+
+### Presentation and controls
+
+- Rebuild the sparse 320×200 gameplay HUD with the 13-pixel status band, red wind
+  arrow, unsigned wind magnitude, start lamps and right-side judge plaques.
+- Reproduce observed main-menu ordering, compact row rhythm and cyan focus;
+  provide functioning Sound Setup and a browser-safe save/quit flow.
+- Add eight-row/four-page records navigation and confirmed board-scoped reset;
+  keep web-specific backup/personal-total controls in an extension panel.
+- Add separate touch LEFT/RIGHT pads for original two-button sequencing in both
+  orientations; retain accessible single-action keyboard/gamepad/touch shortcuts.
+- Fix canceled pointerdown suppressing compatibility mouse events, and clear
+  stale button state when starting another jump.
+
+### Compatibility and evidence
+
+- Partition records and ghosts by rules and assistance; old settings/backups and
+  cups retain legacy rules. New installs default to the compact documented profile.
+- Add replay schema v2 for gate/foot/stance/DSQ state while retaining v1 playback;
+  interpolate cyclic wind angles on the shortest arc.
+- Synchronize all ten packages at 0.3.0 with new declarations and consumer checks.
+- Add 59 Node regressions and 35 browser fidelity checks, plus existing browser
+  workflows and required secure-origin WebGPU validation.
+- Record primary-source provenance and every still-authored mapping/tolerance in
+  `docs/REFERENCE-DSJ210.md`. No original code, bitmap or sound assets are bundled.
+
 ## 0.2.0 — 2026-09-23
 
 ### Gameplay and UI

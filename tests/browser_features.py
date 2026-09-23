@@ -118,6 +118,7 @@ with sync_playwright() as p:
     check(page.locator('tbody tr').count()>=1,'per-hill board is populated by actual practice jumps')
     page.locator('[data-action=record-ghost]').click();check(page.evaluate('__SKI_DEBUG__.view')=='replay','best record opens its saved ghost replay')
     page.locator('[data-replay=back]').click();check(page.evaluate('__SKI_DEBUG__.view')=='records','record replay returns to records instead of an unrelated screen')
+    if page.locator('.classic-record-tools').count(): page.locator('.classic-record-tools summary').click()
     page.locator('[data-action=personal-records]').click();check(page.locator('tbody tr').count()>=1,'personal aggregate record totals are accessible')
     # Both viewport orientations work with the newly added schedule UI.
     mobile=boot(browser,{'width':390,'height':844},True)
