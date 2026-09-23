@@ -25,48 +25,8 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Verify and apply the locally tested source delta
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib, json, lzma, subprocess
-          data = b''.join(Path(f'.maintenance/delta.{i}').read_bytes() for i in range(5))
-          assert hashlib.sha256(data).hexdigest() == 'e8beac9d476110b02f3ff572f85c81384c617a6db8c93aa3411f3a92dec8b654', 'Transfer checksum mismatch'
-          manifest = json.loads(lzma.decompress(data))
-          assert manifest['format'] == 'ski-source-delta' and manifest['version'] == 1
-          outputs, seen = [], set()
-          for entry in manifest['files']:
-              path = Path(entry['path'])
-              assert not path.is_absolute() and '..' not in path.parts and path.parts[0] not in {'.git', '.github'}, 'Unsafe source path'
-              assert str(path) not in seen, 'Duplicate source path'
-              seen.add(str(path))
-              if str(path) == 'README.md':
-                  # The published README has additional deployment links. Merge it separately.
-                  assert subprocess.check_output(['git','hash-object',str(path)], text=True).strip() == '719b600a9c70482ed0544b7d33c8ebc50ddcc772'
-                  continue
-              raw = path.read_bytes() if path.exists() else b''
-              if entry['before'] is None:
-                  assert not path.exists(), f'Unexpected existing file: {path}'
-              else:
-                  assert hashlib.sha256(raw).hexdigest() == entry['before'], f'Source changed: {path}'
-              text, cursor, result = raw.decode('utf-8'), 0, []
-              for offset, length, insert in entry['edits']:
-                  assert cursor <= offset <= offset + length <= len(text), f'Invalid edit: {path}'
-                  result.extend([text[cursor:offset], insert]); cursor = offset + length
-              result.append(text[cursor:])
-              output = ''.join(result).encode('utf-8')
-              assert hashlib.sha256(output).hexdigest() == entry['after'], f'Output checksum mismatch: {path}'
-              outputs.append((path, output))
-          release = Path('tools/package-release.py')
-          assert subprocess.check_output(['git','hash-object',str(release)], text=True).strip() == 'c29ce8eff95b8bd64c98b70f4ed5e2feb31615ef'
-          text = release.read_text()
-          old = '"version": "0.1.0", "commit": commit'
-          assert text.count(old) == 1
-          outputs.append((release, text.replace(old, '"version": json.loads((ROOT / "package.json").read_text())["version"], "commit": commit').encode()))
-          for path, output in outputs:
-              path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(output)
-          print(f'Applied {len(outputs)} checksum-verified source files')
-          PY
+      - name: Apply verified sources while preserving publication metadata
+        run: python3 .maintenance/apply.py
       - name: Validate engine, package manifests and release verifier
         run: |
           mkdir -p artifacts
@@ -91,7 +51,7 @@ jobs:
           node tools/write-validation.mjs
       - name: Commit all implemented sources and generated distributions
         run: |
-          rm .maintenance/delta.{0,1,2,3,4}
+          rm .maintenance/delta.{0,1,2,3,4} .maintenance/apply.py
           git add -A -- README.md CHANGELOG.md app packages docs package.json tools tests/*.mjs tests/*.py tests/types dist SkiJumpWeb.html artifacts .maintenance
           git diff --cached --check
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: ship 0.2.0 ordered tours, cup workflows, personal records and exact-sample replays' -m 'Add editable repeated-venue schedules, start lists, live/history/team results, current-CPU skipping, practice statistics, leaderboard ghosts, replay labels/reverse/markers/loops, input fixes, bounded renderer staging and device-loss cleanup. Synchronize ten SDK packages and declarations. Validate 100 engine tests, 69 browser workflow checks and isolated npm consumers; record secure-origin WebGPU evidence.'
