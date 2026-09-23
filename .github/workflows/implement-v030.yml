@@ -1,0 +1,71 @@
+name: Validate and commit DSJ 2.10 fidelity update
+on:
+  push:
+    branches: [feature/dsj210-fidelity]
+    paths: ['.maintenance/**', '.github/workflows/implement-v030.yml']
+permissions:
+  contents: write
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ski-fidelity-source-validation
+  cancel-in-progress: false
+jobs:
+  implement:
+    if: github.ref == 'refs/heads/feature/dsj210-fidelity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Apply preimage- and output-verified source changes
+        run: python3 .maintenance/apply-fidelity.py
+      - name: Validate engine, build and package metadata
+        run: |
+          mkdir -p artifacts
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          npm run verify 2>&1 | tee artifacts/verify.txt
+          npm run pack:all 2>&1 | tee artifacts/pack.txt
+      - name: Validate isolated SDK consumers and declarations
+        run: |
+          npm install --global typescript@5.9.3
+          node tools/verify-packages.mjs --types 2>&1 | tee artifacts/package-install.txt
+      - name: Install browser tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/ski-playwright"
+          "$RUNNER_TEMP/ski-playwright/bin/pip" install playwright==1.57.0
+          "$RUNNER_TEMP/ski-playwright/bin/python" -m playwright install --with-deps chromium
+      - name: Validate desktop, touch, original-rule behaviors and WebGPU
+        run: |
+          PY="$RUNNER_TEMP/ski-playwright/bin/python"
+          CHROMIUM="$($PY -c 'from playwright.sync_api import sync_playwright; p=sync_playwright().start(); print(p.chromium.executable_path); p.stop()')"
+          export CHROMIUM
+          "$PY" tests/browser_full.py 2>&1 | tee artifacts/browser-tests.txt
+          "$PY" tests/browser_features.py 2>&1 | tee artifacts/browser-features.txt
+          "$PY" tests/browser_fidelity.py 2>&1 | tee artifacts/browser-fidelity.txt
+          "$PY" tests/browser_gpu.py --require-webgpu 2>&1 | tee artifacts/browser-webgpu.txt
+          node tools/write-validation.mjs
+      - name: Commit all validated sources and generated distributions
+        run: |
+          rm .maintenance/fidelity.{0,1,2,3,4} .maintenance/apply-fidelity.py
+          git add -A -- README.md CHANGELOG.md app packages docs package.json tools tests dist SkiJumpWeb.html artifacts .maintenance
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'feat: implement DSJ 2.10 documented rules, two-foot controls and compact presentation' -m 'Ship 0.3.0 with a deterministic 15-second start window, timed foot sequencing, original documented distance and team scoring, classic HUD/menu/record pages, functional sound setup, and explicit legacy save/record/replay isolation. Include 159 engine tests, 104 browser workflow checks, required WebGPU validation, ten packed SDK modules and strict consumer declarations. Keep inferred thresholds, authored assets and remaining physics/geometry fidelity boundaries explicit.'
+          git push origin HEAD:feature/dsj210-fidelity
+          echo "Validated implementation commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ski-v030-validation
+          path: |
+            artifacts/browser-*
+            artifacts/verify.txt
+            artifacts/package-install.txt
+            artifacts/release.json
+            artifacts/screenshots/
