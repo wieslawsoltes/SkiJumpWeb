@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 8
     steps:
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq dosbox xvfb xdotool python3-pil
-      - name: Observe unmodified English demo; upload screenshots only
+      - name: Observe original menu behavior without copying executable data into the project
         shell: bash
         env:
           DISPLAY: ':99'
@@ -23,25 +23,18 @@ jobs:
           unzip -q "$RUNNER_TEMP/dsj.zip" -d "$RUNNER_TEMP/dsj"
           Xvfb :99 -screen 0 800x600x24 &
           sleep 2
-          printf '[sdl]\nfullscreen=false\nwindowresolution=640x400\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n' > "$RUNNER_TEMP/reference.conf"
+          printf '[sdl]\nfullscreen=false\noutput=surface\nautolock=false\n[render]\nframeskip=0\naspect=false\nscaler=normal2x\n[cpu]\ncycles=fixed 30000\n' > "$RUNNER_TEMP/reference.conf"
           dosbox -conf "$RUNNER_TEMP/reference.conf" -c "mount c $RUNNER_TEMP/dsj" -c 'c:' -c 'dsj.exe' > "$RUNNER_TEMP/dosbox.log" 2>&1 &
           sleep 8
-          xdotool mousemove 215 315 click 1
-          sleep 2
-          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/10-english.png')"
-          xdotool mousemove 210 270 click 1
-          sleep 2
-          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/11-first-menu-action.png')"
-          xdotool key Escape
-          sleep 1
-          xdotool mousemove 220 340 click 1
-          sleep 2
-          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/12-second-menu-action.png')"
-          xdotool mousemove 240 260 click 1
-          sleep 2
-          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/13-selection.png')"
-          sleep 16
-          /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/14-after-start-window.png')"
+          click() { xdotool mousemove "$1" "$2"; sleep .3; xdotool mousedown 1; sleep .3; xdotool mouseup 1; sleep 2; }
+          shot() { /usr/bin/python3 -c "from PIL import ImageGrab; ImageGrab.grab().save('$RUNNER_TEMP/reference-screens/$1.png')"; }
+          click 215 315; shot 20-english
+          click 215 315; shot 21-next
+          click 215 265; shot 22-menu
+          xdotool key Escape; sleep 1; shot 23-back
+          click 210 337; shot 24-practice
+          click 210 265; shot 25-hill
+          sleep 16; shot 26-timeout
           pkill dosbox || true
           rm -rf "$RUNNER_TEMP/dsj" "$RUNNER_TEMP/dsj.zip"
       - uses: actions/upload-artifact@v4
