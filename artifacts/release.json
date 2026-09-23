@@ -1,15 +1,17 @@
 {
   "name": "SkiJumpWeb",
-  "version": "0.4.0",
-  "bundleSha256": "786568ba0211dffa5ec1052e97e8ef2452f399ccddc680f02728e49d95d93b74",
-  "date": "2026-09-23T08:36:37.523Z",
+  "version": "0.5.0",
+  "bundleSha256": "37c2eb4c76f19f7ebf33fcf68039c4580f6ec7c02df42e5f1127e4f38d7f3ae0",
+  "date": "2026-09-23T11:25:30.223Z",
   "packages": 10,
   "hill_roster_entries": 32,
   "tests": {
-    "node_passed": 233,
+    "node_passed": 269,
     "browser_baseline": 33,
     "browser_features": 36,
     "browser_fidelity": 35,
+    "browser_ui": 72,
+    "ui_screens": 29,
     "webgpu_checks": 43,
     "browser_errors": [],
     "webgpu_status": "passed",
@@ -34,6 +36,7 @@
     "isFallbackAdapter": true
   },
   "original_visual_parity": "unverified",
+  "original_ui_pixel_parity": "unverified",
   "observed_inrun_color_hills": [
     "fin",
     "sui",
@@ -47,5 +50,5 @@
     "Original replay/save format compatibility"
   ],
   "published_to_npm": false,
-  "standalone_sha256": "ecd59bf7875c8d9bbd026769ba4fbe8c51903034c1139977d97506c242804598"
+  "standalone_sha256": "445343f15425251fa2a89d758ccf53bdb2988ce3cc9dfe401955aebd89901d6c"
 }

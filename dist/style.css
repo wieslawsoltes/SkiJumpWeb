@@ -53,3 +53,9 @@
 .classic-record-tools summary { cursor:pointer; color:#cbce86; padding:4px; }
 .classic-record-tools[open] { padding:8px; background:#20232df5; border:1px solid #93984c; text-align:left; z-index:7; }
 #arena.portrait .classic-record-tools { position:static; margin:12px 0; max-width:none; text-align:left; }
+
+/* Classic menus have an opaque, independent pixel backdrop. */
+#arena[data-presentation=classic].menu-open :is(#scene-host,#hud,#scanlines){visibility:hidden!important}
+
+/* The menu may use viewport letterbox space; gameplay remains arena-clipped. */
+#arena[data-presentation=classic].menu-open{overflow:visible}

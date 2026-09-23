@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "checks": 36,
   "passed": [
     "tour editor reverses actual competition order",
@@ -45,7 +45,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 0.9000000000232831,
+    "frameMilliseconds": 0,
     "sections": [
       {
         "name": "snow",
@@ -78,7 +78,7 @@
       200
     ],
     "triangles": 45824,
-    "fps": 3,
+    "fps": 0,
     "staticBytes": 3299328,
     "deviceLosses": 0,
     "fallbackReason": null,

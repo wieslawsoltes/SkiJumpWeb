@@ -1,4 +1,4 @@
-/*! SkiJumpWeb 0.4.0 - independent recreation, MIT. See README for scope. */
+/*! SkiJumpWeb 0.5.0 - independent recreation, MIT. See README for scope. */
 (function(){'use strict';
 const modules=new Map(),cache=new Map();
 function define(id,factory){modules.set(id,factory)}
@@ -2516,25 +2516,9 @@ return {DEFAULT_SETTINGS,validateSettings,GameStore};
 });
 define("@wieslawsoltes/ski-ui",function(require){
 const { clamp }=require("@wieslawsoltes/ski-core");
-// Authored 5x7 bitmap glyphs, rendered with rectangles; no external/font files.
-const GLYPHS = {
-    A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'], B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'], C: ['01111', '10000', '10000', '10000', '10000', '10000', '01111'], D: ['11110', '10001', '10001', '10001', '10001', '10001', '11110'], E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], F: ['11111', '10000', '10000', '11110', '10000', '10000', '10000'], G: ['01111', '10000', '10000', '10111', '10001', '10001', '01111'], H: ['10001', '10001', '10001', '11111', '10001', '10001', '10001'], I: ['111', '010', '010', '010', '010', '010', '111'], J: ['00111', '00010', '00010', '00010', '10010', '10010', '01100'], K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'], L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'], M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'], N: ['10001', '11001', '10101', '10011', '10001', '10001', '10001'], O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'], Q: ['01110', '10001', '10001', '10001', '10101', '10010', '01101'], R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'], S: ['01111', '10000', '10000', '01110', '00001', '00001', '11110'], T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'], U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110'], V: ['10001', '10001', '10001', '10001', '10001', '01010', '00100'], W: ['10001', '10001', '10001', '10101', '10101', '10101', '01010'], X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'], Y: ['10001', '10001', '01010', '00100', '00100', '00100', '00100'], Z: ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
-    '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'], '1': ['010', '110', '010', '010', '010', '010', '111'], '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'], '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'], '5': ['11111', '10000', '10000', '11110', '00001', '00001', '11110'], '6': ['01110', '10000', '10000', '11110', '10001', '10001', '01110'], '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'], '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], '9': ['01110', '10001', '10001', '01111', '00001', '00001', '01110'],
-    ' ': ['000', '000', '000', '000', '000', '000', '000'], '.': ['0', '0', '0', '0', '0', '1', '1'], ',': ['00', '00', '00', '00', '00', '01', '10'], ':': ['0', '1', '1', '0', '1', '1', '0'], '-': ['000', '000', '000', '111', '000', '000', '000'], '/': ['00001', '00001', '00010', '00100', '01000', '10000', '10000'], '+': ['00000', '00100', '00100', '11111', '00100', '00100', '00000'], '%': ['11001', '11010', '00100', '01000', '10110', '00110', '00000'], '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00010', '00100', '00000', '00100'], '(': ['001', '010', '100', '100', '100', '010', '001'], ')': ['100', '010', '001', '001', '001', '010', '100'], '>': ['100', '010', '001', '001', '001', '010', '100'], '<': ['001', '010', '100', '100', '100', '010', '001'], '=': ['000', '000', '111', '000', '111', '000', '000'], '_': ['00000', '00000', '00000', '00000', '00000', '00000', '11111'], "'": ['1', '1', '0', '0', '0', '0', '0'], '#': ['01010', '11111', '01010', '01010', '11111', '01010', '00000']
-};
-function plainASCII(text) { return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/Š/g, 'S').toUpperCase(); }
-function textWidth(text, scale = 1) { return [...plainASCII(text)].reduce((n, c) => n + ((GLYPHS[c] || GLYPHS['?'])[0].length + 1) * scale, 0) - scale; }
-function drawText(ctx, text, x, y, color = '#eeee43', scale = 1, shadow = false) { text = plainASCII(text); if (shadow)
-    drawText(ctx, text, x + scale, y + scale, '#151618', scale, false); ctx.fillStyle = color; for (const c of text) {
-    const g = GLYPHS[c] || GLYPHS['?'];
-    for (let yy = 0; yy < 7; yy++)
-        for (let xx = 0; xx < g[yy].length; xx++)
-            if (g[yy][xx] === '1')
-                ctx.fillRect(Math.round(x + xx * scale), Math.round(y + yy * scale), scale, scale);
-    x += (g[0].length + 1) * scale;
-} return x; }
-function pixelCanvas(text, color = '#eeee43', scale = 2) { const c = document.createElement('canvas'); c.width = Math.max(1, textWidth(text, scale) + 2); c.height = 7 * scale + 2; c.setAttribute('aria-hidden', 'true'); c.className = 'pixel-label'; drawText(c.getContext('2d'), text, 0, 0, color, scale); return c; }
-function paintLabels(root = document) { root.querySelectorAll('[data-pixel]').forEach(el => { const text = el.dataset.pixel || el.textContent; el.setAttribute('aria-label', text); el.replaceChildren(pixelCanvas(text, el.dataset.color || '#eeee43', Number(el.dataset.size) || 2)); }); }
+const { GLYPHS, plainASCII, textWidth, drawText, pixelCanvas, paintLabels }=require("@wieslawsoltes/ski-ui/bitmap.js");
+const { ClassicMenuSkin, CLASSIC_MENU_LAYOUT, classicViewport, navigationIndex, drawMenuBackdrop, drawClassicLogo }=require("@wieslawsoltes/ski-ui/classic.js");
+
 function drawLogo(canvas) { canvas.width = 314; canvas.height = 58; const c = canvas.getContext('2d'); drawText(c, 'DELUXE', 64, 2, '#c2c547', 2); drawText(c, 'SKI JUMP', 5, 22, '#eeee43', 4); drawText(c, '2', 188, 22, '#eeee43', 4); c.fillStyle = '#9fa546'; c.fillRect(62, 17, 138, 2); }
 function escapeHTML(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function downloadText(filename, text, mime = 'application/json') { const blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
@@ -2684,7 +2668,455 @@ class JumpHUD {
     }
 }
 
-return {GLYPHS,plainASCII,textWidth,drawText,pixelCanvas,paintLabels,drawLogo,escapeHTML,downloadText,CLASSIC_HUD_LAYOUT,drawClassicHUD,JumpHUD};
+return {drawLogo,escapeHTML,downloadText,CLASSIC_HUD_LAYOUT,drawClassicHUD,JumpHUD,GLYPHS,plainASCII,textWidth,drawText,pixelCanvas,paintLabels,ClassicMenuSkin,CLASSIC_MENU_LAYOUT,classicViewport,navigationIndex,drawMenuBackdrop,drawClassicLogo};
+});
+define("@wieslawsoltes/ski-ui/bitmap.js",function(require){
+// Authored 5x7 bitmap glyphs, rendered with rectangles; no external/font files.
+const GLYPHS = {
+    A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'], B: ['11110', '10001', '10001', '11110', '10001', '10001', '11110'], C: ['01111', '10000', '10000', '10000', '10000', '10000', '01111'], D: ['11110', '10001', '10001', '10001', '10001', '10001', '11110'], E: ['11111', '10000', '10000', '11110', '10000', '10000', '11111'], F: ['11111', '10000', '10000', '11110', '10000', '10000', '10000'], G: ['01111', '10000', '10000', '10111', '10001', '10001', '01111'], H: ['10001', '10001', '10001', '11111', '10001', '10001', '10001'], I: ['111', '010', '010', '010', '010', '010', '111'], J: ['00111', '00010', '00010', '00010', '10010', '10010', '01100'], K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'], L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'], M: ['10001', '11011', '10101', '10101', '10001', '10001', '10001'], N: ['10001', '11001', '10101', '10011', '10001', '10001', '10001'], O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'], P: ['11110', '10001', '10001', '11110', '10000', '10000', '10000'], Q: ['01110', '10001', '10001', '10001', '10101', '10010', '01101'], R: ['11110', '10001', '10001', '11110', '10100', '10010', '10001'], S: ['01111', '10000', '10000', '01110', '00001', '00001', '11110'], T: ['11111', '00100', '00100', '00100', '00100', '00100', '00100'], U: ['10001', '10001', '10001', '10001', '10001', '10001', '01110'], V: ['10001', '10001', '10001', '10001', '10001', '01010', '00100'], W: ['10001', '10001', '10001', '10101', '10101', '10101', '01010'], X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'], Y: ['10001', '10001', '01010', '00100', '00100', '00100', '00100'], Z: ['11111', '00001', '00010', '00100', '01000', '10000', '11111'],
+    '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'], '1': ['010', '110', '010', '010', '010', '010', '111'], '2': ['01110', '10001', '00001', '00010', '00100', '01000', '11111'], '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'], '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'], '5': ['11111', '10000', '10000', '11110', '00001', '00001', '11110'], '6': ['01110', '10000', '10000', '11110', '10001', '10001', '01110'], '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'], '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'], '9': ['01110', '10001', '10001', '01111', '00001', '00001', '01110'],
+    ' ': ['000', '000', '000', '000', '000', '000', '000'], '.': ['0', '0', '0', '0', '0', '1', '1'], ',': ['00', '00', '00', '00', '00', '01', '10'], ':': ['0', '1', '1', '0', '1', '1', '0'], '-': ['000', '000', '000', '111', '000', '000', '000'], '/': ['00001', '00001', '00010', '00100', '01000', '10000', '10000'], '+': ['00000', '00100', '00100', '11111', '00100', '00100', '00000'], '%': ['11001', '11010', '00100', '01000', '10110', '00110', '00000'], '!': ['1', '1', '1', '1', '1', '0', '1'], '?': ['01110', '10001', '00001', '00010', '00100', '00000', '00100'], '(': ['001', '010', '100', '100', '100', '010', '001'], ')': ['100', '010', '001', '001', '001', '010', '100'], '>': ['100', '010', '001', '001', '001', '010', '100'], '<': ['001', '010', '100', '100', '100', '010', '001'], '=': ['000', '000', '111', '000', '111', '000', '000'], '_': ['00000', '00000', '00000', '00000', '00000', '00000', '11111'], "'": ['1', '1', '0', '0', '0', '0', '0'], '#': ['01010', '11111', '01010', '01010', '11111', '01010', '00000']
+};
+function plainASCII(text) { return String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/Š/g, 'S').toUpperCase(); }
+function textWidth(text, scale = 1) { return [...plainASCII(text)].reduce((n, c) => n + ((GLYPHS[c] || GLYPHS['?'])[0].length + 1) * scale, 0) - scale; }
+function drawText(ctx, text, x, y, color = '#eeee43', scale = 1, shadow = false) { text = plainASCII(text); if (shadow)
+    drawText(ctx, text, x + scale, y + scale, '#151618', scale, false); ctx.fillStyle = color; for (const c of text) {
+    const g = GLYPHS[c] || GLYPHS['?'];
+    for (let yy = 0; yy < 7; yy++)
+        for (let xx = 0; xx < g[yy].length; xx++)
+            if (g[yy][xx] === '1')
+                ctx.fillRect(Math.round(x + xx * scale), Math.round(y + yy * scale), scale, scale);
+    x += (g[0].length + 1) * scale;
+} return x; }
+function pixelCanvas(text, color = '#eeee43', scale = 2) { const c = document.createElement('canvas'); c.width = Math.max(1, textWidth(text, scale) + 2); c.height = 7 * scale + 2; c.setAttribute('aria-hidden', 'true'); c.className = 'pixel-label'; drawText(c.getContext('2d'), text, 0, 0, color, scale); return c; }
+function paintLabels(root = document) { root.querySelectorAll('[data-pixel]').forEach(el => { const text = el.dataset.pixel || el.textContent; el.setAttribute('aria-label', text); el.replaceChildren(pixelCanvas(text, el.dataset.color || '#eeee43', Number(el.dataset.size) || 2)); }); }
+
+return {GLYPHS,plainASCII,textWidth,drawText,pixelCanvas,paintLabels};
+});
+define("@wieslawsoltes/ski-ui/classic.js",function(require){
+const { GLYPHS, drawText, textWidth, plainASCII }=require("@wieslawsoltes/ski-ui/bitmap.js");
+const { CLASSIC_MENU_CSS }=require("@wieslawsoltes/ski-ui/classic-style.js");
+
+/** Observed main/records/replay screen coordinates; graphics are independently authored. */
+const CLASSIC_MENU_LAYOUT = Object.freeze({ width: 320, height: 200,
+    headingX: 9, headingY: 44, ruleY: 38, menuX: 48, menuY: 78, rowHeight: 12,
+    recordsX: 48, recordsY: 63, recordRowHeight: 10, footerY: 173 });
+
+/** Integer letterboxing; only sub-native windows use fractional downscaling. */
+function classicViewport(width, height, fit = false) {
+    if (![width, height].every(n => Number.isFinite(n) && n > 0)) throw new RangeError('Viewport dimensions must be finite and positive');
+    const available = Math.min(width / 320, height / 200);
+    const scale = fit || available < 1 ? available : Math.floor(available);
+    return Object.freeze({ width: 320, height: 200, scale,
+        left: Math.floor((width - 320 * scale) / 2), top: Math.floor((height - 200 * scale) / 2) });
+}
+
+/** Pure keyboard navigation, shared by keyboard and large mobile host controls. */
+function navigationIndex(items, current, key) {
+    if (!items.length) return -1;
+    if (key === 'Home') return 0;
+    if (key === 'End') return items.length - 1;
+    if (current < 0 || current >= items.length) return key === 'ArrowUp' ? items.length - 1 : 0;
+    if (key === 'PageDown' || key === 'PageUp') return Math.max(0, Math.min(items.length - 1, current + (key === 'PageDown' ? 8 : -8)));
+    if (key === 'ArrowLeft' || key === 'ArrowRight') {
+        const origin = items[current], sign = key === 'ArrowLeft' ? -1 : 1;
+        let nearest = -1, score = Infinity;
+        items.forEach((r, i) => {
+            const dx = (r.x - origin.x) * sign, dy = Math.abs(r.y - origin.y);
+            if (i !== current && dx > .5 && dy < Math.max(r.height, origin.height) * .75) {
+                const distance = dx + dy * 3;
+                if (distance < score) { nearest = i; score = distance; }
+            }
+        });
+        return nearest < 0 ? current : nearest;
+    }
+    return (current + (key === 'ArrowUp' ? -1 : 1) + items.length) % items.length;
+}
+
+// Bold 5x7 menu alphabet, authored independently; HUD retains its existing glyphs.
+const MENU_GLYPHS = {...GLYPHS};
+const bold={A:'01110 11011 11011 11111 11011 11011 11011',B:'11110 11011 11011 11110 11011 11011 11110',C:'01111 11000 11000 11000 11000 11000 01111',D:'11110 11011 11011 11011 11011 11011 11110',E:'11111 11000 11000 11110 11000 11000 11111',F:'11111 11000 11000 11110 11000 11000 11000',G:'01111 11000 11000 11011 11011 11011 01111',H:'11011 11011 11011 11111 11011 11011 11011',J:'00111 00011 00011 00011 11011 11011 01110',K:'11011 11010 11100 11100 11110 11011 11011',L:'11000 11000 11000 11000 11000 11000 11111',M:'10001 11011 11111 11111 11011 11011 11011',N:'11001 11101 11101 11111 11011 11011 11011',O:'01110 11011 11011 11011 11011 11011 01110',P:'11110 11011 11011 11110 11000 11000 11000',Q:'01110 11011 11011 11011 11011 01110 00011',R:'11110 11011 11011 11110 11100 11011 11011',S:'01111 11000 11000 01110 00011 00011 11110',T:'11111 00110 00110 00110 00110 00110 00110',U:'11011 11011 11011 11011 11011 11011 01110',V:'11011 11011 11011 11011 11011 01110 00100',W:'11011 11011 11011 11111 11111 11011 10001',X:'11011 11011 01110 00100 01110 11011 11011',Y:'11011 11011 11011 01110 00110 00110 00110',Z:'11111 00011 00110 00100 01100 11000 11111', '&':'01100 10010 10100 01000 10101 10010 01101','|':'1 1 1 1 1 1 1','[':'111 100 100 100 100 100 111',']':'111 001 001 001 001 001 111'};
+for(const [key,rows] of Object.entries(bold))MENU_GLYPHS[key]=rows.split(' ');
+function drawMenuText(c,text,x,y,color,scale=1){c.fillStyle=color;for(const char of plainASCII(text)){const glyph=MENU_GLYPHS[char]||MENU_GLYPHS['?'];for(let j=0;j<7;j++)for(let i=0;i<glyph[j].length;i++)if(glyph[j][i]==='1')c.fillRect(x+i*scale,y+j*scale,scale,scale);x+=(glyph[0].length+1)*scale;}return x;}
+
+const poly = (c, points, color) => { c.fillStyle = color; c.beginPath(); points.forEach(([x,y],i) => i ? c.lineTo(x,y) : c.moveTo(x,y)); c.closePath(); c.fill(); };
+/** Static twin-jump composition, not the original copyrighted photograph. */
+function drawMenuBackdrop(canvas, seed = 210) {
+    canvas.width = 320; canvas.height = 200;
+    const c = canvas.getContext('2d');
+    let n = seed >>> 0; const random = () => ((n = (Math.imul(n, 1664525) + 1013904223) >>> 0) / 4294967296);
+    const sky = c.createLinearGradient(0, 0, 0, 200); sky.addColorStop(0, '#42494b'); sky.addColorStop(1, '#22292d');
+    c.fillStyle = sky; c.fillRect(0, 0, 320, 200);
+    function pine(x, base, h, shade) {
+        c.fillStyle = shade; c.fillRect(Math.round(x), base-h, 1, h);
+        for(let i=0;i<11;i++){const y=base-h+i*h/12,w=(i+1)*h*.034; poly(c,[[x,y-3],[x-w-random()*2,y+6],[x+w+random()*2,y+5]],shade);}
+    }
+    for(let i=0;i<180;i++){const x=random()*340-10,base=154+random()*30;pine(x,base,12+random()*30,'#172125');}
+    // Far tower and curved twin inrun; broad dark structural faces.
+    poly(c, [[260,175],[267,52],[280,31],[282,171]], '#242b2e');
+    poly(c, [[274,171],[280,31],[288,29],[287,184]], '#191f24');
+    c.lineJoin='round';
+    function ramp(points, width, color) {
+        c.strokeStyle=color;c.lineWidth=width;c.beginPath();c.moveTo(points[0],points[1]);
+        c.bezierCurveTo(...points.slice(2,8));c.stroke();
+    }
+    ramp([232,151,277,150,283,35,303,25],12,'#191e23');
+    ramp([230,149,272,147,281,34,300,26],6,'#586065');
+    ramp([231,150,275,145,283,36,302,25],2,'#151b20');
+    poly(c, [[274,190],[290,178],[307,26],[302,25]], '#323a3d');
+    // Near tower with layered footings, platform and curving inrun.
+    poly(c, [[199,198],[204,79],[212,65],[218,195]], '#343c40');
+    poly(c, [[214,198],[213,68],[221,51],[225,200]], '#232b30');
+    ramp([130,110,180,107,191,68,220,-9],20,'#171e22');
+    ramp([129,106,175,104,189,67,216,-9],13,'#535c60');
+    ramp([131,108,179,106,194,66,221,-9],4,'#20282c');
+    poly(c, [[150,130],[158,112],[182,109],[180,200],[153,200]], '#333c40');
+    poly(c, [[168,128],[173,117],[183,113],[184,200],[173,200]], '#1c252a');
+    for(let y=113;y<195;y+=9) poly(c,[[146,y+1],[169,y-4],[175,y-4],[150,y+4]],'#1d282d');
+    poly(c, [[21,200],[54,169],[97,144],[152,118],[163,126],[120,150],[86,172],[65,200]], '#62696a');
+    poly(c, [[16,200],[47,167],[97,139],[152,115],[154,119],[99,144],[52,172],[24,200]], '#343f44');
+    poly(c, [[60,200],[101,168],[149,135],[165,127],[167,132],[114,166],[73,200]], '#1e292f');
+    poly(c, [[176,200],[203,179],[220,164],[240,152],[267,151],[272,157],[241,176],[224,200]], '#535e61');
+    for(let i=0;i<95;i++){const x=random()*320;if(x<47||x>278)pine(x,205,14+random()*35,'#0d161d');}
+    const image=c.getImageData(0,0,320,200),p=image.data;
+    for(let i=0;i<p.length;i+=4){const noise=(random()-.5)*10;for(let j=0;j<3;j++)p[i+j]=Math.max(0,Math.round((p[i+j]+noise)*.72));}
+    c.putImageData(image,0,0);
+}
+function drawClassicLogo(canvas) {
+    canvas.width = 122; canvas.height = 27; const c=canvas.getContext('2d');
+    c.clearRect(0,0,122,27);
+    drawMenuText(c,'D E L U X E',29,0,'#b8bd43',1);
+    c.fillStyle='#aab337';c.fillRect(23,8,79,1);
+    drawMenuText(c,'SKI JUMP',1,11,'#d8de43',2);
+    drawMenuText(c,'2',114,19,'#bec743',1);
+}
+
+let nextSkinId=0;
+const SELECTOR='button:not(:disabled),input:not([type=hidden]):not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]';
+const nativeEdit=el=>el?.matches('input,select,textarea');
+const keyOf=el=>el ? [el.id,el.dataset.action,el.dataset.id,el.dataset.index,el.dataset.setting,el.dataset.hill,el.dataset.uiHost].join('|') : '';
+const visible=el=>!el.closest('[hidden],[inert]') && !!el.getClientRects().length && getComputedStyle(el).visibility!=='hidden';
+
+/** Semantic DOM controls in a fixed pixel coordinate system. No generated font or third-party assets.
+ * All events, focus, forms, IME, clipboard and screen-reader labels stay real DOM.
+ * Only their visual ink is rasterized into authored bitmap glyphs.
+ */
+class ClassicMenuSkin {
+    constructor(root, options = {}) {
+        if (!root?.ownerDocument) throw new TypeError('ClassicMenuSkin requires a DOM element');
+        this.root=root;this.document=root.ownerDocument;this.options=options;this.active=false;this.disposed=false;
+        this.memory=new Map();this.popup=null;this.popupSelect=null;this.view='';this.fit=false;this.pending=0;this.ink=new WeakMap();this.fields=new WeakMap();
+        this.abort=new AbortController();const signal=this.abort.signal;
+        this.generatedId=!root.id;if(this.generatedId)root.id='ski-classic-'+(++nextSkinId);
+        this.rootId=root.id;
+        this.originalStyles=['--menu-width','--menu-height','--ui-scale'].map(key=>[key,root.style.getPropertyValue(key),root.style.getPropertyPriority(key)]);
+        const id=this.document.defaultView.CSS.escape(root.id),scope=`#${id}#${id}.classic-ui`;
+        let css=CLASSIC_MENU_CSS.replaceAll('#arena #menu-layer.classic-ui',scope).replaceAll('#arena .classic-ui',scope);
+        this.autoParts=[];
+        for(const [legacy,part] of Object.entries({'menu-header':'header',logo:'logo','header-note':'note','renderer-name':'diagnostics','menu-heading':'heading','menu-content':'content'})){
+            const el=root.querySelector('#'+legacy);if(el&&!el.hasAttribute('data-classic-part')){el.dataset.classicPart=part;this.autoParts.push(el);}
+            css=css.replaceAll('#'+legacy,`[data-classic-part="${part}"]`);
+        }
+        this.style=this.document.createElement('style');this.style.textContent=css;this.document.head.append(this.style);
+        this.background=this.document.createElement('canvas');this.background.className='classic-backdrop';this.background.setAttribute('aria-hidden','true');
+        drawMenuBackdrop(this.background);root.prepend(this.background);
+        this.observer=new MutationObserver(()=>this.schedule());
+        root.addEventListener('keydown',e=>this.keydown(e),{signal,capture:true});
+        root.addEventListener('pointerover',e=>this.repaint(e.target.closest('button,label,summary')||e.target),{signal});
+        root.addEventListener('pointerout',e=>this.repaint(e.target.closest('button,label,summary')||e.target),{signal});
+        root.addEventListener('focusin',e=>{this.repaint(e.target.closest('button,label')||e.target);this.syncField(e.target);},{signal});
+        root.addEventListener('focusout',e=>{this.repaint(e.target.closest('button,label')||e.target);this.syncField(e.target);},{signal});
+        for(const event of ['input','change','keyup','click','compositionupdate','compositionend']) root.addEventListener(event,e=>this.syncField(e.target),{signal});
+        this.document.addEventListener('selectionchange',()=>this.syncField(this.document.activeElement),{signal});
+        this.document.addEventListener('pointerdown',e=>{if(this.popup&&!this.popup.contains(e.target)&&e.target!==this.popupSelect&&!e.target.closest('[data-host-command],[data-ui-host]'))this.closeSelect();},{signal,capture:true});
+        root.addEventListener('change',()=>this.schedule(),{signal});
+        root.addEventListener('pointerdown',e=>{if(this.active&&e.target.tagName==='SELECT'){e.preventDefault();this.openSelect(e.target);}},{signal});
+        root.addEventListener('click',e=>{const action=e.target.closest('[data-ui-host]')?.dataset.uiHost;if(action)this.hostAction(action);},{signal});
+    }
+    observe(){this.observer.observe(this.root,{childList:true,subtree:true,characterData:true});}
+    remember(){const el=this.popupSelect||this.document.activeElement;if(this.root.contains(el))this.memory.set(this.view,keyOf(el));}
+    setActive(active) {
+        if(this.disposed)throw new Error('ClassicMenuSkin is disposed');
+        if(this.active===!!active)return;
+        this.active=!!active;this.root.classList.toggle('classic-ui',this.active);
+        if(!this.active){this.observer.disconnect();this.closeSelect();this.restoreInk();this.restoreStyles();}
+        else {this.observe();this.refresh();}
+    }
+    enter(view) {
+        this.closeSelect();this.view=String(view);if(!this.active)return;
+        this.root.dataset.classicView=this.view;this.refresh();
+        const controls=this.controls(),key=this.memory.get(this.view);
+        const target=controls.find(el=>keyOf(el)===key)||controls.find(el=>el.dataset.selected==='true')||controls[0];
+        target?.focus({preventScroll:true});
+    }
+    layout(width,height) {
+        const v=classicViewport(width,height,this.fit);this.viewport=v;
+        if(this.active){this.root.style.setProperty('--menu-width','320px');this.root.style.setProperty('--menu-height','200px');this.root.style.setProperty('--ui-scale',String(v.scale));}
+        return v;
+    }
+    schedule(){if(this.active&&!this.pending&&!this.disposed)this.pending=requestAnimationFrame(()=>{this.pending=0;this.refresh();});}
+    refresh() {
+        if(!this.active||this.disposed)return;
+        this.observer.disconnect();
+        try {
+            for(const el of this.root.querySelectorAll('[data-pixel]')){
+                const text=el.dataset.pixel||el.getAttribute('aria-label')||el.textContent;
+                el.setAttribute('aria-label',text);
+                if(el.dataset.classicLabel!==text||!el.querySelector('.classic-ink')){el.replaceChildren(this.label(text,false));el.dataset.classicLabel=text;}
+            }
+            const walk=this.document.createTreeWalker(this.root,4);const nodes=[];
+            while(walk.nextNode()){
+                const n=walk.currentNode,p=n.parentElement;
+                if(n.textContent.trim()&&!p.closest('.classic-ink,.classic-copy,.classic-native,.classic-host,[data-pixel],script,style,canvas,select,textarea,.sr-only'))nodes.push(n);
+            }
+            for(const n of nodes){const f=this.document.createElement('span');f.className='classic-copy';
+                const semantic=this.document.createElement('span');semantic.className='classic-semantic';semantic.textContent=n.textContent;f.append(semantic);
+                for(const text of n.textContent.match(/\s*\S+\s*/g)||[]){const ink=this.label(text);ink.querySelector('.classic-semantic').remove();ink.setAttribute('aria-hidden','true');f.append(ink);}n.replaceWith(f);
+            }
+            for(const field of this.root.querySelectorAll('select,input:not([type=checkbox]):not([type=range]):not([type=color]):not([type=file]):not([type=hidden]),textarea'))this.prepareField(field);
+            this.repaint(this.root);
+        } finally {this.observe();}
+    }
+    label(text,wrap=true) {
+        const span=this.document.createElement('span');span.className='classic-ink';
+        const semantic=this.document.createElement('span');semantic.className='classic-semantic';semantic.textContent=text;
+        const canvas=this.document.createElement('canvas');canvas.setAttribute('aria-hidden','true');
+        const trimmed=String(text).replace(/\s/g,' ');const w=Math.max(1,textWidth(trimmed));
+        canvas.width=w;canvas.height=8;canvas.style.width=w+'px';canvas.style.height='8px';
+        span.append(semantic,canvas);span.dataset.text=trimmed;this.ink.set(span,trimmed);
+        if(!wrap)span.style.whiteSpace='nowrap';
+        return span;
+    }
+    repaint(root) {
+        if(!this.active||!root?.querySelectorAll)return;
+        const labels=[...(root.matches?.('.classic-ink')?[root]:[]),...root.querySelectorAll('.classic-ink')];
+        for(const span of labels){const canvas=span.querySelector('canvas');if(!canvas)continue;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);drawMenuText(ctx,span.dataset.text,0,0,getComputedStyle(span).color,1);}
+        for(const el of root.querySelectorAll('input,select,textarea'))this.syncField(el);
+    }
+    prepareField(field) {
+        if(this.fields.has(field)){this.syncField(field);return;}
+        const wrapper=this.document.createElement('span');wrapper.className='classic-native';
+        field.before(wrapper);wrapper.append(field);
+        const ink=this.document.createElement('canvas');ink.className='classic-value';ink.setAttribute('aria-hidden','true');wrapper.append(ink);
+        this.fields.set(field,ink);this.syncField(field);
+    }
+    syncField(field) {
+        if(!this.active)return;const canvas=this.fields.get(field);if(!canvas)return;
+        const w=Math.max(8,field.clientWidth),h=Math.max(10,field.clientHeight);canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d');const selected=field.tagName==='SELECT';
+        const raw=selected?field.selectedOptions[0]?.textContent||'':field.value;const text=plainASCII(raw);
+        const focused=this.document.activeElement===field;
+        const a=field.selectionStart??text.length,b=field.selectionEnd??a;
+        const cursor=Math.max(0,textWidth(text.slice(0,a))+1),offset=focused&&!selected?Math.max(0,cursor-w+10):0;
+        if(focused&&!selected&&a!==b){ctx.fillStyle='#285962';ctx.fillRect(3+Math.max(0,textWidth(text.slice(0,a))+1)-offset,1,Math.max(1,textWidth(text.slice(a,b))+1),h-2);}
+        ctx.save();ctx.beginPath();ctx.rect(2,1,w-(selected?12:4),h-2);ctx.clip();drawMenuText(ctx,text,3-offset,Math.floor((h-7)/2),field.disabled?'#777b60':'#e4e74d',1);
+        if(focused&&!selected&&a===b){ctx.fillStyle='#52d7d5';ctx.fillRect(3+cursor-offset,2,1,h-4);}ctx.restore();
+        if(selected){drawMenuText(ctx,'>',w-8,Math.floor((h-7)/2),'#e4e74d',1);}
+    }
+    openSelect(select) {
+        this.closeSelect();if(select.disabled)return;this.popupSelect=select;select.focus();
+        const p=this.document.createElement('div');p.className='classic-select-popup';p.setAttribute('role','listbox');p.setAttribute('aria-label',select.getAttribute('aria-label')||'Select value');
+        const scale=this.root.getBoundingClientRect().width/320,r=select.getBoundingClientRect(),base=this.root.getBoundingClientRect();
+        const width=Math.max(60,Math.min(300, r.width/scale));p.style.width=width+'px';
+        p.style.left=Math.max(1,Math.min(319-width,(r.left-base.left)/scale))+'px';
+        const y=(r.bottom-base.top)/scale;p.style.top=Math.max(1,Math.min(196-112,y))+'px';
+        for(const option of select.options){const b=this.document.createElement('button');b.type='button';b.disabled=option.disabled;b.setAttribute('role','option');b.setAttribute('aria-selected',String(option.selected));b.textContent=option.textContent;b.dataset.value=option.value;
+            b.addEventListener('click',()=>{select.value=option.value;this.closeSelect();select.dispatchEvent(new Event('change',{bubbles:true}));if(select.isConnected)select.focus();});p.append(b);}
+        this.popup=p;this.root.append(p);this.refresh();p.querySelector('[aria-selected=true]')?.focus();
+    }
+    closeSelect(){const select=this.popupSelect;this.popup?.remove();this.popup=null;this.popupSelect=null;return select;}
+    controls(){return [...(this.popup||this.root).querySelectorAll(SELECTOR)].filter(visible);}
+    move(key){const controls=this.controls();const current=controls.indexOf(this.document.activeElement);const boxes=controls.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,height:r.height};});const i=navigationIndex(boxes,current,key);if(i>=0){controls[i].focus({preventScroll:true});controls[i].scrollIntoView({block:'nearest',inline:'nearest'});}return controls[i];}
+    keydown(e) {
+        if(!this.active||this.root.hidden||e.ctrlKey||e.metaKey||e.isComposing)return;
+        if(e.key==='Tab'&&this.popup){this.closeSelect()?.focus();return;}
+        if(e.key==='Escape'){
+            e.preventDefault();e.stopPropagation();const selected=this.closeSelect();
+            if(selected)selected.focus();else this.options.back?.();return;
+        }
+        if(nativeEdit(e.target)){
+            if(e.target.tagName==='SELECT'&&(e.key==='Enter'||e.key===' '||e.altKey&&e.key==='ArrowDown')){e.preventDefault();e.stopPropagation();this.openSelect(e.target);}return;
+        }
+        if(['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','Home','End','PageUp','PageDown'].includes(e.key)){
+            e.preventDefault();e.stopPropagation();this.move(e.key);this.options.feedback?.('move');return;
+        }
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();const controls=this.controls();const target=controls.includes(this.document.activeElement)?this.document.activeElement:controls[0];target?.click();return;}
+        if(e.key.length===1&&!e.altKey){
+            const time=performance.now();this.search=(time-(this.searchTime||0)<700?this.search||'':'')+plainASCII(e.key);this.searchTime=time;
+            const controls=this.controls(),target=controls.find(el=>plainASCII(el.getAttribute('aria-label')||el.textContent).trim().startsWith(this.search));
+            if(target){e.preventDefault();e.stopPropagation();target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
+        }
+    }
+    hostAction(action) {
+        if(!this.active||this.disposed||this.root.hidden)return;
+        if(action==='back'){
+            const select=this.closeSelect();if(select)select.focus();else this.options.back?.();
+        }else if(action==='activate'){
+            const controls=this.controls(),target=controls.find(el=>el===this.document.activeElement)||controls[0];
+            if(target?.tagName==='SELECT')this.openSelect(target);else target?.click();
+        }else this.move(action);
+    }
+    restoreInk(){for(const el of this.root.querySelectorAll('[data-classic-label]'))delete el.dataset.classicLabel;
+        for(const copy of this.root.querySelectorAll('.classic-copy'))copy.replaceWith(this.document.createTextNode(copy.querySelector('.classic-semantic')?.textContent||''));
+        for(const span of this.root.querySelectorAll('.classic-ink'))span.replaceWith(this.document.createTextNode(span.querySelector('.classic-semantic')?.textContent||span.dataset.text||''));
+        for(const wrapper of this.root.querySelectorAll('.classic-native')){const field=wrapper.querySelector('input,select,textarea');if(field){this.fields.delete(field);wrapper.replaceWith(field);}}
+    }
+    restoreStyles(){for(const [key,value,priority] of this.originalStyles)if(value)this.root.style.setProperty(key,value,priority);else this.root.style.removeProperty(key);}
+    dispose(){if(this.disposed)return;this.observer.disconnect();cancelAnimationFrame(this.pending);this.abort.abort();this.closeSelect();this.restoreInk();this.background.remove();this.style.remove();this.root.classList.remove('classic-ui');this.restoreStyles();this.autoParts.forEach(el=>delete el.dataset.classicPart);delete this.root.dataset.classicView;if(this.generatedId&&this.root.id===this.rootId)this.root.removeAttribute('id');this.disposed=true;this.active=false;}
+}
+
+return {CLASSIC_MENU_LAYOUT,classicViewport,navigationIndex,drawMenuBackdrop,drawClassicLogo,ClassicMenuSkin};
+});
+define("@wieslawsoltes/ski-ui/classic-style.js",function(require){
+/** Styles are shipped with the reusable UI package; no document-global theme reset. */
+const CLASSIC_MENU_CSS = `
+#arena #menu-layer.classic-ui{position:absolute!important;width:320px!important;height:200px!important;min-height:200px!important;padding:0!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%) scale(var(--ui-scale))!important;transform-origin:center!important;background:#282f33!important;border:1px solid #d7dc37!important;box-shadow:none!important;overflow:hidden!important;display:block!important;color:#e7e84b;font:8px/10px monospace!important;isolation:isolate}
+#arena #menu-layer.classic-ui[hidden]{display:none!important}
+.classic-backdrop{display:none;pointer-events:none}
+#arena .classic-ui .classic-backdrop{display:block;position:absolute;inset:0;width:320px;height:200px;z-index:-1;image-rendering:pixelated}
+#arena #menu-layer.classic-ui *{border-radius:0!important;box-shadow:none!important;letter-spacing:0!important;text-transform:none;box-sizing:border-box}
+#arena #menu-layer.classic-ui #menu-header{position:absolute!important;left:7px!important;top:0!important;width:306px!important;height:38px!important;min-height:38px!important;border:0!important;border-bottom:1px solid #d7dc37!important;padding:0!important;display:block!important}
+#arena #menu-layer.classic-ui #logo{position:absolute!important;left:12px!important;top:5px!important;width:122px!important;height:27px!important;margin:0!important;image-rendering:pixelated}
+#arena #menu-layer.classic-ui #header-note{position:absolute;left:141px;top:9px;font-size:8px!important;line-height:12px!important;max-width:none!important;text-align:left;color:#dfe54c}
+#arena #menu-layer.classic-ui #renderer-name,#arena #menu-layer.classic-ui footer{display:none!important}
+#arena #menu-layer.classic-ui #menu-heading{position:absolute;left:9px;right:8px;top:44px;height:8px!important;min-height:8px!important;padding:0!important;margin:0!important;line-height:8px!important;color:#f1c94a;white-space:nowrap;overflow:hidden}
+#arena #menu-layer.classic-ui #menu-content{position:absolute;left:8px;top:58px;width:304px;height:135px;min-height:0!important;padding:0!important;margin:0!important;overflow:auto;scrollbar-width:thin;scrollbar-color:#a7ada0 #303940}
+#arena #menu-layer.classic-ui canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+#arena #menu-layer.classic-ui .classic-ink{display:inline-block;position:relative;vertical-align:top;line-height:8px!important;height:8px;max-width:100%;overflow:hidden;white-space:pre;color:inherit}
+#arena #menu-layer.classic-ui .classic-ink canvas{display:block!important;max-width:none!important;vertical-align:top}
+#arena #menu-layer.classic-ui .classic-semantic{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:pre!important;border:0!important}
+#arena #menu-layer.classic-ui :is(button,input,select,textarea,summary){font:8px/10px monospace!important;color:inherit;border-radius:0!important;min-width:0;outline-offset:-1px!important}
+#arena #menu-layer.classic-ui :is(button,summary):focus,#arena #menu-layer.classic-ui :is(button,summary):hover{outline:1px solid #42d4d1!important;background:transparent!important;color:#bb9428}
+#arena #menu-layer.classic-ui button:disabled{color:#777f66;opacity:.6;outline:none!important}
+#arena #menu-layer.classic-ui button:before{content:none!important}
+#arena #menu-layer.classic-ui button{border:0;background:transparent;text-align:left;white-space:nowrap}
+#arena #menu-layer.classic-ui .menu-item{width:100%;height:12px!important;min-height:12px!important;padding:2px 1px!important;margin:0;line-height:8px!important}
+#arena #menu-layer.classic-ui .main-menu{position:static!important;display:flex;flex-direction:column;width:170px!important;padding:0!important;margin:7px 0 0 39px!important;gap:0!important}
+#arena #menu-layer.classic-ui[data-view=main] #menu-content{left:0;top:58px;width:320px;height:141px;overflow:hidden}
+#arena #menu-layer.classic-ui[data-view=main] .main-menu{position:absolute!important;left:48px!important;top:20px!important;width:120px!important;margin:0!important}
+#arena #menu-layer.classic-ui[data-view=main] [data-action=quit]{margin-top:24px!important}
+#arena #menu-layer.classic-ui .classic-extensions{display:none!important}
+#arena #menu-layer.classic-ui .small-button{height:13px!important;min-height:13px!important;padding:2px 4px!important;font-size:8px!important;line-height:8px!important;border:1px solid #737f6c!important;background:#222c30b3;color:#e8e949}
+#arena #menu-layer.classic-ui .small-button.primary{border-color:#c5c642!important;color:#f6ef59}
+#arena #menu-layer.classic-ui .buttons{display:flex;flex-wrap:wrap;gap:3px!important;margin:5px 0 0!important;padding:1px 0!important;align-items:center}
+#arena #menu-layer.classic-ui #menu-content>.buttons:last-child{position:sticky;bottom:0;background:#252f34;z-index:2}
+#arena #menu-layer.classic-ui .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:3px!important;padding:0!important;margin:0 0 4px!important;font-size:8px!important;line-height:10px!important}
+#arena #menu-layer.classic-ui .toolbar label{display:flex;align-items:center;gap:3px}
+#arena #menu-layer.classic-ui :is(p,.hint,.empty,.replay-info){font:8px/10px monospace!important;letter-spacing:0!important;margin:3px 0!important;line-height:10px!important;color:#b6b9a1}
+#arena #menu-layer.classic-ui .hint{font-size:8px!important}
+#arena #menu-layer.classic-ui .empty{padding:18px 8px!important;text-align:left}
+#arena #menu-layer.classic-ui .grid2,#arena #menu-layer.classic-ui .help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+#arena #menu-layer.classic-ui :is(h2,h3,h4){margin:0 0 4px!important;font:8px/10px monospace!important;color:#e8be48}
+#arena #menu-layer.classic-ui :is(.form-grid,.setup-top){display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px 8px!important}
+#arena #menu-layer.classic-ui .field{display:flex;flex-direction:column;gap:2px!important;font-size:8px!important;line-height:8px!important;min-width:0;color:#57d4d0}
+#arena #menu-layer.classic-ui .field.full{grid-column:1/-1}
+#arena #menu-layer.classic-ui :is(select,input,textarea){height:14px!important;min-height:14px!important;width:100%;padding:2px 3px!important;border:1px solid #828a76!important;background:#18272e!important;color:#e8e94d!important;appearance:none;box-shadow:inset 1px 1px #111!important}
+#arena #menu-layer.classic-ui :is(input,textarea){user-select:text;-webkit-user-select:text}
+#arena #menu-layer.classic-ui :is(input,select,textarea):focus{outline:1px solid #42d4d1!important}
+#arena #menu-layer.classic-ui select{min-width:38px!important;max-width:100%!important}
+#arena #menu-layer.classic-ui input[type=color]{height:15px!important;min-height:15px!important;padding:1px!important}
+#arena #menu-layer.classic-ui .classic-native{position:relative;display:inline-block;min-width:0;max-width:100%;width:100%;height:14px;vertical-align:middle}
+#arena #menu-layer.classic-ui .classic-native :is(input,select,textarea){color:transparent!important;caret-color:transparent}
+#arena #menu-layer.classic-ui .classic-native select option{color:#e8e94d!important;background:#1b2b30}
+#arena #menu-layer.classic-ui .classic-value{position:absolute;top:0;left:0;pointer-events:none;width:100%;height:100%;image-rendering:pixelated}
+#arena #menu-layer.classic-ui .toolbar .classic-native{width:83px}
+#arena #menu-layer.classic-ui .check{display:flex;gap:3px!important;align-items:center;min-height:11px!important;font-size:8px!important;line-height:8px!important}
+#arena #menu-layer.classic-ui input[type=checkbox]{appearance:none!important;flex:none;width:7px!important;height:7px!important;min-height:7px!important;padding:0!important;border:1px solid #93996b!important;background:transparent!important}
+#arena #menu-layer.classic-ui input[type=checkbox]:checked{background:#e1e549!important;box-shadow:inset 0 0 0 1px #364138!important}
+#arena #menu-layer.classic-ui input[type=range]{appearance:none;height:11px!important;min-height:11px!important;padding:0!important;background:#6f797d!important;border:1px solid #9ea8a8!important}
+#arena #menu-layer.classic-ui input[type=range]::-webkit-slider-thumb{appearance:none;width:7px;height:9px;background:#c6cdd0;border:1px solid #46545b}
+#arena #menu-layer.classic-ui input[type=range]::-moz-range-thumb{width:7px;height:9px;background:#c6cdd0;border:1px solid #46545b;border-radius:0}
+#arena #menu-layer.classic-ui .check-grid{display:grid;grid-template-columns:repeat(4,1fr)!important;gap:1px!important}
+#arena #menu-layer.classic-ui .hill-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:1px!important}
+#arena #menu-layer.classic-ui .hill-button{padding:2px 1px!important;min-height:12px!important;height:12px;gap:0!important;display:flex;flex-direction:column;border:0!important;font-size:8px!important;overflow:hidden}
+#arena #menu-layer.classic-ui .hill-button>span:first-child{height:8px;white-space:nowrap}
+#arena #menu-layer.classic-ui .hill-button .pb{display:none}
+#arena #menu-layer.classic-ui .hill-sub{display:none!important;font-size:8px!important;display:flex;width:100%;justify-content:space-between;line-height:8px!important;color:#53d3ce}
+#arena #menu-layer.classic-ui .hill-k{font-size:8px!important;line-height:8px!important}
+#arena #menu-layer.classic-ui .hill-sub>span:first-child{display:none}
+#arena #menu-layer.classic-ui .player-editor{display:grid;grid-template-columns:98px 1fr!important;gap:8px!important}
+#arena #menu-layer.classic-ui .player-list{max-height:86px!important;border:1px solid #69766a;overflow:auto}
+#arena #menu-layer.classic-ui .player-row{display:flex;align-items:center;width:100%;min-height:12px!important;height:12px;padding:2px!important;gap:3px;font-size:8px!important}
+#arena #menu-layer.classic-ui .swatch{height:6px;width:6px;min-width:6px;border:0}
+#arena #menu-layer.classic-ui .player-row.active{color:#53d3ce}
+#arena #menu-layer.classic-ui .table-wrap{max-height:98px!important;overflow:auto;border:0!important;margin:0!important;scrollbar-width:thin}
+#arena #menu-layer.classic-ui table{border-collapse:collapse;width:100%;font:8px/10px monospace!important;table-layout:auto}
+#arena #menu-layer.classic-ui :is(td,th){padding:2px 2px!important;border:0!important;height:12px;white-space:nowrap;vertical-align:top;font-size:8px!important;line-height:8px!important}
+#arena #menu-layer.classic-ui th{color:#54d9d0;background:#273237;position:sticky;top:0;text-align:left;z-index:1}
+#arena #menu-layer.classic-ui .num{text-align:right;font-variant-numeric:tabular-nums}
+#arena #menu-layer.classic-ui tr.you{color:#55d6d0;background:transparent!important}
+#arena #menu-layer.classic-ui .table-link{height:8px!important;padding:0!important}
+#arena #menu-layer.classic-ui .classic-records{position:absolute;left:39px;top:5px;margin:0!important;width:250px}
+#arena #menu-layer.classic-ui .classic-record{display:grid;grid-template-columns:70px 36px 1fr!important;width:250px!important;min-height:10px!important;height:10px;padding:1px 1px!important;color:#52d2cf;line-height:8px!important}
+#arena #menu-layer.classic-ui .record-page{position:fixed!important;top:44px!important;right:22px!important;margin:0!important;line-height:8px!important;color:#eec748}
+#arena #menu-layer.classic-ui .classic-record-nav{position:absolute;left:39px;top:100px;display:grid;grid-template-columns:142px 1fr!important;width:252px;margin:0!important;gap:2px 0}
+#arena #menu-layer.classic-ui .classic-record-nav [data-action=main]{grid-column:1/-1;margin-top:0!important}
+#arena #menu-layer.classic-ui .classic-record-nav .menu-item{width:auto}
+#arena #menu-layer.classic-ui .classic-record-tools{display:none!important}
+#arena #menu-layer.classic-ui .record-extensions{font-size:8px!important}
+#arena #menu-layer.classic-ui .sound-setup{width:210px;max-width:none!important;margin:4px 0 0 39px!important}
+#arena #menu-layer.classic-ui .sound-setup .field{margin:8px 0}
+#arena #menu-layer.classic-ui .sound-setup .buttons{margin-top:18px!important}
+#arena #menu-layer.classic-ui .tour-events{max-height:58px!important;margin:3px 0!important;overflow:auto;border:1px solid #6d795f}
+#arena #menu-layer.classic-ui .tour-event{display:flex;flex-wrap:nowrap!important;gap:2px;min-height:14px;padding:1px!important;font-size:8px!important}
+#arena #menu-layer.classic-ui .tour-event strong{flex:1;flex-basis:auto!important;font-size:8px;white-space:nowrap!important;overflow:hidden}
+#arena #menu-layer.classic-ui .small-button.tiny{font-size:8px!important;padding:1px 2px!important;min-height:11px!important;height:11px!important}
+#arena #menu-layer.classic-ui [data-view=tour] input{width:100%}
+#arena #menu-layer.classic-ui .result-top{display:flex;flex-direction:row!important;gap:6px;align-items:start;justify-content:space-between}
+#arena #menu-layer.classic-ui .jump-distance [data-pixel]{color:#eaf15b}
+#arena #menu-layer.classic-ui .points-big{text-align:right!important;font-size:8px!important}
+#arena #menu-layer.classic-ui .points-big small{display:block;font-size:8px!important}
+#arena #menu-layer.classic-ui .judge-marks{display:flex;gap:10px;padding:5px 0!important;margin:0;justify-content:flex-start}
+#arena #menu-layer.classic-ui .judge{padding:1px!important;font-size:8px!important;min-width:0;text-align:center}
+#arena #menu-layer.classic-ui .judge small{display:block;font-size:8px!important;color:#55d6d0;margin-bottom:3px}
+#arena #menu-layer.classic-ui .judge.dropped{color:#919475;opacity:1}
+#arena #menu-layer.classic-ui .result-meta{display:grid;grid-template-columns:repeat(4,1fr)!important;gap:3px;margin:4px 0!important;font-size:8px!important}
+#arena #menu-layer.classic-ui .result-meta strong{display:block;font-size:8px!important;color:#f0d652;margin-top:2px}
+#arena #menu-layer.classic-ui .new-record{font-size:8px!important;margin:3px 0!important;padding:2px!important;animation:none!important;color:#57e1d6}
+#arena #menu-layer.classic-ui .replay-list{position:absolute;left:39px;top:0;width:244px;height:91px;overflow:auto;scrollbar-width:thin}
+#arena #menu-layer.classic-ui .replay-list .menu-item{width:242px;height:11px!important;min-height:11px!important;overflow:hidden}
+#arena #menu-layer.classic-ui .replay-list-footer{position:absolute;left:39px;top:111px;width:245px;display:flex;gap:12px}
+#arena #menu-layer.classic-ui .replay-list-footer .menu-item{width:auto}
+#arena #menu-layer.classic-ui .replay-detail{margin:1px 0 0 39px;display:grid;grid-template-columns:60px 1fr;gap:2px;color:#e4b83e;line-height:8px}
+#arena #menu-layer.classic-ui .replay-detail-actions{position:absolute;left:39px;top:69px;width:230px}
+#arena #menu-layer.classic-ui .replay-detail-actions [data-action=replays]{margin-top:17px}
+#arena #menu-layer.classic-ui .replay-detail-tools{display:flex;gap:4px;margin-top:5px}
+#arena #menu-layer.classic-ui .classic-select-popup{position:absolute;max-height:112px;padding:2px;background:#243139;border:1px solid #62c8c7;overflow:auto;z-index:30;scrollbar-width:thin}
+#arena #menu-layer.classic-ui .classic-select-popup button{display:block;width:100%;height:12px;padding:2px;overflow:hidden}
+#arena #menu-layer.classic-ui .classic-select-popup [aria-selected=true]{color:#56d5d3}
+#arena #menu-layer.classic-ui .classic-confirm{border:1px solid #c7ce55;background:#222f36;padding:8px;margin:10px 25px}
+#arena #menu-layer.classic-ui kbd{padding:0 1px;font-size:8px!important;border:1px solid #889876}
+.ski-classic-host{position:fixed;bottom:max(5px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;justify-content:center;flex-wrap:wrap;gap:5px;z-index:50;width:max-content;max-width:100vw;padding:4px;background:#101b22e8;border:1px solid #5a6c67}
+.ski-classic-host[hidden]{display:none!important}
+.ski-classic-host button{font:11px monospace;color:#dade77;border:1px solid #5f7473;border-radius:0;background:#1d2b31;min-width:32px;min-height:26px;padding:4px 8px}
+.ski-classic-host button:focus-visible{outline:2px solid #48d6d4}
+.ski-classic-host .touch-nav{display:none}
+@media(pointer:coarse){.ski-classic-host .touch-nav{display:block}.ski-classic-host button{min-height:44px;min-width:44px}.ski-classic-host{width:max-content;max-width:100%;gap:3px}}
+
+.ski-classic-host .classic-extensions{position:static;display:flex;gap:5px;flex-wrap:wrap;margin:0;padding:0}
+.ski-classic-host .classic-host-navigation{display:flex;gap:4px}
+.ski-classic-host .classic-record-tools{position:static;max-width:260px;margin:0;font:11px monospace}
+.ski-classic-host .classic-record-tools summary{cursor:pointer;padding:6px;color:#dadd80}
+.ski-classic-host .classic-record-tools[open]{position:absolute;bottom:38px;right:0;padding:10px;background:#15242b;border:1px solid #56aaa8;width:270px;max-width:90vw}
+.ski-classic-host .classic-record-tools .toolbar{font-size:11px;flex-wrap:wrap}
+.ski-classic-host .classic-record-tools .hint{font-size:10px;line-height:14px}
+#arena #menu-layer.classic-ui .replay-list .replay-info{margin:0!important;height:11px!important;line-height:8px!important}
+
+#arena #menu-layer.classic-ui .classic-copy{display:inline;min-width:0;max-width:100%;line-height:10px}
+#arena #menu-layer.classic-ui .field>.classic-copy{display:block}
+#arena #menu-layer.classic-ui [hidden]{display:none!important}
+#arena #menu-layer.classic-ui .classic-tabs{display:flex;gap:6px;margin:0 0 5px}
+#arena #menu-layer.classic-ui .classic-tabs button{border:0!important;padding:1px 4px!important;color:#b7c3a7}
+#arena #menu-layer.classic-ui .classic-tabs [aria-selected=true]{color:#50d8d1;border-bottom:1px solid #50d8d1!important}
+#arena #menu-layer.classic-ui[data-view=options] #menu-content>.hint{display:none}
+
+#arena #menu-layer.classic-ui .classic-copy{position:relative}
+
+#arena #menu-layer.classic-ui .classic-record:hover,#arena #menu-layer.classic-ui .classic-record:focus{color:#52d2cf!important}
+#arena #menu-layer.classic-ui .classic-record>span:last-child{color:#e8e94d}
+`;
+
+return {CLASSIC_MENU_CSS};
 });
 define("app",function(require){
 const { FixedClock, Random, clamp, round }=require("@wieslawsoltes/ski-core");
@@ -2696,7 +3128,7 @@ const { SkiRenderer }=require("@wieslawsoltes/ski-renderer");
 const { SkiAudio }=require("@wieslawsoltes/ski-audio");
 const { SkiInput }=require("@wieslawsoltes/ski-input");
 const { GameStore, DEFAULT_SETTINGS }=require("@wieslawsoltes/ski-storage");
-const { JumpHUD, paintLabels, drawLogo, escapeHTML, downloadText, pixelCanvas }=require("@wieslawsoltes/ski-ui");
+const { JumpHUD, paintLabels, drawLogo, escapeHTML, downloadText, pixelCanvas, ClassicMenuSkin, drawClassicLogo }=require("@wieslawsoltes/ski-ui");
 const $ = s => document.querySelector(s), esc = escapeHTML;
 const btn = (action, label, cls = 'small-button', extra = '') => `<button class="${cls}" data-action="${action}" ${extra}>${esc(label)}</button>`;
 const pixelBtn = (action, label, extra = '') => `<button class="menu-item" data-action="${action}" ${extra}><span data-pixel="${esc(label)}"></span></button>`;
@@ -2728,6 +3160,18 @@ class SkiJumpApp {
         this.arena = $('#arena'); this.arena.dataset.presentation = this.settings.presentation;
         this.menu = $('#menu-layer');
         this.content = $('#menu-content');
+        this.menuSkin = new ClassicMenuSkin(this.menu, { back: () => this.menuBack(), feedback: () => this.audio.play('menu') });
+        this.menuHost = document.createElement('nav'); this.menuHost.id = 'classic-menu-host'; this.menuHost.className='ski-classic-host';
+        this.menuHost.setAttribute('aria-label', 'Browser and touch controls'); this.menuHost.hidden = true;
+        document.body.append(this.menuHost);
+        this.menuHost.addEventListener('pointerdown', e => { if (e.target.closest('[data-host-command]')) e.preventDefault(); });
+        this.menuHost.addEventListener('click', e => {
+            const command=e.target.closest('[data-host-command]')?.dataset.hostCommand;
+            if(command==='fit'){this.menuSkin.fit=!this.menuSkin.fit;this.resize();return;}
+            if(command){this.menuSkin.hostAction(command);return;}
+            const button=e.target.closest('[data-action]');if(button&&!button.disabled){this.audio.unlock();this.act(button.dataset.action,button).catch(e=>this.showError(e));}
+        });
+        this.menuHost.addEventListener('change', e => { try {this.change(e);} catch(error){this.showError(error);} });
         this.audio = new SkiAudio(this.settings);
         this.renderer = new SkiRenderer($('#scene-host'), this.settings);
         this.hud = new JumpHUD($('#hud'));
@@ -2741,7 +3185,7 @@ class SkiJumpApp {
         this.frameId = requestAnimationFrame(t => this.frame(t));
         if (new URLSearchParams(location.search).has('debug'))
             globalThis.__SKI_DEBUG__ = this;
-        globalThis.SkiJumpWeb = { version: '0.3.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
+        globalThis.SkiJumpWeb = { version: '0.5.0', hills: HILLS.map(h => ({ ...h })), practice: id => this.startPractice(id), diagnostics: () => this.renderer.diagnostics(), getState: () => this.sim?.snapshot() || null };
         if (location.protocol !== 'file:' && 'serviceWorker' in navigator)
             navigator.serviceWorker.register('./sw.js').catch(() => { });
     }
@@ -2853,11 +3297,85 @@ class SkiJumpApp {
         });
         window.addEventListener('pagehide', () => { this.saveCup(); this.savePlayers(); });
     }
-    resize() { const portrait = innerHeight > innerWidth * 1.08; this.arena.classList.toggle('portrait', portrait); const r = this.arena.getBoundingClientRect(), mw = portrait ? 360 : 640, scale = Math.min(r.width / mw, portrait ? 10 : r.height / 400), mh = portrait ? r.height / scale : 400; this.menu.style.setProperty('--menu-width', `${mw}px`); this.menu.style.setProperty('--menu-height', `${mh}px`); this.menu.style.setProperty('--ui-scale', String(scale)); this.renderer.resize(); this.clock.reset(); }
+    resize() {
+        const portrait=innerHeight>innerWidth*1.08;this.arena.classList.toggle('portrait',portrait);
+        const r=this.arena.getBoundingClientRect();
+        if(this.settings.presentation==='classic'){
+            // The external host can wrap into two rows on a narrow phone. Measure it
+            // rather than assuming a fixed reserve; pixel-align the complete frame.
+            const bottom=this.menuHost.hidden?innerHeight:Math.max(1,this.menuHost.getBoundingClientRect().top-4);
+            const v=this.menuSkin.layout(r.width,Math.max(1,Math.min(r.height,bottom)));
+            const top=Math.floor((bottom-200*v.scale)/2);
+            this.menu.style.marginTop=(top+100*v.scale-r.top-r.height/2)+'px';
+        }
+        else {this.menu.style.marginTop='0px';const mw=portrait?360:640,scale=Math.min(r.width/mw,portrait?10:r.height/400),mh=portrait?r.height/scale:400;
+            this.menu.style.setProperty('--menu-width',mw+'px');this.menu.style.setProperty('--menu-height',mh+'px');this.menu.style.setProperty('--ui-scale',String(scale));}
+        this.renderer.resize();this.clock.reset();this.menuSkin.refresh();
+    }
+    buildOptionsTabs() {
+        const form=this.content.querySelector('.form-grid');if(!form||this.content.querySelector('.classic-tabs'))return;
+        const categories={display:[],controls:[],gameplay:[]};
+        for(const field of [...form.children]){
+            const key=field.querySelector('[data-setting]')?.dataset.setting;
+            const category=['control','sensitivity','volume','mute','haptics','motion'].includes(key)||field.querySelector('[data-action=motion]')?'controls':
+                ['difficulty','windBase','gate','guide','assist','ghost','watchCPU'].includes(key)?'gameplay':'display';
+            categories[category].push(field);
+        }
+        const tabs=document.createElement('div');tabs.className='classic-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Options categories');
+        for(const [name,fields] of Object.entries(categories)){
+            tabs.insertAdjacentHTML('beforeend',`<button id="ui-tab-${name}" role="tab" data-action="ui-tab" data-tab="${name}" aria-controls="ui-pane-${name}" aria-selected="${name==='display'}">${name.toUpperCase()}</button>`);
+            const pane=document.createElement('div');pane.className='form-grid options-pane';pane.id='ui-pane-'+name;pane.setAttribute('role','tabpanel');pane.setAttribute('aria-labelledby','ui-tab-'+name);pane.hidden=name!=='display';pane.append(...fields);form.before(pane);
+        }
+        this.content.prepend(tabs);form.remove();this.optionsTab='display';
+    }
+    selectOptionsTab(name) {
+        if(!['display','controls','gameplay'].includes(name))return;
+        this.optionsTab=name;
+        for(const tab of this.content.querySelectorAll('[data-tab]'))tab.setAttribute('aria-selected',String(tab.dataset.tab===name));
+        for(const pane of this.content.querySelectorAll('.options-pane'))pane.hidden=pane.id!=='ui-pane-'+name;
+        this.menuSkin.refresh();
+    }
+    flattenOptionsTabs() {
+        const panes=[...this.content.querySelectorAll('.options-pane')];if(!panes.length)return;
+        const form=document.createElement('div');form.className='form-grid';form.append(...panes.flatMap(p=>[...p.children]));
+        panes[0].before(form);panes.forEach(p=>p.remove());this.content.querySelector('.classic-tabs')?.remove();
+    }
+    menuBack() {
+        if(this.view==='main')return;
+        const backActions={options:'options-back',help:'help-back',pause:'resume','hill-records':'records','personal-records':'records','reset-records':'records',
+            'replay-details':'replays','rename-replay':'replays','delete-replay':'replays',tour:'tour-back','history-event':'cup-history','team-details':'start-list',
+            'live-results':'start-list','cup-history':'start-list',standings:'standings-back',session:'practice'};
+        if(this.view==='players'){this.flushPlayer();this.savePlayers();}
+        if(this.view==='result'){this.mode==='practice'?this.showHills():this.showStartList();return;}
+        this.act(backActions[this.view]||'main').catch(e=>this.showError(e));
+    }
+    syncMenuHost() {
+        this.menuHost.replaceChildren();this.menuHost.hidden=this.menu.hidden||this.settings.presentation!=='classic';
+        if(this.menuHost.hidden)return;
+        for(const el of this.content.querySelectorAll('.classic-extensions,.classic-record-tools')){
+            for(const copy of el.querySelectorAll('.classic-copy'))copy.replaceWith(document.createTextNode(copy.querySelector('.classic-semantic')?.textContent||''));
+            for(const ink of el.querySelectorAll('.classic-ink'))ink.replaceWith(document.createTextNode(ink.querySelector('.classic-semantic')?.textContent||ink.dataset.text||''));
+            this.menuHost.append(el);
+        }
+        const controls=document.createElement('div');controls.className='classic-host-navigation';
+        controls.innerHTML='<button class="touch-nav" data-host-command="ArrowUp" aria-label="Previous menu control">UP</button><button class="touch-nav" data-host-command="ArrowDown" aria-label="Next menu control">DOWN</button><button class="touch-nav" data-host-command="activate" aria-label="Activate menu control">OK</button><button class="touch-nav" data-host-command="back" aria-label="Go back">BACK</button><button data-host-command="fit" aria-label="Toggle integer or fitted menu scaling">FIT</button>';
+        this.menuHost.append(controls);
+    }
     updateBackend() { const d = this.renderer.diagnostics(); $('#renderer-name').textContent = `${d.backend.toUpperCase()} / ${d.resolution.join('X')}`; $('#footer-left').textContent = this.store.persistent ? '32 HILLS / LOCAL HOT-SEAT' : 'LOCAL STORAGE UNAVAILABLE / IN-MEMORY'; }
     setHill(id) { const hill = typeof id === 'string' ? getHill(id) : id; this.hill = hill; this.profile = new HillProfile(hill); const record = this.store.records()[this.store.recordKey(hill.id, this.settings.assist, this.settings.rules)]?.distance || 0; this.hillRecordKey = this.store.recordKey(hill.id, this.settings.assist, this.settings.rules); this.renderer.setHill(this.profile, record); this.idle = new JumpSimulation(this.profile).snapshot(); this.lastHill = hill.id; this.store.set('lastHill', hill.id); }
-    openMenu(view, title, html) { this.view = view; this.menu.dataset.view = view; this.input.setEnabled(false); this.virtualPointers?.clear(); this.menu.hidden = false; this.arena.classList.add('menu-open'); $('#game-toolbar').hidden = true; $('#touch-controls').hidden = true; $('#replay-controls').hidden = true; $('#menu-heading').innerHTML = title ? `<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>` : ''; this.content.innerHTML = html; this.content.scrollTop = 0; paintLabels(this.menu); this.audio.update(null, true); this.updateBackend(); }
-    hideMenu(view = 'game') { this.view = view; this.menu.hidden = true; this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
+    openMenu(view,title,html) {
+        this.menuSkin.remember();this.view=view;this.menu.dataset.view=view;this.input.setEnabled(false);
+        this.virtualPointers?.clear();this.menu.hidden=false;this.arena.classList.add('menu-open');
+        $('#game-toolbar').hidden=true;$('#touch-controls').hidden=true;$('#replay-controls').hidden=true;
+        $('#menu-heading').innerHTML=title?`<span data-pixel="${esc(title)}" data-color="#f2bf4c"></span>`:'';
+        this.content.innerHTML=html;this.content.scrollTop=0;
+        if(view==='options'&&this.settings.presentation==='classic')this.buildOptionsTabs();
+        const classic=this.settings.presentation==='classic';this.menuSkin.setActive(classic);
+        if(classic)drawClassicLogo($('#logo'));else drawLogo($('#logo'));
+        paintLabels(this.menu);this.syncMenuHost();this.resize();this.menuSkin.enter(view);
+        this.audio.update(null,true);this.updateBackend();
+    }
+    hideMenu(view = 'game') { this.menuSkin.remember(); this.menuSkin.closeSelect(); this.menuHost.hidden=true; this.view = view; this.menu.hidden = true; this.arena.tabIndex=-1; this.arena.focus({preventScroll:true}); this.arena.classList.remove('menu-open'); $('#game-toolbar').hidden = view !== 'game'; $('#skip-cpu').hidden = !this.cpu; $('#touch-controls').hidden = view !== 'game' || !this.touch; $('#replay-controls').hidden = view !== 'replay'; this.input.setEnabled(view === 'game' && !this.cpu); this.clock.reset(); this.lastTime = 0; }
     showMain() {
         this.turnToken++; this.paused = false;
         const cup = this.store.get('cup'), stats = this.store.stats(), classic = this.settings.presentation === 'classic';
@@ -2876,7 +3394,7 @@ class SkiJumpApp {
     showHills(filter = 'all') {
         this.hillFilter = filter;
         const records = this.store.records(), list = HILLS.filter(h => filter === 'all' || (filter === 'small' ? h.k <= 100 : filter === 'large' ? h.k > 100 && h.k < 180 : h.k >= 180));
-        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist, this.settings.rules)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
+        this.openMenu('hills', 'SELECT HILL TO PRACTICE', `<div class="toolbar"><label>HILLS <select id="hill-filter">${[['all', 'ALL 32'], ['small', 'K50 - K100'], ['large', 'K105 - K170'], ['flying', 'SKI FLYING']].map(([v, t]) => option(v, t, filter)).join('')}</select></label><label>JUMPER <select id="practice-player">${this.players.map((p, i) => option(i, p.name, this.playerIndex)).join('')}</select></label>${btn('random-hill', 'RANDOM')}</div><div class="hill-grid">${list.map(h => { const r = records[this.store.recordKey(h.id, this.settings.assist, this.settings.rules)]; return `<button class="hill-button" data-action="hill" data-id="${h.id}" data-selected="${h.id === this.lastHill}" aria-label="${esc(h.name)} K${h.k}"><span data-pixel="${esc(this.settings.presentation==='classic'?h.code+' K'+h.k:h.name)}" data-size="1"></span><span class="hill-sub"><span>${h.code}</span><span class="pb">${r ? r.distance.toFixed(2) + ' M' : 'NO RECORD'}</span><span class="hill-k">K${h.k}</span></span></button>`; }).join('')}</div><div class="buttons">${btn('main', 'BACK')}${btn('help', 'CONTROLS')}<span class="hint">Every hill is unlocked.</span></div>`);
     }
     startPractice(id = this.lastHill, sameSeed = false) { this.turnToken++; this.cup = null; this.mode = 'practice'; if (!sameSeed)
         this.seed = (this.seed + 7919) >>> 0; this.practiceSeed = this.seed; this.launchJump(getHill(id), this.players[this.playerIndex] || this.players[0], { rules: this.settings.rules, seed: this.seed, windStrength: this.settings.windBase === null ? this.settings.windStrength : 0, windBase: this.settings.windBase, gate: this.settings.gate, assist: this.settings.assist }); }
@@ -3104,7 +3622,15 @@ class SkiJumpApp {
     confirmResetRecords() {
         this.openMenu('reset-records', 'RESET HILL RECORDS', `<div class="empty">RESET ALL 32 HILL RECORDS FOR THIS BOARD?<br>${this.settings.rules.toUpperCase()} / ${this.recordsAssisted ? 'ASSISTED' : 'UNASSISTED'}<br>Other rules and replay-library entries are preserved.</div><div class="buttons">${btn('records','CANCEL','small-button primary')}${btn('records-reset-confirm','RESET THIS BOARD')}</div>`);
     }
-    showReplays() { const list = this.store.replays(); this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
+    showReplays() { const list = this.store.replays();
+        if(this.settings.presentation==='classic'){
+            this.openMenu('replays','SELECT REPLAY',`<div class="replay-list">${list.length?list.map(r=>`<div class="replay-info">${pixelBtn('replay-details',r.label||r.name,`data-id="${esc(r.id)}"`)}</div>`).join(''):'<p class="empty">NO SAVED REPLAYS.<br>Finish a jump and choose SAVE REPLAY.</p>'}</div><div class="replay-list-footer">${pixelBtn('main','BACK')}${btn('import-replay','IMPORT')}${this.lastReplay?btn('last-replay','LAST JUMP'):''}</div>`);return;
+        } this.openMenu('replays', 'REPLAYS', `${list.length ? list.map(r => `<div class="replay-row"><div class="replay-info">${esc(r.label || r.name)} / ${getHill(r.hillId).name} K${getHill(r.hillId).k}<small>${r.distance.toFixed(2)} M / ${esc(r.date.slice(0, 10))}</small></div>${btn('play-replay', 'PLAY', 'small-button', `data-id="${r.id}"`)}${btn('export-replay', 'EXPORT', 'small-button', `data-id="${r.id}"`)}${btn('rename-replay', 'NAME', 'small-button', `data-id="${r.id}"`)}${btn('delete-replay', 'DELETE', 'small-button', `data-id="${r.id}"`)}</div>`).join('') : '<div class="empty">NO SAVED REPLAYS YET.<br>Finish a jump, then choose SAVE REPLAY.<br>Playback supports seeking, slow motion and four cameras.</div>'}<div class="buttons">${btn('import-replay', 'IMPORT REPLAY')}${this.lastReplay ? btn('last-replay', 'LAST JUMP') : ''}${btn('main', 'BACK')}</div><p class="hint">SkiJumpWeb .sjr.json format. Original DSJ2 .rpl files are not compatible.</p>`); }
+    showReplayDetails(id) {
+        const row=this.store.replays().find(r=>r.id===id);if(!row){this.showReplays();return;}
+        this.replaySelection=id;const hill=getHill(row.hillId);
+        this.openMenu('replay-details',row.label||row.name,`<div class="replay-detail"><span>HILL</span><span>: ${esc(hill.name)} K${hill.k}</span><span>PLAYER</span><span>: ${esc(row.name)}</span><span>LENGTH</span><span>: ${row.distance.toFixed(2)} M</span><span>DATE</span><span>: ${esc(row.date.slice(0,10))}</span><span>FORMAT</span><span>: SKIJUMPWEB REPLAY</span></div><div class="replay-detail-actions">${pixelBtn('play-replay','VIEW REPLAY',`data-id="${esc(id)}"`)}${pixelBtn('delete-replay','DELETE REPLAY',`data-id="${esc(id)}"`)}${pixelBtn('replays','BACK')}<div class="replay-detail-tools classic-extensions">${btn('rename-replay','NAME','small-button',`data-id="${esc(id)}"`)}${btn('export-replay','EXPORT','small-button',`data-id="${esc(id)}"`)}</div></div>`);
+    }
     startReplay(replay, back = 'replays') { this.playback = new ReplayPlayer(replay); this.replayBack = back; this.cpu = null; this.setHill(replay.hillId); this.player = replay.player; this.renderer.cameraReady = false; this.hideMenu('replay'); this.audio.update(null, true); $('#replay-speed').value = '1'; $('#replay-play').textContent = 'II'; $('#replay-loop').textContent = 'LOOP ON'; }
     replayAction(action) {
         if (this.playback) {
@@ -3137,9 +3663,9 @@ class SkiJumpApp {
         const select = (key, label, items) => `<label class="field">${label}<select data-setting="${key}">${items.map(([v, n]) => option(v, n, s[key])).join('')}</select></label>`, check = (key, label) => `<label class="check"><input type="checkbox" data-setting="${key}" ${s[key] ? 'checked' : ''}>${label}</label>`;
         this.openMenu('options', 'OPTIONS', `<div class="form-grid">${select('rules', 'JUMPING RULES', [['dsj210', 'DSJ 2.10 DOCUMENTED RULES'], ['legacy', 'SKIJUMPWEB 0.2 LEGACY']])}${select('presentation', 'HUD / PRESENTATION', [['classic', 'ORIGINAL COMPACT HUD'], ['enhanced', 'ENHANCED / GUIDES']])}${select('resolution', 'RESOLUTION', [['classic', 'CLASSIC / 320 x 200'], ['sharp', 'SHARP / 640 x 400'], ['native', 'NATIVE / ADAPTIVE']])}${select('camera', 'CAMERA', [['classic', 'CLASSIC SIDE VIEW'], ['close', 'CLOSE'], ['wide', 'WIDE'], ['chase', 'CHASE']])}${select('control', 'MOUSE CONTROLS', [['modern', 'ONE BUTTON / KEYBOARD'], ['classic', 'CLASSIC / TWO BUTTONS']])}${select('weather', 'WEATHER', [['clear', 'CLEAR'], ['snow', 'SNOW'], ['dusk', 'DUSK'], ['night', 'NIGHT']])}<label class="field">SENSITIVITY <input data-setting="sensitivity" type="range" min=".2" max="3" step=".1" value="${s.sensitivity}"></label><label class="field">SOUND VOLUME <input data-setting="volume" type="range" min="0" max="1" step=".05" value="${s.volume}"></label>${select('difficulty', 'CPU SKILL', [[.45, 'ROOKIE'], [.65, 'CLUB'], [.8, 'EXPERT'], [.96, 'CHAMPION']])}<label class="field">PRACTICE WIND<select data-setting="windBase">${[[null, 'DYNAMIC WIND'], [0, 'CALM'], [1.5, 'HEADWIND +1.5'], [3, 'HEADWIND +3.0'], [-2, 'TAILWIND -2.0']].map(([v, n]) => option(v === null ? 'null' : v, n, s.windBase === null ? 'null' : s.windBase)).join('')}</select></label><label class="field">PRACTICE GATE (-5 HIGHER / +8 LOWER)<input data-setting="gate" type="number" min="-5" max="8" value="${s.gate}"></label>${select('renderer', 'RENDERER (RELOAD REQUIRED)', [['auto', 'WEBGPU / AUTOMATIC FALLBACK'], ['webgl', 'WEBGL2'], ['software', 'SOFTWARE']])}${check('guide', 'TAKEOFF / FLIGHT GUIDES')}${check('assist', 'FLIGHT ASSIST (PRACTICE ONLY)')}${check('ghost', 'PERSONAL-BEST GHOST')}${check('mute', 'MUTE SOUND')}${check('watchCPU', 'WATCH CPU JUMPERS')}${check('haptics', 'TOUCH VIBRATION')}${check('scanlines', 'CRT SCANLINES')}${check('showFPS', 'PERFORMANCE COUNTER')}${check('motion', 'DEVICE TILT (AFTER PERMISSION)')}<div class="field">${btn('motion', 'ENABLE / CALIBRATE TILT')}</div></div><p class="hint">Practice wind, gate and flight-assist overrides do not apply to cup jumps. Portrait resolution adapts to the screen. Audio starts after your first interaction.</p><div class="buttons">${btn('options-back', 'SAVE & BACK', 'small-button primary')}${btn('original-profile', 'DSJ 2.10 PROFILE')}${btn('reset-options', 'DEFAULTS')}${btn('about', 'ABOUT / FIDELITY')}</div>`);
     }
-    applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
+    applySettings() { this.arena.dataset.presentation = this.settings.presentation; this.menuSkin.setActive(this.settings.presentation==='classic'); if(this.settings.presentation==='classic')drawClassicLogo($('#logo'));else drawLogo($('#logo')); this.syncMenuHost(); this.store.saveSettings(this.settings); this.audio.setVolume(this.settings.volume, this.settings.mute); this.input.setOptions(this.settings); this.renderer.setOptions(this.settings); this.arena.classList.toggle('scanline-on', this.settings.scanlines); this.resize(); }
     showHelp(back = 'main') { this.helpBack = back; this.openMenu('help', 'HOW TO JUMP', `<div class="help-grid"><div><h3>1. START / TAKEOFF</h3><p>Click the left button or press <kbd>SPACE</kbd> to start. In the DSJ 2.10 rules profile you have 15 seconds; the green light blinks with 10 seconds remaining. Wait until the jumper reaches the end of the ramp, then press <kbd>SPACE</kbd> again. Timing makes the difference.</p><p>Classic mouse mode: press <strong>both mouse buttons together</strong> for takeoff. Modern mode also accepts a left click.</p><h3>2. FLY</h3><p>Move the mouse gently <strong>down to lean forward</strong>, up to raise the nose. Or use <kbd>UP</kbd> / <kbd>DOWN</kbd>. The optional enhanced HUD provides a balance indicator; the compact HUD does not. Too much lean sacrifices lift.</p></div><div><h3>3. LAND</h3><p>Classic mouse: press left and right together for two feet, or one then the other for telemark. Either order works; the interval changes stance width. Release both buttons after takeoff. An unfinished one-foot landing can fall. <kbd>Z</kbd>/<kbd>X</kbd> remain accessible one-action shortcuts in either profile.</p><h3>TOUCH / MOBILE</h3><p>Tap <strong>START</strong>, then <strong>JUMP</strong> at the lip. Drag up/down on the scene to balance. Tap <strong>TELEMARK</strong> or <strong>TWO FEET</strong> just before touchdown. The separate LEFT / RIGHT pads reproduce the original mouse sequence, including two-thumb takeoff and timed telemark.</p><p>Optional tilt steering is enabled and calibrated in Options. Both portrait and landscape work without restarting the jump.</p></div></div><p class="hint"><kbd>P</kbd> / <kbd>ESC</kbd> pause. <kbd>R</kbd> retry practice. <kbd>C</kbd> camera. <kbd>M</kbd> mute. <kbd>F</kbd> fullscreen. Gamepad: left stick, A to start/jump/telemark, B for two feet, Start to pause.</p><div class="buttons">${btn('help-back', 'BACK', 'small-button primary')}${btn('practice', 'CHOOSE A HILL')}</div>`); }
-    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.4.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
+    showAbout() { this.openMenu('about', 'ABOUT THIS RECREATION', `<div class="help-grid"><div><h3>SKIJUMPWEB 0.5.0</h3><p>An independent implementation of the classic ski-jumping game concept. HTML, JavaScript and an actual WebGPU 3D renderer. WebGL2 and software fallback are included.</p><p>The 32 country labels, K-points and roster order match Mediamond's public DSJ2 hill list. All hills are playable.</p><h3>NEWLY AUTHORED</h3><p>The hill geometry, flight model, skier, scenery, sounds and bitmap glyphs are newly written. No original executable, assets or sound recordings are bundled.</p></div><div><h3>FIDELITY BOUNDARY</h3><p>This is not the original game, an official port, or a verified 1:1 reconstruction. Hill profiles and physics are approximations. Menus and low-resolution 3D presentation recreate the visual style rather than pixel-matching every original screen.</p><p>Original .rpl replays, original save files and Mediamond's online records service are not supported. This build uses its own local records, saves and replays.</p><h3>TECHNICAL</h3><p>120 Hz fixed-step physics. Static batched terrain. GPU snow compute. Procedural Web Audio. Ten reusable npm packages. No runtime downloads, analytics or sign-in.</p></div></div><div class="buttons">${btn('main', 'MAIN MENU')}${btn('export-diagnostics', 'EXPORT DIAGNOSTICS')}</div>`); }
     change(e) {
         if (e.target.id === 'cup-ai') { this.setupAI = Number(e.target.value); return; }
         if (e.target.id === 'tour-name') { this.tour.name = e.target.value.slice(0, 40); return; }
@@ -3179,6 +3705,7 @@ class SkiJumpApp {
             if (k === 'windBase')
                 v = v === 'null' ? null : Number(v);
             this.settings[k] = v;
+            if(k==='presentation'&&this.view==='options'){if(v==='classic')this.buildOptionsTabs();else this.flattenOptionsTabs();}
             this.applySettings();
             if (k === 'renderer')
                 this.toast('Renderer choice saved. Reload the page to switch backend.');
@@ -3188,6 +3715,7 @@ class SkiJumpApp {
         if (this.view === 'players' && !['delete-player'].includes(action))
             this.flushPlayer();
         switch (action) {
+            case 'ui-tab': this.selectOptionsTab(button.dataset.tab); break;
             case 'continue-start-list': await this.proceedTurn(false); break;
             case 'start-list': this.showStartList(); break;
             case 'edit-tour': this.showTourEditor(); break;
@@ -3219,6 +3747,7 @@ class SkiJumpApp {
                 const replay = this.store.ghost(button.dataset.id, !!this.recordsAssisted, this.settings.rules);
                 if (replay) this.startReplay(replay, 'records'); else this.toast('No replay was saved for this record.'); break;
             }
+            case 'replay-details': this.showReplayDetails(button.dataset.id); break;
             case 'rename-replay': {
                 const id = button.dataset.id, row = this.store.replays().find(r => r.id === id);
                 this.openMenu('rename-replay', 'REPLAY NAME', `<label class="field">NAME<input id="replay-name" maxlength="48" value="${esc(row.label || row.name)}"></label><div class="buttons">${btn('confirm-rename-replay', 'SAVE', 'small-button primary', `data-id="${esc(id)}"`)}${btn('replays', 'CANCEL')}</div>`); break;
@@ -3377,6 +3906,8 @@ class SkiJumpApp {
                 this.exportReplay(this.store.loadReplay(button.dataset.id));
                 break;
             case 'delete-replay':
+                this.openMenu('delete-replay','DELETE REPLAY',`<div class="classic-confirm"><p>DELETE THIS SAVED REPLAY?</p><p>Hill records and other replays are preserved.</p><div class="buttons">${btn('replays','CANCEL','small-button primary')}${btn('confirm-delete-replay','DELETE','small-button',`data-id="${esc(button.dataset.id)}"`)}</div></div>`);break;
+            case 'confirm-delete-replay':
                 this.store.deleteReplay(button.dataset.id);
                 this.showReplays();
                 break;
@@ -3420,7 +3951,7 @@ class SkiJumpApp {
                 downloadText('ski-jump-web-cup-results.json', JSON.stringify({ mode: this.cup.mode, history: this.cup.history, standings: this.cup.standings() }, null, 2));
                 break;
             case 'export-diagnostics':
-                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.3.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
+                downloadText('ski-jump-web-diagnostics.json', JSON.stringify({ version: '0.5.0', ...this.renderer.diagnostics(), settings: this.settings, storagePersistent: this.store.persistent, userAgent: navigator.userAgent }, null, 2));
                 break;
         }
     }
@@ -3511,8 +4042,9 @@ class SkiJumpApp {
                 state = this.sim.state;
                 overview = false;
             }
-            const renderNow = !overview || !this.lastMenuFrame || now - this.lastMenuFrame > 100;
-            if (renderNow) {
+            const renderNow = !this.menuSkin.active || this.menu.hidden;
+            const shouldRender = renderNow && (!overview || !this.lastMenuFrame || now - this.lastMenuFrame > 100);
+            if (shouldRender) {
                 this.renderer.render(state, this.player || this.players[0], dt, overview, ghost);
                 if (overview)
                     this.lastMenuFrame = now;

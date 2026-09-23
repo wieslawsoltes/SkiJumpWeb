@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 — 2026-09-23
+
+- Implement a reusable fixed-320×200 classic menu skin across all menu families.
+- Add authored bold bitmap ink, static twin-jump backdrop, consistent frames and cyan selection.
+- Keep real accessible DOM controls, native editing, bitmap value/caret overlays and skinned select popups.
+- Add focus restoration, directional/page/type-ahead navigation and independent mobile navigation/FIT controls.
+- Move browser extensions outside the classic picture, and group all options into compact tabs.
+- Add replay metadata selection and cancelable deletion without losing import/export or rename.
+- Stop rendering the hidden 3D scene behind the classic menu; fix stale public version metadata.
+- Ship all ten packages at 0.5.0 with updated UI declarations and isolated consumer checks.
+- Add owned UI screenshot/behavior regressions and an explicit external-original reference comparator.
+- Original bitmap/photo/glyph identity remains unverified; no original assets are bundled.
+
 ## 0.4.0 — 2026-09-23
 
 - Close inrun shoulders, stepped-fascia joins, undersides and end caps; remove intersecting box caps. Separate landing-wall paint from inrun fascias.

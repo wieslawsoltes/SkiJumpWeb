@@ -42,7 +42,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 0.5999999999767169,
+    "frameMilliseconds": 0,
     "sections": [
       {
         "name": "snow",
@@ -75,7 +75,7 @@
       200
     ],
     "triangles": 45822,
-    "fps": 18,
+    "fps": 0,
     "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,
@@ -86,7 +86,7 @@
     "renderProfile": "classic",
     "hillId": "fin",
     "visualParity": "unverified",
-    "frameMilliseconds": 1,
+    "frameMilliseconds": 2.2000000000116415,
     "sections": [
       {
         "name": "snow",
@@ -119,7 +119,7 @@
       200
     ],
     "triangles": 45822,
-    "fps": 19,
+    "fps": 5,
     "staticBytes": 3299184,
     "deviceLosses": 0,
     "fallbackReason": null,

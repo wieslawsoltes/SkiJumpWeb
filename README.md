@@ -1,4 +1,7 @@
-# SkiJumpWeb — classic ski jumping for the browser
+# SkiJumpWeb 0.5.0
+
+**Classic UI update:** fixed 320×200 menu coordinates, authored bitmap skin, static twin-jump backdrop, keyboard/touch navigation, native form editing, compact settings tabs, and replay metadata/deletion flows. See [Classic UI](docs/CLASSIC-UI.md) for implementation, npm API and exact-original fidelity boundaries.
+
 
 **[Play in your browser](https://wieslawsoltes.github.io/SkiJumpWeb/)** · [Standalone HTML](https://wieslawsoltes.github.io/SkiJumpWeb/SkiJumpWeb.html) · [Source ZIP](https://wieslawsoltes.github.io/SkiJumpWeb/downloads/SkiJumpWeb-source.zip) · [npm packages](https://wieslawsoltes.github.io/SkiJumpWeb/downloads/SkiJumpWeb-npm-packages.zip)
 
